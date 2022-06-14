@@ -28,14 +28,6 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
 	gfx( wnd )
 {
-	std::mt19937 rng( 69 );
-	std::uniform_int_distribution<int> xd( 0,Graphics::ScreenWidth - s.GetWidth() - 1 );
-	std::uniform_int_distribution<int> yd( 0,Graphics::ScreenHeight - s.GetHeight() - 1 );
-
-	for( int i = 0; i < 50; i++ )
-	{
-		positions.push_back( { xd( rng ),yd( rng ) } );
-	}
 }
 
 void Game::Go()
@@ -52,15 +44,5 @@ void Game::UpdateModel()
 
 void Game::ComposeFrame()
 {
-	bencher.Start();
-
-	for( const auto& pos : positions )
-	{
-		gfx.DrawSprite( pos.x,pos.y,s,SpriteEffect::Copy{} );
-	}
-
-	if( bencher.End() )
-	{
-		OutputDebugString( (std::wstring( bencher ) + L"\n").c_str() );
-	}
+	brd.Draw(gfx);
 }
