@@ -75,19 +75,20 @@ namespace SpriteEffect
 	class SolidAlpha
 	{
 	public:
-		SolidAlpha(Color solid, Color chroma)
+		SolidAlpha(Color solid, Color chroma, float alpha)
 			:
 			solid(solid),
-			chroma(chroma)
+			chroma(chroma),
+			alpha(alpha)
 		{}
 		void operator()(Color src, int xDest, int yDest, Graphics& gfx) const
 		{
 			if (src != chroma)
 			{
 				const Color blend = {
-					unsigned char((src.GetR() + solid.GetR()) / 2),
-					unsigned char((src.GetG() + solid.GetG()) / 2),
-					unsigned char((src.GetB() + solid.GetB()) / 2)
+					unsigned char((1.0f - alpha)*src.GetR() + alpha*solid.GetR()),
+					unsigned char((1.0f - alpha)*src.GetG() + alpha*solid.GetG()),
+					unsigned char((1.0f - alpha)*src.GetB() + alpha*solid.GetB())
 				};
 				gfx.PutPixel(xDest, yDest, blend);
 
@@ -96,5 +97,6 @@ namespace SpriteEffect
 	private:
 		Color solid;
 		Color chroma;
+		float alpha;
 	};
 }

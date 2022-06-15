@@ -6,6 +6,15 @@ Piece::Piece(Team t, const Surface& surf)
 	s(surf)
 {}
 
+bool Piece::IsCroissant() const
+{
+	return false;
+}
+
+void Piece::Update(int y)
+{
+}
+
 Piece::Team Piece::GetTeam() const
 {
 	return team;
@@ -27,6 +36,23 @@ void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
 	{
 		gfx.DrawSprite(loc.x, loc.y, { 147,177,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
 	}
+}
+
+bool Pawn::IsCroissant() const
+{
+	return isEnCroissantable;
+}
+
+void Pawn::Update(int y)
+{
+	yPos = y;
+	numMoves++;
+	if (numMoves == 1 && (yPos == 4 || yPos == 3))
+	{
+		isEnCroissantable = true;
+	}
+	else
+		isEnCroissantable = false;
 }
 
 Bishop::Bishop(Team t, const Surface& surf)
@@ -82,6 +108,7 @@ void Rook::Draw(Graphics& gfx, const Vei2& loc) const
 		gfx.DrawSprite(loc.x, loc.y, { 60,90,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
 	}
 }
+
 Queen::Queen(Team t, const Surface& surf)
 	:
 	Piece(t, surf)
@@ -117,3 +144,4 @@ void King::Draw(Graphics& gfx, const Vei2& loc) const
 		gfx.DrawSprite(loc.x, loc.y, { 0,30,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
 	}
 }
+

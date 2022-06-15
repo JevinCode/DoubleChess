@@ -5,6 +5,7 @@
 #include "Graphics.h"
 #include <memory>
 #include "Piece.h"
+#include <typeinfo>
 
 class ChessBoard
 {
@@ -28,7 +29,8 @@ public:
 		BLACK_QUEEN,
 		WHITE_QUEEN,
 		BLACK_KING,
-		WHITE_KING
+		WHITE_KING,
+		NONE
 	};
 private:
 	class Cell
@@ -39,30 +41,42 @@ private:
 			LIGHT,
 			DARK
 		};
+		enum class HighlightType
+		{
+			BLUE,
+			YELLOW,
+			RED,
+			NONE
+		};
 		Cell(Cell::Shade s, const Vei2& loc, const Surface& surf);
 		bool Empty() const;
 		void DrawCell(Graphics& gfx, const Vei2& offset);
-		void GivePiece(const Pieces p);
-		void Highlight();
+		void GivePiece(const Pieces p, std::unique_ptr<Piece> peace);
+		ChessBoard::Pieces OnClick();
 		void ReleaseHighlight();
+		void Highlight(const HighlightType h);
+		void Clear();
 	private:
 		Shade shade;
 		static constexpr int dimension = 30;
 		const Vei2 loc;
 		const Surface& s;
-		std::shared_ptr<Piece> piece = nullptr;
-		bool isHighlighted = false;
+		std::unique_ptr<Piece> piece;
+		ChessBoard::Pieces p = ChessBoard::Pieces::NONE;
+		HighlightType highlight = HighlightType::NONE;
 		friend class ChessBoard;
 	};
 	//member functions
 	void ReleaseHighlights();
+	bool IsValidLoc(const Vei2& loc) const;
+	std::vector<std::pair<Vei2,Cell::HighlightType>> GetValidMoves(const Vei2& loc, const Pieces p) const;
+
 	//member data
 	Surface sPieces = "Images\\chess_pieces.bmp";
 	Surface tiles = "Images\\tiles.bmp";
 	Vei2 topLeft = { 30,30 };
 	std::unique_ptr<Cell> cells[64];
-	inline static std::shared_ptr<Piece> pieces[12];
-	friend class Piece;
+	//std::unique_ptr<Piece> pieces[32];
 public:
 	static constexpr int boardSize = 8 * Cell::dimension;
 	static constexpr int cellSize = Cell::dimension;

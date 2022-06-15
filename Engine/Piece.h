@@ -11,6 +11,8 @@ public:
 	};
 	Piece(Team t, const Surface& surf);
 	virtual void Draw(Graphics& gfx, const Vei2& loc) const = 0;
+	virtual bool IsCroissant() const;
+	virtual void Update(int y);
 	Team GetTeam() const;
 private:
 	Team team;
@@ -23,6 +25,12 @@ class Pawn : public Piece
 public:
 	Pawn(Team t, const Surface& surf);
 	void Draw(Graphics& gfx, const Vei2& loc) const override;
+	bool IsCroissant() const;
+	void Update(int y);
+private:
+	int numMoves = 0;
+	int yPos = -1;
+	bool isEnCroissantable = false;
 };
 
 class Bishop : public Piece
