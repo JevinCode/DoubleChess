@@ -51,14 +51,14 @@ ChessBoard::ChessBoard()
 	cells[LinearizeCoords({ 6,7 })]->piece = std::make_unique<Knight>(Piece::Team::WHITE, sPieces);
 	cells[LinearizeCoords({ 7,7 })]->piece = std::make_unique<Rook>(Piece::Team::WHITE, sPieces);
 
-	cells[LinearizeCoords({ 0,0 })]->p = Pieces::WHITE_ROOK;
-	cells[LinearizeCoords({ 1,0 })]->p = Pieces::WHITE_KNIGHT;
-	cells[LinearizeCoords({ 2,0 })]->p = Pieces::WHITE_BISHOP;
-	cells[LinearizeCoords({ 3,0 })]->p = Pieces::WHITE_QUEEN;
-	cells[LinearizeCoords({ 4,0 })]->p = Pieces::WHITE_KING;
-	cells[LinearizeCoords({ 5,0 })]->p = Pieces::WHITE_BISHOP;
-	cells[LinearizeCoords({ 6,0 })]->p = Pieces::WHITE_KNIGHT;
-	cells[LinearizeCoords({ 7,0 })]->p = Pieces::WHITE_ROOK;
+	cells[LinearizeCoords({ 0,7 })]->p = Pieces::WHITE_ROOK;
+	cells[LinearizeCoords({ 1,7 })]->p = Pieces::WHITE_KNIGHT;
+	cells[LinearizeCoords({ 2,7 })]->p = Pieces::WHITE_BISHOP;
+	cells[LinearizeCoords({ 3,7 })]->p = Pieces::WHITE_QUEEN;
+	cells[LinearizeCoords({ 4,7 })]->p = Pieces::WHITE_KING;
+	cells[LinearizeCoords({ 5,7 })]->p = Pieces::WHITE_BISHOP;
+	cells[LinearizeCoords({ 6,7 })]->p = Pieces::WHITE_KNIGHT;
+	cells[LinearizeCoords({ 7,7 })]->p = Pieces::WHITE_ROOK;
 	
 }
 
@@ -217,7 +217,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			x = loc.x + 1;
@@ -232,7 +232,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			int y = loc.y - 1;
@@ -247,7 +247,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			y = loc.y + 1;
@@ -262,7 +262,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -281,7 +281,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			x = loc.x + 1;
@@ -296,7 +296,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			int y = loc.y - 1;
@@ -311,7 +311,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			y = loc.y + 1;
@@ -326,7 +326,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -345,7 +345,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y - 1 };
@@ -360,7 +360,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x + 1, loc.y + 1 };
@@ -375,7 +375,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y + 1 };
@@ -390,7 +390,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -407,9 +407,9 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 					pos += {1, -1};
 					continue;
 				}
-				if (cells[LinearizeCoords(pos)]->piece->GetTeam() == Piece::Team::WHITE)
+				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y - 1 };
@@ -422,9 +422,9 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 					pos += {-1, -1};
 					continue;
 				}
-				if (cells[LinearizeCoords(pos)]->piece->GetTeam() == Piece::Team::WHITE)
+				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x + 1, loc.y + 1 };
@@ -437,9 +437,9 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 					pos += {1, 1};
 					continue;
 				}
-				if (cells[LinearizeCoords(pos)]->piece->GetTeam() == Piece::Team::WHITE)
+				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y + 1 };
@@ -452,9 +452,9 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 					pos += {-1, 1};
 					continue;
 				}
-				if (cells[LinearizeCoords(pos)]->piece->GetTeam() == Piece::Team::WHITE)
+				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -473,7 +473,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			x = loc.x + 1;
@@ -488,7 +488,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			int y = loc.y - 1;
@@ -503,7 +503,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			y = loc.y + 1;
@@ -518,7 +518,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			Vei2 pos = { loc.x + 1, loc.y - 1 };
@@ -533,7 +533,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y - 1 };
@@ -548,7 +548,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x + 1, loc.y + 1 };
@@ -563,7 +563,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y + 1 };
@@ -578,7 +578,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::BLACK)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -597,7 +597,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			x = loc.x + 1;
@@ -612,7 +612,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ x,loc.y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ x,loc.y },Cell::HighlightType::RED});
 				break;
 			}
 			int y = loc.y - 1;
@@ -627,7 +627,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			y = loc.y + 1;
@@ -642,7 +642,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({{ loc.x,y },Cell::HighlightType::YELLOW});
+				ans.push_back({{ loc.x,y },Cell::HighlightType::RED});
 				break;
 			}
 			Vei2 pos = { loc.x + 1, loc.y - 1 };
@@ -657,7 +657,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y - 1 };
@@ -672,7 +672,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x + 1, loc.y + 1 };
@@ -687,7 +687,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			pos = { loc.x - 1, loc.y + 1 };
@@ -702,7 +702,7 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 				}
 				if (cells[i]->piece->GetTeam() == Piece::Team::WHITE)
 					break;
-				ans.push_back({pos,Cell::HighlightType::YELLOW});
+				ans.push_back({pos,Cell::HighlightType::RED});
 				break;
 			}
 			break;
@@ -712,8 +712,13 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 			std::vector<Vei2> moves = { {loc.x - 1, loc.y}, {loc.x - 1, loc.y - 1}, {loc.x - 1, loc.y + 1}, {loc.x, loc.y - 1}, {loc.x, loc.y + 1}, {loc.x + 1, loc.y + 1}, {loc.x + 1, loc.y}, {loc.x + 1, loc.y - 1} };
 			for (const auto& move : moves)
 			{
-				if (IsValidLoc(move) && (cells[LinearizeCoords(loc)]->Empty() || cells[LinearizeCoords(loc)]->piece->GetTeam() == Piece::Team::WHITE))
-					ans.push_back({move,Cell::HighlightType::YELLOW});
+				if (IsValidLoc(move))
+				{
+					if (cells[LinearizeCoords(move)]->Empty())
+						ans.push_back({ move,Cell::HighlightType::YELLOW });
+					else if (cells[LinearizeCoords(move)]->piece->GetTeam() == Piece::Team::WHITE)
+						ans.push_back({ move,Cell::HighlightType::RED });
+				}
 			}
 			break;
 		}
@@ -722,8 +727,13 @@ std::vector<std::pair<Vei2,ChessBoard::Cell::HighlightType>> ChessBoard::GetVali
 			std::vector<Vei2> moves = { {loc.x - 1, loc.y}, {loc.x - 1, loc.y - 1}, {loc.x - 1, loc.y + 1}, {loc.x, loc.y - 1}, {loc.x, loc.y + 1}, {loc.x + 1, loc.y + 1}, {loc.x + 1, loc.y}, {loc.x + 1, loc.y - 1} };
 			for (const auto& move : moves)
 			{
-				if (IsValidLoc(move) && (cells[LinearizeCoords(loc)]->Empty() || cells[LinearizeCoords(loc)]->piece->GetTeam() == Piece::Team::BLACK))
-					ans.push_back({move,Cell::HighlightType::YELLOW});
+				if (IsValidLoc(move))
+				{
+					if (cells[LinearizeCoords(move)]->Empty())
+						ans.push_back({ move,Cell::HighlightType::YELLOW });
+					else if (cells[LinearizeCoords(move)]->piece->GetTeam() == Piece::Team::BLACK)
+						ans.push_back({ move,Cell::HighlightType::RED });
+				}
 			}
 			break;
 		}
