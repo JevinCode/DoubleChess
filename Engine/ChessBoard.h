@@ -4,65 +4,7 @@
 #include "Surface.h"
 #include "Graphics.h"
 #include <memory>
-
-class Piece
-{
-public:
-	enum class Team
-	{
-		WHITE,
-		BLACK
-	};
-	Piece(Team t, const Surface& surf);
-	virtual void Draw(Graphics& gfx, const Vei2& loc) const = 0;
-	Team GetTeam() const;
-private:
-	Team team;
-protected:
-	const Surface& s;
-};
-
-class Pawn : public Piece
-{
-public:
-	Pawn(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
-
-class Bishop : public Piece
-{
-public:
-	Bishop(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
-
-class Knight : public Piece
-{
-public:
-	Knight(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
-
-class Rook : public Piece
-{
-public:
-	Rook(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
-
-class Queen : public Piece
-{
-public:
-	Queen(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
-
-class King : public Piece
-{
-public:
-	King(Team t, const Surface& surf);
-	void Draw(Graphics& gfx, const Vei2& loc) const override;
-};
+#include "Piece.h"
 
 class ChessBoard
 {
@@ -71,6 +13,8 @@ public:
 	void Draw(Graphics& gfx) const;
 	static int LinearizeCoords(const Vei2& loc);
 	static Vei2 Dimensify(int loc);
+	Vei2 GetOffset() const;
+	void OnClick(const Vei2& loc);
 	enum class Pieces
 	{
 		BLACK_PAWN,
@@ -99,13 +43,19 @@ private:
 		bool Empty() const;
 		void DrawCell(Graphics& gfx, const Vei2& offset);
 		void GivePiece(const Pieces p);
+		void Highlight();
+		void ReleaseHighlight();
 	private:
 		Shade shade;
 		static constexpr int dimension = 30;
 		const Vei2 loc;
 		const Surface& s;
 		std::shared_ptr<Piece> piece = nullptr;
+		bool isHighlighted = false;
+		friend class ChessBoard;
 	};
+	//member functions
+	void ReleaseHighlights();
 	//member data
 	Surface sPieces = "Images\\chess_pieces.bmp";
 	Surface tiles = "Images\\tiles.bmp";
@@ -113,4 +63,7 @@ private:
 	std::unique_ptr<Cell> cells[64];
 	inline static std::shared_ptr<Piece> pieces[12];
 	friend class Piece;
+public:
+	static constexpr int boardSize = 8 * Cell::dimension;
+	static constexpr int cellSize = Cell::dimension;
 };

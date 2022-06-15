@@ -40,6 +40,34 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+	while (!wnd.mouse.IsEmpty())
+	{
+		const auto e = wnd.mouse.Read();
+		if (e.GetType() == Mouse::Event::Type::LPress)
+		{
+			Vei2 loc = wnd.mouse.GetPos();
+			OnClick(loc);
+		}
+	}
+}
+
+Vei2 Game::MapToCell(const Vei2& loc)
+{
+	//if we click outside of the board, return a dummy value
+	if (loc.x < brd.GetOffset().x || loc.x > brd.GetOffset().x + ChessBoard::boardSize || loc.y < brd.GetOffset().y || loc.y > brd.GetOffset().y + ChessBoard::boardSize)
+		return { 799,599 };
+	int xDest = (loc.x - brd.GetOffset().x) / ChessBoard::cellSize;
+	int yDest = (loc.y - brd.GetOffset().y) / ChessBoard::cellSize;
+	return {xDest,yDest};
+}
+
+void Game::OnClick(const Vei2& loc)
+{
+	auto gridPos = MapToCell(loc);
+	if (gridPos.x < 700)
+	{
+		brd.OnClick(gridPos);
+	}
 }
 
 void Game::ComposeFrame()

@@ -72,4 +72,29 @@ namespace SpriteEffect
 	private:
 		Color chroma;
 	};
+	class SolidAlpha
+	{
+	public:
+		SolidAlpha(Color solid, Color chroma)
+			:
+			solid(solid),
+			chroma(chroma)
+		{}
+		void operator()(Color src, int xDest, int yDest, Graphics& gfx) const
+		{
+			if (src != chroma)
+			{
+				const Color blend = {
+					unsigned char((src.GetR() + solid.GetR()) / 2),
+					unsigned char((src.GetG() + solid.GetG()) / 2),
+					unsigned char((src.GetB() + solid.GetB()) / 2)
+				};
+				gfx.PutPixel(xDest, yDest, blend);
+
+			}
+		}
+	private:
+		Color solid;
+		Color chroma;
+	};
 }

@@ -74,6 +74,37 @@ Vei2 ChessBoard::Dimensify(int loc)
 	return { loc % 8, loc / 8 };
 }
 
+Vei2 ChessBoard::GetOffset() const
+{
+	return topLeft;
+}
+
+void ChessBoard::ReleaseHighlights()
+{
+	for (auto& c : cells)
+	{
+		c->ReleaseHighlight();
+	}
+}
+void ChessBoard::OnClick(const Vei2& loc)
+{
+	ReleaseHighlights();
+	int coord = LinearizeCoords(loc);
+	if (!cells[coord]->Empty())
+	{
+		cells[coord]->Highlight();
+	}
+}
+
+void ChessBoard::Cell::Highlight()
+{
+	isHighlighted = true;
+}
+
+void ChessBoard::Cell::ReleaseHighlight()
+{
+	isHighlighted = false;
+}
 
 ChessBoard::Cell::Cell(Cell::Shade s, const Vei2& loc, const Surface& surf)
 	:
@@ -93,7 +124,11 @@ void ChessBoard::Cell::DrawCell(Graphics& gfx, const Vei2& offset)
 {
 	int xDest = loc.x * dimension + offset.x;
 	int yDest = loc.y * dimension + offset.y;
-	if (shade == Shade::DARK)
+	if (isHighlighted)
+	{
+		gfx.DrawSprite(xDest, yDest, { 0,30,0,30 }, s, SpriteEffect::Substitution{ Colors::Magenta, Colors::Blue });
+	}
+	else if (shade == Shade::DARK)
 	{
 		gfx.DrawSprite(xDest, yDest, { 0,30,0,30 }, s, SpriteEffect::Chroma{ Colors::Magenta });
 	}
@@ -112,120 +147,3 @@ void ChessBoard::Cell::GivePiece(const Pieces p)
 	piece = pieces[(int)p];
 }
 
-Piece::Piece(Team t, const Surface& surf)
-	:
-	team(t),
-	s(surf)
-{}
-
-Piece::Team Piece::GetTeam() const
-{
-	return team;
-}
-
-Pawn::Pawn(Team t, const Surface& surf)
-	:
-	Piece(t,surf)
-{}
-
-void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 147,177,3,33 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 147,177,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}
-
-Bishop::Bishop(Team t, const Surface& surf)
-	:
-	Piece(t, surf)
-{}
-
-void Bishop::Draw(Graphics& gfx, const Vei2& loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 89,119,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 90,120,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}
-
-Knight::Knight(Team t, const Surface& surf)
-	:
-	Piece(t, surf)
-{}
-
-void Knight::Draw(Graphics & gfx, const Vei2 & loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 120,150,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 120,150,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}
-
-Rook::Rook(Team t, const Surface& surf)
-	:
-	Piece(t, surf)
-{}
-
-void Rook::Draw(Graphics& gfx, const Vei2& loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 60,90,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 60,90,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}
-Queen::Queen(Team t, const Surface & surf)
-	:
-	Piece(t, surf)
-{}
-
-void Queen::Draw(Graphics& gfx, const Vei2& loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 30,60,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 30,60,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}
-
-King::King(Team t, const Surface& surf)
-	:
-	Piece(t, surf)
-{}
-
-void King::Draw(Graphics& gfx, const Vei2& loc) const
-{
-	auto team = this->GetTeam();
-	if (team == Team::BLACK)
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 0,30,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-	else
-	{
-		gfx.DrawSprite(loc.x, loc.y, { 0,30,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
-	}
-}

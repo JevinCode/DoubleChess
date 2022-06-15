@@ -39,6 +39,8 @@ private:
 	/********************************/
 	/*  User Functions              */
 	/********************************/
+	Vei2 MapToCell(const Vei2& loc);
+	void OnClick(const Vei2& loc);
 private:
 	MainWindow& wnd;
 	Graphics gfx;
