@@ -1,28 +1,41 @@
 #include "Piece.h"
 
-Piece::Piece(Team t, const Surface& surf)
+Piece::Piece(Team t, const Surface& surf, const Vei2& pos)
 	:
-	team(t),
-	s(surf)
+team(t),
+s(surf),
+pos(pos)
 {}
 
 bool Piece::IsCroissant() const
 {
-	return false;
+	return isEnCroissantable;
 }
 
-void Piece::Update(int y)
+void Piece::Update(const Vei2& loc)
 {
+	SetPosition(loc);
+	isEnCroissantable = false;
 }
 
-Piece::Team Piece::GetTeam() const
+const Vei2& Piece::GetPosition() const
+{
+	return pos;
+}
+
+void Piece::SetPosition(const Vei2& loc)
+{
+	this->pos = loc;
+}
+
+Team Piece::GetTeam() const
 {
 	return team;
 }
 
-Pawn::Pawn(Team t, const Surface& surf)
+Pawn::Pawn(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
@@ -38,26 +51,33 @@ void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-bool Pawn::IsCroissant() const
+const Vei2& Piece::GetEnCroissantSquare() const
 {
-	return isEnCroissantable;
+		return EnCroissantSquare;
 }
 
-void Pawn::Update(int y)
+const Vei2& Piece::GetEnCroissantPawnLoc() const
 {
-	yPos = y;
+	return EnCroissantPawn;
+}
+
+void Pawn::Update(const Vei2& loc)
+{
+	SetPosition(loc);
 	numMoves++;
-	if (numMoves == 1 && (yPos == 4 || yPos == 3))
+	if (numMoves == 1 && (pos.y == 4 || pos.y == 3))
 	{
 		isEnCroissantable = true;
+		EnCroissantSquare = this->GetTeam() == Team::WHITE ? loc + Vei2{0, 1} : loc + Vei2{ 0,-1 };
+		EnCroissantPawn = loc;
 	}
 	else
 		isEnCroissantable = false;
 }
 
-Bishop::Bishop(Team t, const Surface& surf)
+Bishop::Bishop(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void Bishop::Draw(Graphics& gfx, const Vei2& loc) const
@@ -73,9 +93,9 @@ void Bishop::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-Knight::Knight(Team t, const Surface& surf)
+Knight::Knight(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void Knight::Draw(Graphics& gfx, const Vei2& loc) const
@@ -91,9 +111,9 @@ void Knight::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-Rook::Rook(Team t, const Surface& surf)
+Rook::Rook(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void Rook::Draw(Graphics& gfx, const Vei2& loc) const
@@ -109,9 +129,9 @@ void Rook::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-Queen::Queen(Team t, const Surface& surf)
+Queen::Queen(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void Queen::Draw(Graphics& gfx, const Vei2& loc) const
@@ -127,9 +147,9 @@ void Queen::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-King::King(Team t, const Surface& surf)
+King::King(Team t, const Surface& surf, const Vei2& loc)
 	:
-	Piece(t, surf)
+	Piece(t, surf, loc)
 {}
 
 void King::Draw(Graphics& gfx, const Vei2& loc) const
