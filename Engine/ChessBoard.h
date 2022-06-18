@@ -6,6 +6,12 @@
 #include <memory>
 #include "Piece.h"
 #include <typeinfo>
+#include "Pawn.h"
+#include "Knight.h"
+#include "Bishop.h"
+#include "Rook.h"
+#include "King.h"
+#include "Queen.h"
 
 class ChessBoard
 {
@@ -33,39 +39,6 @@ public:
 		NONE
 	};
 private:
-	class Cell
-	{
-	public:
-		enum class Shade
-		{
-			LIGHT,
-			DARK
-		};
-		enum class HighlightType
-		{
-			BLUE,
-			YELLOW,
-			RED,
-			NONE
-		};
-		Cell(Cell::Shade s, const Vei2& loc, const Surface& surf);
-		bool Empty() const;
-		void DrawCell(Graphics& gfx, const Vei2& offset);
-		void GivePiece(std::unique_ptr<Piece> peace);
-		ChessBoard::Pieces OnClick(Team PlayerTurn);
-		void ReleaseHighlight();
-		void Highlight(const HighlightType h);
-		void Clear();
-	private:
-		const Shade shade;
-		static constexpr int dimension = 30;
-		const Vei2 loc;
-		const Surface& s;
-		std::unique_ptr<Piece> piece;
-		ChessBoard::Pieces p = ChessBoard::Pieces::NONE;
-		HighlightType highlight = HighlightType::NONE;
-		friend class ChessBoard;
-	};
 	//member functions
 	void ReleaseHighlights();
 	bool IsValidLoc(const Vei2& loc) const;

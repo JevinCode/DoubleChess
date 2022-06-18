@@ -760,7 +760,6 @@ void ChessBoard::OnClick(const Vei2& loc)
 	{
 		int i = LinearizeCoords(cellPreviouslyHighlighted);
 		Move(std::move(cells[i]->piece), loc);
-		//if(pace == Pieces::WHITE_PAWN)
 		cells[i]->Clear();
 		ReleaseHighlights();
 		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
