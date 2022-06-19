@@ -1,7 +1,7 @@
 #pragma once
-#include "Vec2.h"
 #include "Graphics.h"
-#include "ChessBoard.h"
+#include "Piece.h"
+#include <memory>
 
 
 class Cell
@@ -19,21 +19,22 @@ public:
 		RED,
 		NONE
 	};
-	Cell(Cell::Shade s, const Vei2& loc, const Surface& surf);
+	Cell(Cell::Shade s, const Vei2& loc);
+	Cell(Cell::Shade s, const Vei2& loc, std::shared_ptr<Piece> p);
 	bool Empty() const;
 	void DrawCell(Graphics& gfx, const Vei2& offset);
-	void GivePiece(std::unique_ptr<Piece> peace);
-	ChessBoard::Pieces OnClick(Team PlayerTurn);
+	void GivePiece(std::shared_ptr<Piece> peace);
+	std::shared_ptr<Piece> OnClick(Team PlayerTurn);
 	void ReleaseHighlight();
 	void Highlight(const HighlightType h);
+	HighlightType GetHighlight() const;
 	void Clear();
+	std::shared_ptr<Piece> GetPiece() const;
 private:
 	const Shade shade;
 	static constexpr int dimension = 30;
 	const Vei2 loc;
-	const Surface& s;
-	std::unique_ptr<Piece> piece;
-	ChessBoard::Pieces p = ChessBoard::Pieces::NONE;
+	inline static Surface s = "Images\\tiles.bmp";
+	std::shared_ptr<Piece> piece = nullptr;
 	HighlightType highlight = HighlightType::NONE;
-	friend class ChessBoard;
 };

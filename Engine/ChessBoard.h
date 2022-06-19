@@ -1,7 +1,4 @@
 #pragma once
-#include "Vec2.h"
-#include <vector>
-#include "Surface.h"
 #include "Graphics.h"
 #include <memory>
 #include "Piece.h"
@@ -22,38 +19,26 @@ public:
 	static Vei2 Dimensify(int loc);
 	Vei2 GetOffset() const;
 	void OnClick(const Vei2& loc);
-	enum class Pieces
-	{
-		BLACK_PAWN,
-		WHITE_PAWN,
-		BLACK_BISHOP,
-		WHITE_BISHOP,
-		BLACK_KNIGHT,
-		WHITE_KNIGHT,
-		BLACK_ROOK,
-		WHITE_ROOK,
-		BLACK_QUEEN,
-		WHITE_QUEEN,
-		BLACK_KING,
-		WHITE_KING,
-		NONE
-	};
+	std::shared_ptr<Cell> CellAt(const Vei2& loc);
+	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
 private:
 	//member functions
 	void ReleaseHighlights();
 	bool IsValidLoc(const Vei2& loc) const;
-	std::vector<std::pair<Vei2,Cell::HighlightType>> GetValidMoves(const Vei2& loc, const Pieces p) const;
-	void Move(std::unique_ptr<Piece> piece, const Vei2& loc);
-
+	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
+	void Move(std::shared_ptr<Cell> cell, const Vei2& loc);
+	bool IsWhiteInCheck() const;
+	bool IsBlackInCheck() const;
+	bool SimulateAndCheck(std::shared_ptr<Cell> cell, const Vei2& loc);
+	std::vector<Vei2> GetValidMoves(const Vei2& loc);
 	//member data
 	Team PlayerTurn = Team::WHITE;
 	Vei2 EnCroissantSquare = { 0,0 };
 	Vei2 cellPreviouslyHighlighted = { 0,6 };
 	Surface sPieces = "Images\\chess_pieces.bmp";
-	Surface tiles = "Images\\tiles.bmp";
 	Vei2 topLeft = { 30,30 };
-	std::unique_ptr<Cell> cells[64];
+	std::shared_ptr<Cell> cells[64];
 public:
-	static constexpr int boardSize = 8 * Cell::dimension;
-	static constexpr int cellSize = Cell::dimension;
+	static constexpr int cellSize = 30;
+	static constexpr int boardSize = 8 * cellSize;
 };

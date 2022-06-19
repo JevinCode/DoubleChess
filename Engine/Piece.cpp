@@ -1,16 +1,10 @@
 #include "Piece.h"
 
-Piece::Piece(Team t, const Surface& surf, const Vei2& pos)
+Piece::Piece(Team t, const Vei2& pos)
 	:
 team(t),
-s(surf),
 pos(pos)
 {}
-
-bool Piece::IsCroissant() const
-{
-	return isEnCroissantable;
-}
 
 void Piece::Update(const Vei2& loc)
 {
@@ -33,19 +27,9 @@ Team Piece::GetTeam() const
 	return team;
 }
 
-bool Piece::IsValidLoc(const Vei2& loc)
+bool Piece::IsValidLoc(const Vei2& loc) const
 {
 	return { loc.x >= 0 && loc.y >= 0 && loc.x < 8 && loc.y < 8 };
-}
-
-const Vei2& Piece::GetEnCroissantSquare() const
-{
-		return EnCroissantSquare;
-}
-
-const Vei2& Piece::GetEnCroissantPawnLoc() const
-{
-	return EnCroissantPawn;
 }
 
 

@@ -1,8 +1,10 @@
 #include "Knight.h"
+#include "Cell.h"
+#include "ChessBoard.h"
 
-Knight::Knight(Team t, const Surface& surf, const Vei2& loc)
+Knight::Knight(Team t, const Vei2& loc)
 	:
-	Piece(t, surf, loc)
+	Piece(t, loc)
 {
 }
 
@@ -19,7 +21,7 @@ void Knight::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-std::vector<Vei2> Knight::GetLegalMoves()
+std::vector<Vei2> Knight::GetPossibleMoves(const ChessBoard& brd) const
 {
 	std::vector<Vei2> Moves;
 	for (const auto& offset : moveOffsets)
@@ -27,7 +29,26 @@ std::vector<Vei2> Knight::GetLegalMoves()
 		auto loc = pos + offset;
 		if (IsValidLoc(loc))
 		{
-
+			auto c = brd.CellAt(loc);
+			if(c->Empty() || c->GetPiece()->GetTeam() != team)
+				Moves.push_back(loc);
 		}
 	}
+	return Moves;
+}
+
+std::vector<Vei2> Knight::GetPossibleAttackMoves(const ChessBoard& brd) const
+{
+	std::vector<Vei2> Moves;
+	for (const auto& offset : moveOffsets)
+	{
+		auto loc = pos + offset;
+		if (IsValidLoc(loc))
+		{
+			auto c = brd.CellAt(loc);
+			if (!c->Empty() && c->GetPiece()->GetTeam() != team)
+				Moves.push_back(loc);
+		}
+	}
+	return Moves;
 }

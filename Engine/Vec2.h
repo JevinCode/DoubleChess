@@ -22,6 +22,10 @@ public:
 	{
 		return x == rhs.x && y == rhs.y;
 	}
+	bool operator!=(const Vec2_& rhs) const
+	{
+		return !(*this == rhs);
+	}
 	Vec2_ operator+( const Vec2_& rhs ) const
 	{
 		return Vec2_( x + rhs.x,y + rhs.y );
