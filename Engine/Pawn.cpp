@@ -32,6 +32,7 @@ void Pawn::Update(const Vei2& loc)
 	}
 	else
 		isEnCroissantable = false;
+	hasMoved = true;
 }
 
 std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const

@@ -51,3 +51,4 @@ std::vector<Vei2> King::GetPossibleAttackMoves(const ChessBoard& brd) const
 	}
 	return ans;
 }
+

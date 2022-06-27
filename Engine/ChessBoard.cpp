@@ -101,11 +101,35 @@ void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
 	auto destCell = CellAt(loc);
 	destCell->GivePiece(src->GetPiece());
 	src->Clear();
+	auto p = destCell->GetPiece();
 	if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && typeid(*destCell->GetPiece()) == typeid(Pawn))
 	{
 		CellAt(Piece::GetEnCroissantPawnLoc())->Clear();
 	}
-	destCell->GetPiece()->Update(loc);
+	else if (typeid(*p) == typeid(King) && !p->HasMoved())
+	{
+		if (loc == Vei2{ 6,7 })
+		{
+			hasCastledWhite = true;
+			Move(CellAt({ 7,7 }), { 5,7 });
+		}
+		else if (loc == Vei2{ 2,7 })
+		{
+			hasCastledWhite = true;
+			Move(CellAt({ 0,7 }), { 3,7 });
+		}
+		else if (loc == Vei2{ 6,0 })
+		{
+			hasCastledBlack = true;
+			Move(CellAt({ 7,0 }), { 5,0 });
+		}
+		else if (loc == Vei2{ 2,0 })
+		{
+			hasCastledBlack = true;
+			Move(CellAt({ 0,0 }), { 3,0 });
+		}
+	}
+	p->Update(loc);
 }
 
 bool ChessBoard::IsWhiteInCheck() const
@@ -191,7 +215,99 @@ std::vector<Vei2> ChessBoard::GetValidMoves(const Vei2& loc)
 		if (!SimulateAndCheck(CellAt(loc), move))
 			ans.push_back(move);
 	}
+	if (loc == Vei2{4, 0})
+	{
+		if (CanCastleKingside(Team::BLACK))
+			ans.push_back({ 6,0 });
+		if (CanCastleQueenside(Team::BLACK))
+			ans.push_back({ 2,0 });
+	}
+	if (loc == Vei2{ 4,7 })
+	{
+		if (CanCastleKingside(Team::WHITE))
+			ans.push_back({ 6,7 });
+		if (CanCastleQueenside(Team::WHITE))
+			ans.push_back({ 2,7 });
+	}
 	return ans;
+}
+
+bool ChessBoard::IsUnderAttack(Team t, const Vei2& loc) const
+{
+	for (const auto& cell : cells)
+	{
+		if (!cell->Empty())
+		{
+			auto piece = cell->GetPiece();
+			if (piece->GetTeam() != t)
+			{
+				auto attackMoves = piece->GetPossibleAttackMoves(*this);
+				for (const auto& l : attackMoves)
+				{
+					if (l == loc)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool ChessBoard::CanCastleKingside(Team t) const
+{
+	if (t == Team::WHITE)
+	{
+		if (hasCastledWhite)
+			return false;
+		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 7,7 })->Empty())
+		{
+			auto k = CellAt({ 4,7 })->GetPiece();
+			auto r = CellAt({ 7,7 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,7 })->Empty() && CellAt({ 6,7 })->Empty() && !IsUnderAttack(t, { 5,7 }) && !IsUnderAttack(t, { 6,7 }) && !IsWhiteInCheck())
+				return true;
+		}
+	}
+	else
+	{
+		if (hasCastledBlack)
+			return false;
+		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 7,0 })->Empty())
+		{
+			auto k = CellAt({ 4,0 })->GetPiece();
+			auto r = CellAt({ 7,0 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,0 })->Empty() && CellAt({ 6,0 })->Empty() && !IsUnderAttack(t, { 5,0 }) && !IsUnderAttack(t, { 6,0 }) && !IsBlackInCheck())
+				return true;
+		}
+	}
+	return false;
+}
+bool ChessBoard::CanCastleQueenside(Team t) const
+{
+	if (t == Team::WHITE)
+	{
+		if (hasCastledWhite)
+			return false;
+		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 0,7 })->Empty())
+		{
+			auto k = CellAt({ 4,7 })->GetPiece();
+			auto r = CellAt({ 0,7 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,7 })->Empty() && CellAt({ 2,7 })->Empty() && CellAt({ 3,7 })->Empty() && !IsUnderAttack(t, { 2,7 }) && !IsUnderAttack(t, { 3,7 }))
+				return true;
+		}
+	}
+	else
+	{
+		if (hasCastledBlack)
+			return false;
+		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 0,0 })->Empty())
+		{
+			auto k = CellAt({ 4,0 })->GetPiece();
+			auto r = CellAt({ 0,0 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,0 })->Empty() && CellAt({ 2,0 })->Empty() && CellAt({ 3,0 })->Empty() && !IsUnderAttack(t, { 2,0 }) && !IsUnderAttack(t, { 3,0 }))
+				return true;
+		}
+	}
+	return false;
 }
 void ChessBoard::OnClick(const Vei2& loc)
 {

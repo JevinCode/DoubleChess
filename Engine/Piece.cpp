@@ -10,6 +10,7 @@ void Piece::Update(const Vei2& loc)
 {
 	SetPosition(loc);
 	isEnCroissantable = false;
+	hasMoved = true;
 }
 
 const Vei2& Piece::GetPosition() const
@@ -20,6 +21,11 @@ const Vei2& Piece::GetPosition() const
 void Piece::SetPosition(const Vei2& loc)
 {
 	this->pos = loc;
+}
+
+bool Piece::HasMoved() const
+{
+	return hasMoved;
 }
 
 Team Piece::GetTeam() const

@@ -31,6 +31,10 @@ private:
 	bool IsBlackInCheck() const;
 	bool SimulateAndCheck(std::shared_ptr<Cell> cell, const Vei2& loc);
 	std::vector<Vei2> GetValidMoves(const Vei2& loc);
+	bool IsUnderAttack(Team t, const Vei2& loc) const;
+	bool CanCastleKingside(Team t) const;
+	bool CanCastleQueenside(Team t) const;
+
 	//member data
 	Team PlayerTurn = Team::WHITE;
 	Vei2 EnCroissantSquare = { 0,0 };
@@ -38,6 +42,8 @@ private:
 	Surface sPieces = "Images\\chess_pieces.bmp";
 	Vei2 topLeft = { 30,30 };
 	std::shared_ptr<Cell> cells[64];
+	bool hasCastledWhite = false;
+	bool hasCastledBlack = false;
 public:
 	static constexpr int cellSize = 30;
 	static constexpr int boardSize = 8 * cellSize;

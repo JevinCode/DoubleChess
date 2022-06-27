@@ -30,6 +30,7 @@ public:
 	{
 		return EnCroissantPawn;
 	}
+	bool HasMoved() const;
 	Team GetTeam() const;
 protected:
 	bool IsValidLoc(const Vei2& loc) const;
@@ -39,4 +40,5 @@ protected:
 	inline static Vei2 EnCroissantPawn;
 	inline static bool isEnCroissantable;
 	Team team;
+	bool hasMoved = false;
 };
