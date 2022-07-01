@@ -311,20 +311,20 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 	}
 	return false;
 }
-void ChessBoard::OnClick(const Vei2& loc)
+void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
 	if (loc == Vei2{ 8, 0 })
 	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(PlayerTurn, cellPreviouslyHighlighted));
-		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
+		turnSwap = true;
 		isPromoting = false;
 		return;
 	}
 
 	else if (loc == Vei2{ 8,1 })
 	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(PlayerTurn, cellPreviouslyHighlighted));
-		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
+		turnSwap = true;
 		isPromoting = false;
 		return;
 	}
@@ -335,12 +335,12 @@ void ChessBoard::OnClick(const Vei2& loc)
 		Move(CellAt(cellPreviouslyHighlighted), loc);
 		cellPreviouslyHighlighted = loc;
 		ReleaseHighlights();
-		if(!isPromoting)
-			PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		if (!isPromoting)
+			turnSwap = true;
 		return;
 	}
 	ReleaseHighlights();
-	auto piece = c->OnClick(PlayerTurn);
+	auto piece = c->OnClick(t);
 	if (piece)
 	{
 		c->Highlight(Cell::HighlightType::BLUE);

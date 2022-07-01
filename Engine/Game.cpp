@@ -65,10 +65,16 @@ void Game::OnClick(const Vei2& loc)
 {
 	auto gridPos = MapToCell(loc);
 	if (brd.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
-		brd.OnClick(gridPos);
+		brd.OnClick(gridPos, playerTurn);
 
 	else if (brd.IsValidLoc(gridPos))
-		brd.OnClick(gridPos);
+		brd.OnClick(gridPos, playerTurn);
+
+	if (brd.turnSwap)
+	{
+		playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+		brd.turnSwap = false;
+	}
 }
 
 void Game::ComposeFrame()

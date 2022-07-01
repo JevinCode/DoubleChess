@@ -18,7 +18,7 @@ public:
 	static int LinearizeCoords(const Vei2& loc);
 	static Vei2 Dimensify(int loc);
 	Vei2 GetOffset() const;
-	void OnClick(const Vei2& loc);
+	void OnClick(const Vei2& loc, Team t);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
 private:
@@ -36,7 +36,7 @@ private:
 	bool CanCastleQueenside(Team t) const;
 
 	//member data
-	Team PlayerTurn = Team::WHITE;
+	bool turnSwap = false;
 	Vei2 EnCroissantSquare = { 0,0 };
 	Vei2 cellPreviouslyHighlighted = { 0,6 };
 	Surface sPieces = "Images\\chess_pieces.bmp";
