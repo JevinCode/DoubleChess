@@ -64,13 +64,27 @@ Vei2 Game::MapToCell(const Vei2& loc)
 void Game::OnClick(const Vei2& loc)
 {
 	auto gridPos = MapToCell(loc);
-	if (gridPos.x < 700)
-	{
+	if (brd.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
 		brd.OnClick(gridPos);
-	}
+
+	else if (brd.IsValidLoc(gridPos))
+		brd.OnClick(gridPos);
 }
 
 void Game::ComposeFrame()
 {
 	brd.Draw(gfx);
+	if (brd.isPromoting)
+	{
+		if (playerTurn == Team::WHITE)
+		{
+			Queen::DrawWhite(gfx, brd);
+			Knight::DrawWhite(gfx, brd);
+		}
+		else
+		{
+			Queen::DrawBlack(gfx, brd);
+			Knight::DrawBlack(gfx, brd);
+		}
+	}
 }

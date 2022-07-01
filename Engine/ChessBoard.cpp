@@ -84,7 +84,7 @@ void ChessBoard::ReleaseHighlights()
 	}
 }
 
-bool ChessBoard::IsValidLoc(const Vei2& loc) const
+bool ChessBoard::IsValidLoc(const Vei2& loc)
 {
 	if (loc.x >= 0 && loc.x < 8 && loc.y >= 0 && loc.y < 8)
 		return true;
@@ -102,7 +102,7 @@ void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
 	destCell->GivePiece(src->GetPiece());
 	src->Clear();
 	auto p = destCell->GetPiece();
-	if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && typeid(*destCell->GetPiece()) == typeid(Pawn))
+	if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && typeid(*p) == typeid(Pawn))
 	{
 		CellAt(Piece::GetEnCroissantPawnLoc())->Clear();
 	}
@@ -130,6 +130,8 @@ void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
 		}
 	}
 	p->Update(loc);
+	if (typeid(*p) == typeid(Pawn) && ((loc.y == 0 && p->GetTeam() == Team::WHITE) || (loc.y == 7 && p->GetTeam() == Team::BLACK)))
+		isPromoting = true;
 }
 
 bool ChessBoard::IsWhiteInCheck() const
@@ -311,13 +313,30 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 }
 void ChessBoard::OnClick(const Vei2& loc)
 {
+	if (loc == Vei2{ 8, 0 })
+	{
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(PlayerTurn, cellPreviouslyHighlighted));
+		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		isPromoting = false;
+		return;
+	}
+
+	else if (loc == Vei2{ 8,1 })
+	{
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(PlayerTurn, cellPreviouslyHighlighted));
+		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		isPromoting = false;
+		return;
+	}
+
 	auto c = CellAt(loc);
 	if (c->GetHighlight() == Cell::HighlightType::YELLOW || c->GetHighlight() == Cell::HighlightType::RED)
 	{
 		Move(CellAt(cellPreviouslyHighlighted), loc);
-		CellAt(cellPreviouslyHighlighted)->Clear();
+		cellPreviouslyHighlighted = loc;
 		ReleaseHighlights();
-		PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
+		if(!isPromoting)
+			PlayerTurn = (Team)(((int)PlayerTurn + 1) % 2);
 		return;
 	}
 	ReleaseHighlights();

@@ -24,7 +24,7 @@ public:
 private:
 	//member functions
 	void ReleaseHighlights();
-	bool IsValidLoc(const Vei2& loc) const;
+	static bool IsValidLoc(const Vei2& loc);
 	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
 	void Move(std::shared_ptr<Cell> cell, const Vei2& loc);
 	bool IsWhiteInCheck() const;
@@ -44,7 +44,10 @@ private:
 	std::shared_ptr<Cell> cells[64];
 	bool hasCastledWhite = false;
 	bool hasCastledBlack = false;
+	bool isPromoting = false;
+
+	friend class Game;
 public:
 	static constexpr int cellSize = 30;
-	static constexpr int boardSize = 8 * cellSize;
+	static constexpr int boardSize = 9 * cellSize;
 };

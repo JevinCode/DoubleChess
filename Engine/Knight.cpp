@@ -21,6 +21,22 @@ void Knight::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
+void Knight::DrawWhite(Graphics& gfx, const ChessBoard& brd)
+{
+	Vei2 loc = brd.GetOffset();
+	loc.x += brd.boardSize - ChessBoard::cellSize;
+	loc.y += ChessBoard::cellSize;
+	gfx.DrawSprite(loc.x, loc.y, { 120,150,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
+}
+
+void Knight::DrawBlack(Graphics& gfx, const ChessBoard& brd)
+{
+	Vei2 loc = brd.GetOffset();
+	loc.x += brd.boardSize - ChessBoard::cellSize;
+	loc.y += ChessBoard::cellSize;
+	gfx.DrawSprite(loc.x, loc.y, { 120,150,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
+}
+
 std::vector<Vei2> Knight::GetPossibleMoves(const ChessBoard& brd) const
 {
 	std::vector<Vei2> Moves;

@@ -47,5 +47,6 @@ private:
 	/********************************/
 	/*  User Variables              */
 	ChessBoard brd;
+	Team playerTurn = Team::WHITE;
 	/********************************/
 };
