@@ -333,6 +333,18 @@ void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
 	}
 	isEnPassantable = false;
 }
+bool ChessBoard::IsEnPassantable() const
+{
+	return isEnPassantable;
+}
+Vei2 ChessBoard::GetEnPassantSquare() const
+{
+	return enPassantSquare;
+}
+Vei2 ChessBoard::GetEnPassantPawnLoc() const
+{
+	return enPassantPawnLoc;
+}
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
 	if (loc == Vei2{ 8, 0 })
@@ -374,7 +386,7 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 				CellAt(loc)->Highlight(Cell::HighlightType::YELLOW);
 			else
 				CellAt(loc)->Highlight(Cell::HighlightType::RED);
-			if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && piece->GetTeam() != CellAt(Piece::GetEnCroissantPawnLoc())->GetPiece()->GetTeam())
+			if (isEnPassantable && loc == enPassantSquare && piece->GetTeam() != CellAt(enPassantPawnLoc)->GetPiece()->GetTeam())
 				CellAt(loc)->Highlight(Cell::HighlightType::RED);
 		}
 	}

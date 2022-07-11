@@ -22,6 +22,9 @@ public:
 	std::shared_ptr<Cell> CellAt(const Vei2& loc);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
 	static bool IsValidLoc(const Vei2& loc);
+	bool IsEnPassantable() const;
+	Vei2 GetEnPassantSquare() const;
+	Vei2 GetEnPassantPawnLoc() const;
 private:
 	//member functions
 	void ReleaseHighlights();

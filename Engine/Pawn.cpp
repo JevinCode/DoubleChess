@@ -38,7 +38,7 @@ std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
 			ans.push_back(ahead3);
 		//Check for En Passant
-		else if (Piece::IsCroissant() && Piece::GetEnCroissantSquare() == ahead3)
+		else if (brd.IsEnPassantable() && brd.GetEnPassantSquare() == ahead3)
 			ans.push_back(ahead3);
 	}
 
@@ -48,7 +48,7 @@ std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 		if (!brd.CellAt(ahead4)->Empty() && brd.CellAt(ahead4)->GetPiece()->GetTeam() != team)
 			ans.push_back(ahead4);
 		//Check for En Passant
-		else if (Piece::IsCroissant() && Piece::GetEnCroissantSquare() == ahead4)
+		else if (brd.IsEnPassantable() && brd.GetEnPassantSquare() == ahead4)
 			ans.push_back(ahead4);
 	}
 	return ans;
@@ -64,7 +64,7 @@ std::vector<Vei2> Pawn::GetPossibleAttackMoves(const ChessBoard& brd) const
 		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
 			ans.push_back(ahead3);
 		//Check for En Passant
-		else if (Piece::IsCroissant() && Piece::GetEnCroissantSquare() == ahead3)
+		else if (brd.IsEnPassantable() && brd.GetEnPassantSquare() == ahead3)
 			ans.push_back(ahead3);
 	}
 
@@ -75,7 +75,7 @@ std::vector<Vei2> Pawn::GetPossibleAttackMoves(const ChessBoard& brd) const
 		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
 			ans.push_back(ahead4);
 		//Check for En Passant
-		else if (Piece::IsCroissant() && Piece::GetEnCroissantSquare() == ahead4)
+		else if (brd.IsEnPassantable() && brd.GetEnPassantSquare() == ahead4)
 			ans.push_back(ahead4);
 	}
 	return ans;
