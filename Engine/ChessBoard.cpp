@@ -326,12 +326,17 @@ void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
 			isEnPassantable = true;
 			enPassantSquare = p->GetTeam() == Team::WHITE ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
 			enPassantPawnLoc = loc;
+			passantTeam = p->GetTeam();
 			return;
 		}
 		else if ((loc.y == 0 && p->GetTeam() == Team::WHITE) || (loc.y == 7 && p->GetTeam() == Team::BLACK))
 			isPromoting = true;
 	}
 	isEnPassantable = false;
+}
+Team ChessBoard::GetPassantTeam() const
+{
+	return passantTeam;
 }
 bool ChessBoard::IsEnPassantable() const
 {

@@ -25,6 +25,7 @@ public:
 	bool IsEnPassantable() const;
 	Vei2 GetEnPassantSquare() const;
 	Vei2 GetEnPassantPawnLoc() const;
+	Team GetPassantTeam() const;
 private:
 	//member functions
 	void ReleaseHighlights();
@@ -51,6 +52,7 @@ private:
 	bool isEnPassantable = false;
 	Vei2 enPassantSquare = { 0,0 };
 	Vei2 enPassantPawnLoc = { 0,0 };
+	Team passantTeam = Team::WHITE;
 	friend class Game;
 public:
 	static constexpr int cellSize = 30;
