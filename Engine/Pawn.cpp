@@ -20,21 +20,6 @@ void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-void Pawn::Update(const Vei2& loc)
-{
-	SetPosition(loc);
-	numMoves++;
-	if (numMoves == 1 && (pos.y == 4 || pos.y == 3))
-	{
-		isEnCroissantable = true;
-		EnCroissantSquare = this->GetTeam() == Team::WHITE ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
-		EnCroissantPawn = loc;
-	}
-	else
-		isEnCroissantable = false;
-	hasMoved = true;
-}
-
 std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 {
 	std::vector<Vei2> ans;

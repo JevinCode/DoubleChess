@@ -34,6 +34,12 @@ public:
 	Game& operator=( const Game& ) = delete;
 	void Go();
 private:
+	enum class BoardSelection
+	{
+		Board1,
+		Board2,
+		NIL
+	};
 	void ComposeFrame();
 	void UpdateModel();
 	/********************************/
@@ -46,7 +52,11 @@ private:
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
-	ChessBoard brd;
+	ChessBoard brd1;
+	ChessBoard brd2;
 	Team playerTurn = Team::WHITE;
+	BoardSelection curSelection = BoardSelection::NIL;
+	BoardSelection prevSelection = BoardSelection::NIL;
+
 	/********************************/
 };

@@ -13,7 +13,7 @@
 class ChessBoard
 {
 public:
-	ChessBoard();
+	ChessBoard(const Vei2& topLeft);
 	void Draw(Graphics& gfx) const;
 	static int LinearizeCoords(const Vei2& loc);
 	static Vei2 Dimensify(int loc);
@@ -21,10 +21,10 @@ public:
 	void OnClick(const Vei2& loc, Team t);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
+	static bool IsValidLoc(const Vei2& loc);
 private:
 	//member functions
 	void ReleaseHighlights();
-	static bool IsValidLoc(const Vei2& loc);
 	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
 	void Move(std::shared_ptr<Cell> cell, const Vei2& loc);
 	bool IsWhiteInCheck() const;
@@ -34,18 +34,20 @@ private:
 	bool IsUnderAttack(Team t, const Vei2& loc) const;
 	bool CanCastleKingside(Team t) const;
 	bool CanCastleQueenside(Team t) const;
+	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
 
 	//member data
 	bool turnSwap = false;
-	Vei2 EnCroissantSquare = { 0,0 };
 	Vei2 cellPreviouslyHighlighted = { 0,6 };
 	Surface sPieces = "Images\\chess_pieces.bmp";
-	Vei2 topLeft = { 30,30 };
+	const Vei2 topLeft;
 	std::shared_ptr<Cell> cells[64];
 	bool hasCastledWhite = false;
 	bool hasCastledBlack = false;
 	bool isPromoting = false;
-
+	bool isEnPassantable = false;
+	Vei2 enPassantSquare = { 0,0 };
+	Vei2 enPassantPawnLoc = { 0,0 };
 	friend class Game;
 public:
 	static constexpr int cellSize = 30;

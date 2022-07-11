@@ -9,7 +9,7 @@ pos(pos)
 void Piece::Update(const Vei2& loc)
 {
 	SetPosition(loc);
-	isEnCroissantable = false;
+	numMoves++;
 	hasMoved = true;
 }
 
@@ -31,6 +31,11 @@ bool Piece::HasMoved() const
 Team Piece::GetTeam() const
 {
 	return team;
+}
+
+int Piece::GetNumMoves()
+{
+	return numMoves;
 }
 
 bool Piece::IsValidLoc(const Vei2& loc) const

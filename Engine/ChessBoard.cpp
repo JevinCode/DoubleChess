@@ -1,7 +1,9 @@
 #include "ChessBoard.h"
 #include "Cell.h"
 
-ChessBoard::ChessBoard()
+ChessBoard::ChessBoard(const Vei2& topLeft)
+	:
+	topLeft(topLeft)
 {
 	for (int row = 0; row < 8; row++)
 	{
@@ -88,6 +90,8 @@ bool ChessBoard::IsValidLoc(const Vei2& loc)
 {
 	if (loc.x >= 0 && loc.x < 8 && loc.y >= 0 && loc.y < 8)
 		return true;
+	else if (loc.x == 8 && loc.y >= 0 && loc.y < 2)
+		return true;
 	return false;
 }
 
@@ -102,10 +106,13 @@ void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
 	destCell->GivePiece(src->GetPiece());
 	src->Clear();
 	auto p = destCell->GetPiece();
-	if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && typeid(*p) == typeid(Pawn))
+
+	//handles en passant
+	if (isEnPassantable && loc == enPassantSquare && typeid(*p) == typeid(Pawn))
 	{
-		CellAt(Piece::GetEnCroissantPawnLoc())->Clear();
+		CellAt(enPassantPawnLoc)->Clear();
 	}
+	//handles castling
 	else if (typeid(*p) == typeid(King) && !p->HasMoved())
 	{
 		if (loc == Vei2{ 6,7 })
@@ -129,9 +136,7 @@ void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
 			Move(CellAt({ 0,0 }), { 3,0 });
 		}
 	}
-	p->Update(loc);
-	if (typeid(*p) == typeid(Pawn) && ((loc.y == 0 && p->GetTeam() == Team::WHITE) || (loc.y == 7 && p->GetTeam() == Team::BLACK)))
-		isPromoting = true;
+	PostMoveUpdate(p, loc);
 }
 
 bool ChessBoard::IsWhiteInCheck() const
@@ -190,10 +195,10 @@ bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
 	std::shared_ptr<Piece> croissant = nullptr;
 	bool croissantified = false;
 
-	if (Piece::IsCroissant() && loc == Piece::GetEnCroissantSquare() && typeid(*dest->GetPiece()) == typeid(Pawn))
+	if (isEnPassantable && loc == enPassantSquare && typeid(*dest->GetPiece()) == typeid(Pawn))
 	{
-		croissant = CellAt(Piece::GetEnCroissantPawnLoc())->GetPiece();
-		CellAt(Piece::GetEnCroissantPawnLoc())->Clear();
+		croissant = CellAt(enPassantPawnLoc)->GetPiece();
+		CellAt(enPassantPawnLoc)->Clear();
 		croissantified = true;
 	}
 
@@ -204,7 +209,7 @@ bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
 	src->GivePiece(dest->GetPiece());
 	dest->GivePiece(destPiece);
 	if (croissantified)
-		CellAt(Piece::GetEnCroissantPawnLoc())->GivePiece(croissant);
+		CellAt(enPassantPawnLoc)->GivePiece(croissant);
 
 	return badMove;
 }
@@ -310,6 +315,23 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 		}
 	}
 	return false;
+}
+void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
+{
+	p->Update(loc);
+	if (typeid(*p) == typeid(Pawn))
+	{
+		if (p->GetNumMoves() == 1 && (loc.y == 4 || loc.y == 3))
+		{
+			isEnPassantable = true;
+			enPassantSquare = p->GetTeam() == Team::WHITE ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
+			enPassantPawnLoc = loc;
+			return;
+		}
+		else if ((loc.y == 0 && p->GetTeam() == Team::WHITE) || (loc.y == 7 && p->GetTeam() == Team::BLACK))
+			isPromoting = true;
+	}
+	isEnPassantable = false;
 }
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {

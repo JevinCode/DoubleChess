@@ -143,6 +143,7 @@
     <ClInclude Include="Bencher.h" />
     <ClInclude Include="Bishop.h" />
     <ClInclude Include="Cell.h" />
+    <ClInclude Include="ChessAI.h" />
     <ClInclude Include="ChessBoard.h" />
     <ClInclude Include="ChiliException.h" />
     <ClInclude Include="ChiliWin.h" />
@@ -173,6 +174,7 @@
   <ItemGroup>
     <ClCompile Include="Bishop.cpp" />
     <ClCompile Include="Cell.cpp" />
+    <ClCompile Include="ChessAI.cpp" />
     <ClCompile Include="ChessBoard.cpp" />
     <ClCompile Include="COMInitializer.cpp" />
     <ClCompile Include="DXErr.cpp" />

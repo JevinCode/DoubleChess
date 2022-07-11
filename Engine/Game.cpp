@@ -26,7 +26,9 @@
 Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
-	gfx( wnd )
+	gfx( wnd ),
+	brd1({ 30,30 }),
+	brd2({ 430, 30 })
 {
 }
 
@@ -54,43 +56,92 @@ void Game::UpdateModel()
 Vei2 Game::MapToCell(const Vei2& loc)
 {
 	//if we click outside of the board, return a dummy value
-	if (loc.x < brd.GetOffset().x || loc.x > brd.GetOffset().x + ChessBoard::boardSize || loc.y < brd.GetOffset().y || loc.y > brd.GetOffset().y + ChessBoard::boardSize)
-		return { 799,599 };
-	int xDest = (loc.x - brd.GetOffset().x) / ChessBoard::cellSize;
-	int yDest = (loc.y - brd.GetOffset().y) / ChessBoard::cellSize;
-	return {xDest,yDest};
+	if (loc.x >= brd1.GetOffset().x && loc.x <= brd1.GetOffset().x + ChessBoard::boardSize && loc.y >= brd1.GetOffset().y && loc.y <= brd1.GetOffset().y + ChessBoard::boardSize)
+	{
+		int xDest = (loc.x - brd1.GetOffset().x) / ChessBoard::cellSize;
+		int yDest = (loc.y - brd1.GetOffset().y) / ChessBoard::cellSize;
+		curSelection = BoardSelection::Board1;
+		return { xDest,yDest };
+	}
+	else if(loc.x >= brd2.GetOffset().x && loc.x <= brd2.GetOffset().x + ChessBoard::boardSize && loc.y >= brd2.GetOffset().y && loc.y <= brd2.GetOffset().y + ChessBoard::boardSize)
+	{
+		int xDest = (loc.x - brd2.GetOffset().x) / ChessBoard::cellSize;
+		int yDest = (loc.y - brd2.GetOffset().y) / ChessBoard::cellSize;
+		curSelection = BoardSelection::Board2;
+		return { xDest,yDest };
+	}
+	return { 799,599 };
+
 }
 
 void Game::OnClick(const Vei2& loc)
 {
 	auto gridPos = MapToCell(loc);
-	if (brd.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
-		brd.OnClick(gridPos, playerTurn);
-
-	else if (brd.IsValidLoc(gridPos))
-		brd.OnClick(gridPos, playerTurn);
-
-	if (brd.turnSwap)
+	if (curSelection != prevSelection)
 	{
-		playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-		brd.turnSwap = false;
+		brd1.ReleaseHighlights();
+		brd2.ReleaseHighlights();
+	}
+	prevSelection = curSelection;
+	if(curSelection == BoardSelection::Board1)
+	{
+		if (brd1.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
+			brd1.OnClick(gridPos, playerTurn);
+
+		else if (ChessBoard::IsValidLoc(gridPos))
+			brd1.OnClick(gridPos, playerTurn);
+
+		if (brd1.turnSwap)
+		{
+			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+			brd1.turnSwap = false;
+		}
+	}
+	else
+	{
+		if (brd2.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
+			brd2.OnClick(gridPos, playerTurn);
+
+		else if (ChessBoard::IsValidLoc(gridPos))
+			brd2.OnClick(gridPos, playerTurn);
+
+		if (brd2.turnSwap)
+		{
+			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+			brd2.turnSwap = false;
+		}
 	}
 }
 
 void Game::ComposeFrame()
 {
-	brd.Draw(gfx);
-	if (brd.isPromoting)
+	brd1.Draw(gfx);
+	brd2.Draw(gfx);
+	if (brd1.isPromoting)
 	{
 		if (playerTurn == Team::WHITE)
 		{
-			Queen::DrawWhite(gfx, brd);
-			Knight::DrawWhite(gfx, brd);
+			Queen::DrawWhite(gfx, brd1);
+			Knight::DrawWhite(gfx, brd1);
 		}
 		else
 		{
-			Queen::DrawBlack(gfx, brd);
-			Knight::DrawBlack(gfx, brd);
+			Queen::DrawBlack(gfx, brd1);
+			Knight::DrawBlack(gfx, brd1);
+		}
+	}
+
+	else if (brd2.isPromoting)
+	{
+		if (playerTurn == Team::WHITE)
+		{
+			Queen::DrawWhite(gfx, brd1);
+			Knight::DrawWhite(gfx, brd1);
+		}
+		else
+		{
+			Queen::DrawBlack(gfx, brd1);
+			Knight::DrawBlack(gfx, brd1);
 		}
 	}
 }
