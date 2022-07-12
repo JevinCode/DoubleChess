@@ -10,6 +10,8 @@
 #include "King.h"
 #include "Queen.h"
 
+class ChessAI;
+
 class ChessBoard
 {
 public:
@@ -54,6 +56,7 @@ private:
 	Vei2 enPassantPawnLoc = { 0,0 };
 	Team passantTeam = Team::WHITE;
 	friend class Game;
+	friend class ChessAI;
 public:
 	static constexpr int cellSize = 30;
 	static constexpr int boardSize = 9 * cellSize;

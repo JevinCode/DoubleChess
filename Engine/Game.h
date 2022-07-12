@@ -25,6 +25,7 @@
 #include "Graphics.h"
 #include "Surface.h"
 #include "ChessBoard.h"
+#include "ChessAI.h"
 
 class Game
 {
@@ -57,6 +58,7 @@ private:
 	Team playerTurn = Team::WHITE;
 	BoardSelection curSelection = BoardSelection::NIL;
 	BoardSelection prevSelection = BoardSelection::NIL;
+	ChessAI mrAI;
 
 	/********************************/
 };

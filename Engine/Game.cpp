@@ -28,7 +28,8 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
 	gfx( wnd ),
 	brd1({ 30,30 }),
-	brd2({ 430, 30 })
+	brd2({ 430, 30 }),
+	mrAI(Team::BLACK, brd1, brd2)
 {
 }
 
@@ -42,6 +43,11 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+	if (playerTurn == Team::BLACK)
+	{
+		mrAI.Move();
+		playerTurn = Team::WHITE;
+	}
 	while (!wnd.mouse.IsEmpty())
 	{
 		const auto e = wnd.mouse.Read();
@@ -49,6 +55,16 @@ void Game::UpdateModel()
 		{
 			Vei2 loc = wnd.mouse.GetPos();
 			OnClick(loc);
+			if (brd1.turnSwap)
+			{
+				playerTurn = Team::BLACK;
+				brd1.turnSwap = false;
+			}
+			else if (brd2.turnSwap)
+			{
+				playerTurn = Team::BLACK;
+				brd2.turnSwap = false;
+			}
 		}
 	}
 }
