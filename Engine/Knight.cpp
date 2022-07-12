@@ -62,7 +62,7 @@ std::vector<Vei2> Knight::GetPossibleAttackMoves(const ChessBoard& brd) const
 		if (IsValidLoc(loc))
 		{
 			auto c = brd.CellAt(loc);
-			if (!c->Empty() && c->GetPiece()->GetTeam() != team)
+			if (c->Empty() || c->GetPiece()->GetTeam() != team)
 				Moves.push_back(loc);
 		}
 	}
