@@ -1,4 +1,6 @@
 #include "Piece.h"
+#include "Chessboard.h"
+#include "Cell.h"
 
 Piece::Piece(Team t, const Vei2& pos)
 	:
@@ -36,6 +38,26 @@ Team Piece::GetTeam() const
 int Piece::GetNumMoves()
 {
 	return numMoves;
+}
+
+int Piece::GetNumAdjDefenders(const ChessBoard& brd) const
+{
+	int nPieces = 0;
+	Vei2 locs[8] = {
+	{ pos.x - 1, pos.y - 1 },
+	{ pos.x - 1, pos.y },
+	{ pos.x - 1, pos.y + 1 },
+	{ pos.x, pos.y - 1 },
+	{ pos.x, pos.y + 1 },
+	{ pos.x + 1, pos.y - 1 },
+	{ pos.x + 1, pos.y },
+	{ pos.x + 1, pos.y + 1 } };
+
+	for (const auto& loc : locs)
+		if (IsValidLoc(loc) && !brd.CellAt(loc)->Empty() && brd.CellAt(loc)->GetPiece()->GetTeam() == team)
+			nPieces++;
+
+	return nPieces;
 }
 
 bool Piece::IsValidLoc(const Vei2& loc) const

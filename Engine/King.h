@@ -8,5 +8,4 @@ public:
 	void Draw(Graphics& gfx, const Vei2& loc) const override;
 	std::vector<Vei2> GetPossibleMoves(const ChessBoard& brd) const override;
 	std::vector<Vei2> GetPossibleAttackMoves(const ChessBoard& brd) const override;
-	int GetNumAdjDefenders(const ChessBoard& brd) const;
 };

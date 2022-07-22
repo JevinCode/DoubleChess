@@ -1,5 +1,5 @@
 #include "ChessAI.h"
-
+#include <typeinfo>
 ChessAI::ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2)
 	:
 	team(t),
@@ -50,7 +50,31 @@ std::vector<ChessAI::_Move> ChessAI::GenerateMoves(const ChessBoard& brd) const
 	return moves;
 }
 
-int ChessAI::Score()
+int ChessAI::Score(const ChessBoard& brd) const
 {
-	return 0;
+	int score = 0;
+	for (const auto& cell : brd.cells)
+	{
+		if (!cell->Empty())
+		{
+			auto p = cell->GetPiece();
+			auto t = p->GetTeam();
+			auto& tid = typeid(*p);
+			if (tid == typeid(Pawn))
+				score += t == team ? 2 : -2;
+			else if (tid == typeid(Knight))
+				score += t == team ? 6 : -6;
+			else if (tid == typeid(Bishop))
+				score += t == team ? 6 : -6;
+			else if (tid == typeid(Rook))
+				score += t == team ? 10 : -10;
+			else if (tid == typeid(Queen))
+				score += t == team ? 18 : -18;
+			else if (tid == typeid(King) && t == team)
+			{
+				score += p->GetNumAdjDefenders(brd);
+			}
+		}
+	}
+	return score;
 }

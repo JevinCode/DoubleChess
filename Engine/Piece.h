@@ -21,6 +21,7 @@ public:
 	bool HasMoved() const;
 	Team GetTeam() const;
 	int GetNumMoves();
+	int GetNumAdjDefenders(const ChessBoard& brd) const;
 protected:
 	bool IsValidLoc(const Vei2& loc) const;
 	inline static Surface s = "Images\\chess_pieces.bmp";
