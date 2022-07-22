@@ -52,3 +52,23 @@ std::vector<Vei2> King::GetPossibleAttackMoves(const ChessBoard& brd) const
 	return ans;
 }
 
+int King::GetNumAdjDefenders(const ChessBoard& brd) const
+{
+	int nPieces = 0;
+	Vei2 locs[8] = {
+	{ pos.x - 1, pos.y - 1 },
+	{ pos.x - 1, pos.y },
+	{ pos.x - 1, pos.y + 1 },
+	{ pos.x, pos.y - 1 },
+	{ pos.x, pos.y + 1 },
+	{ pos.x + 1, pos.y - 1 },
+	{ pos.x + 1, pos.y },
+	{ pos.x + 1, pos.y + 1 } };
+
+	for(const auto& loc : locs)
+		if (IsValidLoc(loc) && !brd.CellAt(loc)->Empty() && brd.CellAt(loc)->GetPiece()->GetTeam() == team)
+			nPieces++;
+
+	return nPieces;
+}
+
