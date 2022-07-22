@@ -19,13 +19,13 @@ void ChessAI::Move()
 	{
 		std::uniform_int_distribution<int> num(0, b1moves.size()-1);
 		auto move = b1moves[num(rng)];
-		brd1.Move(move.cell, move.loc);
+		brd1.Move(move.src, move.dest);
 	}
 	else
 	{
 		std::uniform_int_distribution<int> num(0, b2moves.size()-1);
 		auto move = b2moves[num(rng)];
-		brd2.Move(move.cell, move.loc);
+		brd2.Move(move.src, move.dest);
 	}
 }
 
