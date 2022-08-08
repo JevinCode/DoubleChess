@@ -100,43 +100,44 @@ std::vector<Vei2> ChessBoard::GetPossibleMoves(const Vei2& loc) const
 	return CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
 }
 
-void ChessBoard::Move(std::shared_ptr<Cell> src, const Vei2& loc)
+void ChessBoard::Move(const Vei2& src, const Vei2& dest)
 {
-	auto destCell = CellAt(loc);
-	destCell->GivePiece(src->GetPiece());
-	src->Clear();
+	auto srcCell = CellAt(src);
+	auto destCell = CellAt(dest);
+	destCell->GivePiece(srcCell->GetPiece());
+	srcCell->Clear();
 	auto p = destCell->GetPiece();
 
 	//handles en passant
-	if (isEnPassantable && loc == enPassantSquare && typeid(*p) == typeid(Pawn))
+	if (isEnPassantable && dest == enPassantSquare && typeid(*p) == typeid(Pawn))
 	{
 		CellAt(enPassantPawnLoc)->Clear();
 	}
 	//handles castling
 	else if (typeid(*p) == typeid(King) && !p->HasMoved())
 	{
-		if (loc == Vei2{ 6,7 })
+		if (dest == Vei2{ 6,7 })
 		{
 			hasCastledWhite = true;
-			Move(CellAt({ 7,7 }), { 5,7 });
+			Move({7,7}, { 5,7 });
 		}
-		else if (loc == Vei2{ 2,7 })
+		else if (dest == Vei2{ 2,7 })
 		{
 			hasCastledWhite = true;
-			Move(CellAt({ 0,7 }), { 3,7 });
+			Move({0,7}, { 3,7 });
 		}
-		else if (loc == Vei2{ 6,0 })
+		else if (dest == Vei2{ 6,0 })
 		{
 			hasCastledBlack = true;
-			Move(CellAt({ 7,0 }), { 5,0 });
+			Move({7,0}, { 5,0 });
 		}
-		else if (loc == Vei2{ 2,0 })
+		else if (dest == Vei2{ 2,0 })
 		{
 			hasCastledBlack = true;
-			Move(CellAt({ 0,0 }), { 3,0 });
+			Move({0,0}, { 3,0 });
 		}
 	}
-	PostMoveUpdate(p, loc);
+	PostMoveUpdate(p, dest);
 }
 
 bool ChessBoard::IsWhiteInCheck() const
@@ -371,7 +372,7 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 	auto c = CellAt(loc);
 	if (c->GetHighlight() == Cell::HighlightType::YELLOW || c->GetHighlight() == Cell::HighlightType::RED)
 	{
-		Move(CellAt(cellPreviouslyHighlighted), loc);
+		Move(cellPreviouslyHighlighted, loc);
 		cellPreviouslyHighlighted = loc;
 		ReleaseHighlights();
 		if (!isPromoting)

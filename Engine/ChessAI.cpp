@@ -19,13 +19,13 @@ void ChessAI::Move()
 	{
 		std::uniform_int_distribution<int> num(0, b1moves.size()-1);
 		auto move = b1moves[num(rng)];
-		brd1.Move(move.src, move.dest);
+		brd1.Move(move.src.loc, move.dest.loc);
 	}
 	else
 	{
 		std::uniform_int_distribution<int> num(0, b2moves.size()-1);
 		auto move = b2moves[num(rng)];
-		brd2.Move(move.src, move.dest);
+		brd2.Move(move.src.loc, move.dest.loc);
 	}
 }
 
@@ -39,10 +39,11 @@ std::vector<ChessAI::_Move> ChessAI::GenerateMoves(const ChessBoard& brd) const
 			auto cell = brd.CellAt({ x,y });
 			if (!cell->Empty() && cell->GetPiece()->GetTeam() == team) 
 			{
-				auto locs = brd.CellAt({ x,y })->GetPiece()->GetPossibleMoves(brd);
+				Vei2 src = { x,y };
+				auto locs = cell->GetPiece()->GetPossibleMoves(brd);
 				for (auto loc : locs)
 				{
-					moves.emplace_back(ChessAI::_Move{ loc, brd.CellAt({x,y}) });
+					moves.emplace_back(ChessAI::_Move{ {src, cell->GetPiece()}, {loc, brd.CellAt({x,y})->GetPiece()} });
 				}
 			}
 		}

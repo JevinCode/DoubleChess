@@ -32,7 +32,7 @@ private:
 	//member functions
 	void ReleaseHighlights();
 	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
-	void Move(std::shared_ptr<Cell> cell, const Vei2& loc);
+	void Move(const Vei2& src, const Vei2& dest);
 	bool IsWhiteInCheck() const;
 	bool IsBlackInCheck() const;
 	bool SimulateAndCheck(std::shared_ptr<Cell> cell, const Vei2& loc);
