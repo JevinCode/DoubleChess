@@ -29,7 +29,8 @@ Game::Game( MainWindow& wnd )
 	gfx( wnd ),
 	brd1({ 30,30 }),
 	brd2({ 430, 30 }),
-	mrAI(Team::BLACK, brd1, brd2)
+	mrAI(Team::BLACK, brd1, brd2),
+	font("Images\\Fixedsys16x28.bmp")
 {
 }
 
@@ -43,6 +44,18 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+	if (gameIsOver)
+	{
+		if (playerTurn == Team::BLACK)
+		{
+			font.DrawText("White Wins!", { 375, 400 }, Colors::White, gfx);
+		}
+		else
+		{
+			font.DrawText("Black Wins!", { 375, 400 }, Colors::White, gfx);
+		}
+		return;
+	}
 	if (playerTurn == Team::BLACK)
 	{
 		mrAI.Move();
@@ -66,6 +79,10 @@ void Game::UpdateModel()
 				brd2.turnSwap = false;
 			}
 		}
+	}
+	if (brd1.IsCheckmate(playerTurn) || brd2.IsCheckmate(playerTurn))
+	{
+		gameIsOver = true;
 	}
 }
 

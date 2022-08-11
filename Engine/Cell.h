@@ -24,6 +24,7 @@ public:
 	bool Empty() const;
 	void DrawCell(Graphics& gfx, const Vei2& offset);
 	void GivePiece(std::shared_ptr<Piece> peace);
+	Vei2 GetLoc() const;
 	std::shared_ptr<Piece> OnClick(Team PlayerTurn);
 	void ReleaseHighlight();
 	void Highlight(const HighlightType h);

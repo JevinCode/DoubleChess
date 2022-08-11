@@ -140,6 +140,15 @@ void ChessBoard::Move(const Vei2& src, const Vei2& dest)
 	PostMoveUpdate(p, dest);
 }
 
+//calling function's team is the team the player is on, so we check if the opponent has been put in check (which is why it may appear backward).
+void ChessBoard::IsInCheck(Team t)
+{
+	if (t == Team::WHITE)
+		blackInCheck = IsBlackInCheck();
+	else
+		whiteInCheck = IsWhiteInCheck();
+}
+
 bool ChessBoard::IsWhiteInCheck() const
 {
 	for (const auto& cell : cells)
@@ -335,6 +344,20 @@ void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
 	}
 	isEnPassantable = false;
 }
+bool ChessBoard::IsCheckmate(Team t)
+{
+	for (const auto& c : cells)
+	{
+		if (!c->Empty() && c->GetPiece()->GetTeam() == t)
+		{
+			std::vector<Vei2> moves = GetValidMoves(c->GetLoc());
+			if (moves.size() > 0)
+				return false;
+		}
+	}
+	//if no moves can be made after looping through each cell, then we must be in a checkmate state.
+	return true;
+}
 Team ChessBoard::GetPassantTeam() const
 {
 	return passantTeam;
@@ -351,24 +374,34 @@ Vei2 ChessBoard::GetEnPassantPawnLoc() const
 {
 	return enPassantPawnLoc;
 }
+
+/*This function will do a variety of things, based on where we are at in the move pipeline. If we click on a cell with a piece of the same color as our team, then we highlight the moves it can make.
+If we click on a highlighted square (either yellow or red), we will move the selected piece to the location where we clicked. If we click on any other square, we will do nothing. If we are in the promotion
+phase, we will only promote a piece if the relevant piece choice is clicked on.*/
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
-	if (loc == Vei2{ 8, 0 })
+	//if we are in the promotion phase, we only handle clicks relevant to promoting a piece.
+	if (isPromoting)
 	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
-		turnSwap = true;
-		isPromoting = false;
+		if (loc == Vei2{ 8, 0 })
+		{
+			CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
+			turnSwap = true;
+			isPromoting = false;
+			IsInCheck(t);
+		}
+
+		else if (loc == Vei2{ 8,1 })
+		{
+			CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
+			turnSwap = true;
+			isPromoting = false;
+			IsInCheck(t);
+		}
 		return;
 	}
 
-	else if (loc == Vei2{ 8,1 })
-	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
-		turnSwap = true;
-		isPromoting = false;
-		return;
-	}
-
+	//otherwise, we must be in the selection phase, so we handle piece selection and movement.
 	auto c = CellAt(loc);
 	if (c->GetHighlight() == Cell::HighlightType::YELLOW || c->GetHighlight() == Cell::HighlightType::RED)
 	{
@@ -376,9 +409,17 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 		cellPreviouslyHighlighted = loc;
 		ReleaseHighlights();
 		if (!isPromoting)
+		{
+			//as we are not promoting a piece, we now test to see if we have put the other player in check.
 			turnSwap = true;
+			if (t == Team::WHITE)
+				blackInCheck = IsBlackInCheck();
+			else
+				whiteInCheck = IsWhiteInCheck();
+		}
 		return;
 	}
+
 	ReleaseHighlights();
 	auto piece = c->OnClick(t);
 	if (piece)

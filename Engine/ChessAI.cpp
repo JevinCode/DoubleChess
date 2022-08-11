@@ -14,22 +14,37 @@ void ChessAI::Move()
 {
 	auto b1moves = GenerateMoves(brd1);
 	auto b2moves = GenerateMoves(brd2);
-	int choice = rand() % 2;
-	if (choice)
+	if (brd1.blackInCheck)
 	{
-		std::uniform_int_distribution<int> num(0, b1moves.size()-1);
+		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 		auto move = b1moves[num(rng)];
 		brd1.Move(move.src.loc, move.dest.loc);
 	}
-	else
+	else if (brd2.blackInCheck)
 	{
-		std::uniform_int_distribution<int> num(0, b2moves.size()-1);
+		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 		auto move = b2moves[num(rng)];
 		brd2.Move(move.src.loc, move.dest.loc);
 	}
+	else
+	{
+		int choice = rand() % 2;
+		if (choice)
+		{
+			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
+			auto move = b1moves[num(rng)];
+			brd1.Move(move.src.loc, move.dest.loc);
+		}
+		else
+		{
+			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
+			auto move = b2moves[num(rng)];
+			brd2.Move(move.src.loc, move.dest.loc);
+		}
+	}
 }
 
-std::vector<ChessAI::_Move> ChessAI::GenerateMoves(const ChessBoard& brd) const
+std::vector<ChessAI::_Move> ChessAI::GenerateMoves(ChessBoard& brd)
 {
 	std::vector<ChessAI::_Move> moves;
 	for (int x = 0; x < 8; x++)
@@ -40,7 +55,7 @@ std::vector<ChessAI::_Move> ChessAI::GenerateMoves(const ChessBoard& brd) const
 			if (!cell->Empty() && cell->GetPiece()->GetTeam() == team) 
 			{
 				Vei2 src = { x,y };
-				auto locs = cell->GetPiece()->GetPossibleMoves(brd);
+				auto locs = brd.GetValidMoves(src);
 				for (auto loc : locs)
 				{
 					moves.emplace_back(ChessAI::_Move{ {src, cell->GetPiece()}, {loc, brd.CellAt({x,y})->GetPiece()} });

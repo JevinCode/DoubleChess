@@ -26,6 +26,7 @@
 #include "Surface.h"
 #include "ChessBoard.h"
 #include "ChessAI.h"
+#include "Font.h"
 
 class Game
 {
@@ -53,12 +54,15 @@ private:
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
+	Font font;
 	ChessBoard brd1;
 	ChessBoard brd2;
 	Team playerTurn = Team::WHITE;
 	BoardSelection curSelection = BoardSelection::NIL;
 	BoardSelection prevSelection = BoardSelection::NIL;
 	ChessAI mrAI;
+
+	bool gameIsOver = false;
 
 	/********************************/
 };

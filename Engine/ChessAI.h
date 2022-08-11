@@ -38,7 +38,7 @@ private:
 	std::stack<_Move> moveTree;
 
 	//Methods
-	std::vector<_Move> GenerateMoves(const ChessBoard& brd) const;
+	std::vector<_Move> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
 	int Score(const ChessBoard& brd) const;
 	_Move CalculateMove();
 };

@@ -93,3 +93,8 @@ void Cell::GivePiece(std::shared_ptr<Piece> peace)
 {
 	piece = peace;
 }
+
+Vei2 Cell::GetLoc() const
+{
+	return loc;
+}
