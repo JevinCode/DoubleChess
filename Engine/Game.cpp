@@ -118,6 +118,8 @@ void Game::OnClick(const Vei2& loc)
 	prevSelection = curSelection;
 	if(curSelection == BoardSelection::Board1)
 	{
+		if (brd2.whiteInCheck)
+			return;
 		if (brd1.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
 			brd1.OnClick(gridPos, playerTurn);
 
@@ -132,6 +134,8 @@ void Game::OnClick(const Vei2& loc)
 	}
 	else
 	{
+		if (brd1.whiteInCheck)
+			return;
 		if (brd2.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
 			brd2.OnClick(gridPos, playerTurn);
 

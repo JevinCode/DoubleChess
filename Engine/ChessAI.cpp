@@ -19,12 +19,16 @@ void ChessAI::Move()
 		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 		auto move = b1moves[num(rng)];
 		brd1.Move(move.src.loc, move.dest.loc);
+		//handle promotion if applicable
+		brd1.whiteInCheck = brd1.IsWhiteInCheck();
 	}
 	else if (brd2.blackInCheck)
 	{
 		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 		auto move = b2moves[num(rng)];
 		brd2.Move(move.src.loc, move.dest.loc);
+		//handle promotion if applicable
+		brd2.whiteInCheck = brd2.IsWhiteInCheck();
 	}
 	else
 	{
@@ -34,14 +38,19 @@ void ChessAI::Move()
 			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 			auto move = b1moves[num(rng)];
 			brd1.Move(move.src.loc, move.dest.loc);
+			//handle promotion if applicable
+			brd1.whiteInCheck = brd1.IsWhiteInCheck();
 		}
 		else
 		{
 			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 			auto move = b2moves[num(rng)];
 			brd2.Move(move.src.loc, move.dest.loc);
+			//handle promotion if applicable
+			brd2.whiteInCheck = brd2.IsWhiteInCheck();
 		}
 	}
+
 }
 
 std::vector<ChessAI::_Move> ChessAI::GenerateMoves(ChessBoard& brd)

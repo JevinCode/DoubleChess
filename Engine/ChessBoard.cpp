@@ -202,14 +202,14 @@ bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
 	dest->GivePiece(src->GetPiece());
 	src->Clear();
 
-	std::shared_ptr<Piece> croissant = nullptr;
-	bool croissantified = false;
+	std::shared_ptr<Piece> passant = nullptr;
+	bool passantified = false;
 
 	if (isEnPassantable && loc == enPassantSquare && typeid(*dest->GetPiece()) == typeid(Pawn))
 	{
-		croissant = CellAt(enPassantPawnLoc)->GetPiece();
+		passant = CellAt(enPassantPawnLoc)->GetPiece();
 		CellAt(enPassantPawnLoc)->Clear();
-		croissantified = true;
+		passantified = true;
 	}
 
 	//test if this move causes king to be in check
@@ -218,8 +218,8 @@ bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
 	//restore pieces to their original position
 	src->GivePiece(dest->GetPiece());
 	dest->GivePiece(destPiece);
-	if (croissantified)
-		CellAt(enPassantPawnLoc)->GivePiece(croissant);
+	if (passantified)
+		CellAt(enPassantPawnLoc)->GivePiece(passant);
 
 	return badMove;
 }
