@@ -71,11 +71,13 @@ void Game::UpdateModel()
 			if (brd1.turnSwap)
 			{
 				playerTurn = Team::BLACK;
+				brd2.isEnPassantable = false;
 				brd1.turnSwap = false;
 			}
 			else if (brd2.turnSwap)
 			{
 				playerTurn = Team::BLACK;
+				brd1.isEnPassantable = false;
 				brd2.turnSwap = false;
 			}
 		}

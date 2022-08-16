@@ -43,6 +43,9 @@ private:
 	bool CanCastleQueenside(Team t) const;
 	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
 	bool IsCheckmate(Team t);
+	void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t);
+	void ChessBoard::HandleMoveClick(const Vei2& loc, Team t);
+	void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t);
 
 	//member data
 	bool turnSwap = false;

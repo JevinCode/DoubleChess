@@ -383,43 +383,57 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 	//if we are in the promotion phase, we only handle clicks relevant to promoting a piece.
 	if (isPromoting)
 	{
-		if (loc == Vei2{ 8, 0 })
-		{
-			CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
-			turnSwap = true;
-			isPromoting = false;
-			IsInCheck(t);
-		}
-
-		else if (loc == Vei2{ 8,1 })
-		{
-			CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
-			turnSwap = true;
-			isPromoting = false;
-			IsInCheck(t);
-		}
+		HandlePromotionClick(loc, t);
 		return;
 	}
 
-	//otherwise, we must be in the selection phase, so we handle piece selection and movement.
+	//otherwise, we must be in the selection phase, so we handle piece selection and movement. The following handles movement.
 	auto c = CellAt(loc);
 	if (c->GetHighlight() == Cell::HighlightType::YELLOW || c->GetHighlight() == Cell::HighlightType::RED)
 	{
-		Move(cellPreviouslyHighlighted, loc);
-		cellPreviouslyHighlighted = loc;
-		ReleaseHighlights();
-		if (!isPromoting)
-		{
-			//as we are not promoting a piece, we now test to see if we have put the other player in check.
-			turnSwap = true;
-			if (t == Team::WHITE)
-				blackInCheck = IsBlackInCheck();
-			else
-				whiteInCheck = IsWhiteInCheck();
-		}
+		HandleMoveClick(loc, t);
 		return;
 	}
 
+	//the following handles selection.
+	HandleSelectionClick(loc, t);
+}
+
+void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t)
+{
+	if (loc == Vei2{ 8, 0 })
+	{
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
+		turnSwap = true;
+		isPromoting = false;
+		IsInCheck(t);
+	}
+
+	else if (loc == Vei2{ 8,1 })
+	{
+		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
+		turnSwap = true;
+		isPromoting = false;
+		IsInCheck(t);
+	}
+}
+
+void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
+{
+	Move(cellPreviouslyHighlighted, loc);
+	cellPreviouslyHighlighted = loc;
+	ReleaseHighlights();
+	if (!isPromoting)
+	{
+		//as we are not promoting a piece, we now test to see if we have put the other player in check.
+		turnSwap = true;
+		IsInCheck(t);
+	}
+}
+
+void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
+{
+	auto c = CellAt(loc);
 	ReleaseHighlights();
 	auto piece = c->OnClick(t);
 	if (piece)
@@ -433,7 +447,7 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 				CellAt(loc)->Highlight(Cell::HighlightType::YELLOW);
 			else
 				CellAt(loc)->Highlight(Cell::HighlightType::RED);
-			if (isEnPassantable && loc == enPassantSquare && piece->GetTeam() != CellAt(enPassantPawnLoc)->GetPiece()->GetTeam())
+			if (typeid(piece) == typeid(Pawn) && isEnPassantable && loc == enPassantSquare && piece->GetTeam() != CellAt(enPassantPawnLoc)->GetPiece()->GetTeam())
 				CellAt(loc)->Highlight(Cell::HighlightType::RED);
 		}
 	}
