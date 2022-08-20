@@ -20,9 +20,9 @@ void King::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-std::vector<Vei2> King::GetPossibleMoves(const ChessBoard& brd) const
+std::vector<_Move> King::GetPossibleMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> ans;
+	std::vector<_Move> ans;
 	std::vector<Vei2> moves = { {pos.x - 1, pos.y}, {pos.x - 1, pos.y - 1}, {pos.x - 1, pos.y + 1}, {pos.x, pos.y - 1}, {pos.x, pos.y + 1}, {pos.x + 1, pos.y + 1}, {pos.x + 1, pos.y}, {pos.x + 1, pos.y - 1} };
 	for (const auto& move : moves)
 	{
@@ -30,13 +30,17 @@ std::vector<Vei2> King::GetPossibleMoves(const ChessBoard& brd) const
 		{
 			auto c = brd.CellAt(move);
 			if (c->Empty() || c->GetPiece()->GetTeam() != team)
-				ans.push_back(move);
+				ans.push_back({ pos,move,MoveType::Normal });
 		}
 	}
+	if (brd.CanCastleKingside(team))
+		ans.push_back({ pos,{0,0},MoveType::KingsideCastle });
+	if (brd.CanCastleQueenside(team))
+		ans.push_back({ pos,{0,0},MoveType::QueensideCastle });
 	return ans;
 }
 
-std::vector<Vei2> King::GetPossibleAttackMoves(const ChessBoard& brd) const
+std::vector<_Move> King::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
 	return GetPossibleMoves(brd);
 }

@@ -10,7 +10,7 @@
 #include "King.h"
 #include "Queen.h"
 #include <string>
-
+#include "UniversalTypes.h"
 class ChessAI;
 
 class ChessBoard
@@ -30,23 +30,13 @@ public:
 	Vei2 GetEnPassantPawnLoc() const;
 	Team GetPassantTeam() const;
 	bool IsCheckmate() const;
+	bool CanCastleKingside(Team t) const;
+	bool CanCastleQueenside(Team t) const;
 
-	struct _Move
-	{
-		_Move() = default;
-		_Move(const Vei2& src, const Vei2& dest)
-			:
-			src(src),
-			dest(dest)
-		{}
-		Vei2 src;
-		Vei2 dest;
-	};
 private:
 	//member functions
 	void ReleaseHighlights();
-	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
-	_Move Move(const Vei2& src, const Vei2& dest);
+	std::vector<_Move> GetPossibleMoves(const Vei2& loc) const;
 	_Move Move(_Move mv);
 	bool IsWhiteInCheck() const;
 	bool IsBlackInCheck() const;
@@ -54,8 +44,6 @@ private:
 	bool SimulateAndCheck(_Move move);
 	std::vector<_Move> GetValidMoves(const Vei2& loc);
 	bool IsUnderAttack(Team t, const Vei2& loc) const;
-	bool CanCastleKingside(Team t) const;
-	bool CanCastleQueenside(Team t) const;
 	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
 	void IsCheckmate(Team t);
 	void HandlePromotionClick(const Vei2& loc, Team t);
@@ -79,6 +67,7 @@ private:
 	Vei2 enPassantPawnLoc = { 0,0 };
 	Team passantTeam = Team::WHITE;
 	_Move moveMade;
+	std::vector<_Move> userPossibleMoves;
 	friend class Game;
 	friend class ChessAI;
 public:

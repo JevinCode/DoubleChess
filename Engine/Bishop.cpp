@@ -20,21 +20,21 @@ void Bishop::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-std::vector<Vei2> Bishop::GetPossibleMoves(const ChessBoard& brd) const
+std::vector<_Move> Bishop::GetPossibleMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> ans;
+	std::vector<_Move> ans;
 
 	Vei2 i = { pos.x + 1, pos.y - 1 };
 	while (IsValidLoc(i))
 	{
 		if (brd.CellAt(i)->Empty())
 		{
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 			i += {1, -1};
 			continue;
 		}
 		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
+			ans.push_back({pos,i,MoveType::Normal});
 		break;
 	}
 	i = { pos.x + 1, pos.y + 1 };
@@ -42,12 +42,12 @@ std::vector<Vei2> Bishop::GetPossibleMoves(const ChessBoard& brd) const
 	{
 		if (brd.CellAt(i)->Empty())
 		{
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 			i += {1, 1};
 			continue;
 		}
 		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 		break;
 	}
 	i = { pos.x - 1, pos.y - 1 };
@@ -55,12 +55,12 @@ std::vector<Vei2> Bishop::GetPossibleMoves(const ChessBoard& brd) const
 	{
 		if (brd.CellAt(i)->Empty())
 		{
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 			i += {-1, -1};
 			continue;
 		}
 		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 		break;
 	}
 	i = { pos.x - 1, pos.y + 1 };
@@ -68,18 +68,18 @@ std::vector<Vei2> Bishop::GetPossibleMoves(const ChessBoard& brd) const
 	{
 		if (brd.CellAt(i)->Empty())
 		{
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 			i += {-1, 1};
 			continue;
 		}
 		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
+			ans.push_back({ pos,i,MoveType::Normal });
 		break;
 	}
 	return ans;
 }
 
-std::vector<Vei2> Bishop::GetPossibleAttackMoves(const ChessBoard& brd) const
+std::vector<_Move> Bishop::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
 	return GetPossibleMoves(brd);
 }

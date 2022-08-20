@@ -46,7 +46,7 @@ void ChessAI::Move()
 	{
 		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 		auto move = b1moves[num(rng)];
-		brd1.Move(move.src.loc, move.dest.loc);
+		brd1.Move(move);
 		//handle promotion if applicable
 		brd1.whiteInCheck = brd1.IsWhiteInCheck();
 	}
@@ -54,7 +54,7 @@ void ChessAI::Move()
 	{
 		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 		auto move = b2moves[num(rng)];
-		brd2.Move(move.src.loc, move.dest.loc);
+		brd2.Move(move);
 		//handle promotion if applicable
 		brd2.whiteInCheck = brd2.IsWhiteInCheck();
 	}
@@ -65,7 +65,7 @@ void ChessAI::Move()
 		{
 			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 			auto move = b1moves[num(rng)];
-			brd1.Move(move.src.loc, move.dest.loc);
+			brd1.Move(move);
 			//handle promotion if applicable
 			brd1.whiteInCheck = brd1.IsWhiteInCheck();
 		}
@@ -73,7 +73,7 @@ void ChessAI::Move()
 		{
 			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 			auto move = b2moves[num(rng)];
-			brd2.Move(move.src.loc, move.dest.loc);
+			brd2.Move(move);
 			//handle promotion if applicable
 			brd2.whiteInCheck = brd2.IsWhiteInCheck();
 		}
@@ -97,14 +97,14 @@ void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
 		return;
 	}
 	if (mv.isBoard1)
-		brd1.Move(book.moves[0].src, book.moves[0].dest);
+		brd1.Move({ book.moves[0].src, book.moves[0].dest, MoveType::Normal });
 	else
-		brd2.Move(book.moves[0].src, book.moves[0].dest);
+		brd2.Move({ book.moves[0].src, book.moves[0].dest, MoveType::Normal });
 }
 
-std::vector<ChessAI::_AIMove> ChessAI::GenerateMoves(ChessBoard& brd)
+std::vector<_Move> ChessAI::GenerateMoves(ChessBoard& brd)
 {
-	std::vector<ChessAI::_AIMove> AImoves;
+	std::vector<_Move> AImoves;
 	for (int x = 0; x < 8; x++)
 	{
 		for (int y = 0; y < 8; y++)
@@ -114,9 +114,9 @@ std::vector<ChessAI::_AIMove> ChessAI::GenerateMoves(ChessBoard& brd)
 			{
 				Vei2 src = { x,y };
 				auto moves = brd.GetValidMoves(src);
-				for (auto move : moves)
+				for (const auto& move : moves)
 				{
-					AImoves.push_back({ {src, cell->GetPiece()}, {move.dest, brd.CellAt(move.dest)->GetPiece()} });
+					AImoves.push_back(move);
 				}
 			}
 		}

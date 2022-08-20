@@ -171,6 +171,7 @@
     <ClInclude Include="SpriteEffect.h" />
     <ClInclude Include="StringSplitter.h" />
     <ClInclude Include="Surface.h" />
+    <ClInclude Include="UniversalTypes.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>

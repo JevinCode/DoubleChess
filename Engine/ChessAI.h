@@ -4,7 +4,7 @@
 #include <random>
 #include <stack>
 #include "OpeningEngine.h"
-
+#include "UniversalTypes.h"
 class ChessAI
 {
 public:
@@ -50,7 +50,7 @@ private:
 	OpeningEngine::OpeningMove oppMove;
 	std::string bookName = "";
 	//Methods
-	std::vector<_AIMove> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
+	std::vector<_Move> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
 	int Score(const ChessBoard& brd) const;
 	//_Move CalculateMove();
 };

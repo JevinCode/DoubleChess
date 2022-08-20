@@ -109,16 +109,13 @@ namespace DoubleChessOpenerUI
             {
                 OpeningBook ob = new OpeningBook(nameTextBox.Text, moves.ToList());
                 Config.connection.CreateOpeningBook(ob);
-                if (addSymmetricCheckbox.Checked)
+                List<Move> otherMoves = moves.ToList();
+                foreach(Move move in otherMoves)
                 {
-                    List<Move> otherMoves = moves.ToList();
-                    foreach(Move move in otherMoves)
-                    {
-                        move.Board = move.Board == 1 ? 2 : 1;
-                    }
-                    OpeningBook ob2 = new OpeningBook(nameTextBox.Text + "\'", otherMoves);
-                    Config.connection.CreateOpeningBook(ob2);
+                    move.Board = move.Board == 1 ? 2 : 1;
                 }
+                OpeningBook ob2 = new OpeningBook(nameTextBox.Text + "\'", otherMoves);
+                Config.connection.CreateOpeningBook(ob2);
                 moves.Clear();
                 nameTextBox.Clear();
             }
@@ -142,6 +139,11 @@ namespace DoubleChessOpenerUI
             {
                 moves.Remove(m);
             }
+        }
+
+        private void filterDuplicatesButton_Click(object sender, EventArgs e)
+        {
+            Config.connection.FilterDuplicates();
         }
     }
 }

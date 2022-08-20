@@ -98,55 +98,66 @@ bool ChessBoard::IsValidLoc(const Vei2& loc)
 	return false;
 }
 
-std::vector<Vei2> ChessBoard::GetPossibleMoves(const Vei2& loc) const
+std::vector<_Move> ChessBoard::GetPossibleMoves(const Vei2& loc) const
 {
 	return CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
 }
 
-ChessBoard::_Move ChessBoard::Move(const Vei2& src, const Vei2& dest)
+_Move ChessBoard::Move(_Move move)
 {
-	auto srcCell = CellAt(src);
-	auto destCell = CellAt(dest);
-	destCell->GivePiece(srcCell->GetPiece());
-	srcCell->Clear();
-	auto p = destCell->GetPiece();
-
-	//handles en passant
-	if (isEnPassantable && dest == enPassantSquare && typeid(*p) == typeid(Pawn))
+	switch (move.type)
 	{
+	case MoveType::Normal:
+	{
+		auto srcCell = CellAt(move.src);
+		auto destCell = CellAt(move.dest);
+		destCell->GivePiece(srcCell->GetPiece());
+		srcCell->Clear();
+		auto p = destCell->GetPiece();
+		break;
+	}
+	case MoveType::EnPassant:
 		CellAt(enPassantPawnLoc)->Clear();
-	}
-	//handles castling
-	else if (typeid(*p) == typeid(King) && !p->HasMoved())
-	{
-		if (dest == Vei2{ 6,7 })
+		break;
+	case MoveType::KingsideCastle:
+		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
 		{
+			CellAt({ 6,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
+			CellAt({ 4,0 })->Clear();
+			CellAt({ 5,0 })->GivePiece(CellAt({ 7,0 })->GetPiece());
+			CellAt({ 7,0 })->Clear();
 			hasCastledWhite = true;
-			Move({7,7}, { 5,7 });
 		}
-		else if (dest == Vei2{ 2,7 })
+		else
 		{
+			CellAt({ 6,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
+			CellAt({ 4,7 })->Clear();
+			CellAt({ 5,7 })->GivePiece(CellAt({ 7,7 })->GetPiece());
+			CellAt({ 7,7 })->Clear();
+			hasCastledBlack = true;
+		}
+		break;
+	case MoveType::QueensideCastle:
+		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
+		{
+			CellAt({ 2,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
+			CellAt({ 4,0 })->Clear();
+			CellAt({ 3,0 })->GivePiece(CellAt({ 0,0 })->GetPiece());
+			CellAt({ 0,0 })->Clear();
 			hasCastledWhite = true;
-			Move({0,7}, { 3,7 });
 		}
-		else if (dest == Vei2{ 6,0 })
+		else
 		{
+			CellAt({ 2,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
+			CellAt({ 4,7 })->Clear();
+			CellAt({ 3,7 })->GivePiece(CellAt({ 0,7 })->GetPiece());
+			CellAt({ 0,7 })->Clear();
 			hasCastledBlack = true;
-			Move({7,0}, { 5,0 });
-		}
-		else if (dest == Vei2{ 2,0 })
-		{
-			hasCastledBlack = true;
-			Move({0,0}, { 3,0 });
 		}
 	}
-	PostMoveUpdate(p, dest);
-	return { src, dest };
-}
 
-ChessBoard::_Move ChessBoard::Move(ChessBoard::_Move mv)
-{
-	return Move(mv.src, mv.dest);
+	PostMoveUpdate(CellAt(move.dest)->GetPiece(), move.dest);
+	return move;
 }
 
 //calling function's team is the team the player is on, so we check if the opponent has been put in check (which is why it may appear backward).
@@ -183,7 +194,7 @@ bool ChessBoard::IsWhiteInCheck() const
 				auto moves = p->GetPossibleAttackMoves(*this);
 				for (const auto& move : moves)
 				{
-					auto c = CellAt(move);
+					auto c = CellAt(move.dest);
 					if (!c->Empty() && c->GetPiece()->GetTeam() == Team::WHITE && typeid(*c->GetPiece()) == typeid(King))
 						return true;
 				}
@@ -204,7 +215,7 @@ bool ChessBoard::IsBlackInCheck() const
 				auto moves = p->GetPossibleAttackMoves(*this);
 				for (const auto& move : moves)
 				{
-					auto c = CellAt(move);
+					auto c = CellAt(move.dest);
 					if (!c->Empty() && c->GetPiece()->GetTeam() == Team::BLACK && typeid(*c->GetPiece()) == typeid(King))
 						return true;
 				}
@@ -215,6 +226,8 @@ bool ChessBoard::IsBlackInCheck() const
 }
 bool ChessBoard::SimulateAndCheck(_Move move)
 {
+	if (move.type == MoveType::KingsideCastle || move.type == MoveType::QueensideCastle)
+		return true;
 	auto t = CellAt(move.src)->GetPiece()->GetTeam();
 	auto srcCell = CellAt(move.src);
 	auto destCell = CellAt(move.dest);
@@ -228,7 +241,7 @@ bool ChessBoard::SimulateAndCheck(_Move move)
 	std::shared_ptr<Piece> passant = nullptr;
 	bool passantified = false;
 
-	if (isEnPassantable && move.dest == enPassantSquare && typeid(*destCell->GetPiece()) == typeid(Pawn))
+	if (move.type == MoveType::EnPassant)
 	{
 		passant = CellAt(enPassantPawnLoc)->GetPiece();
 		CellAt(enPassantPawnLoc)->Clear();
@@ -246,7 +259,7 @@ bool ChessBoard::SimulateAndCheck(_Move move)
 
 	return badMove;
 }
-std::vector<ChessBoard::_Move> ChessBoard::GetValidMoves(const Vei2& loc)
+std::vector<_Move> ChessBoard::GetValidMoves(const Vei2& loc)
 {
 	if (CellAt(loc)->Empty())
 		return {};
@@ -254,23 +267,8 @@ std::vector<ChessBoard::_Move> ChessBoard::GetValidMoves(const Vei2& loc)
 	auto moves = CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
 	for (const auto& move : moves)
 	{
-		_Move m = { loc, move };
-		if (!SimulateAndCheck(m))
-			ans.push_back(m);
-	}
-	if (loc == Vei2{4, 0})
-	{
-		if (CanCastleKingside(Team::WHITE))
-			ans.push_back({ loc,{ 6,0 } });
-		if (CanCastleQueenside(Team::WHITE))
-			ans.push_back({loc, { 2,0 } });
-	}
-	if (loc == Vei2{ 4,7 })
-	{
-		if (CanCastleKingside(Team::BLACK))
-			ans.push_back({ loc,{ 6,7 } });
-		if (CanCastleQueenside(Team::BLACK))
-			ans.push_back({ loc,{ 2,7 } });
+		if (!SimulateAndCheck(move))
+			ans.push_back(move);
 	}
 	return ans;
 }
@@ -287,7 +285,7 @@ bool ChessBoard::IsUnderAttack(Team t, const Vei2& loc) const
 				auto attackMoves = piece->GetPossibleAttackMoves(*this);
 				for (const auto& l : attackMoves)
 				{
-					if (l == loc)
+					if (l.dest == loc)
 						return true;
 				}
 			}
@@ -459,7 +457,16 @@ void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t)
 
 void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 {
-	moveMade = Move(cellPreviouslyHighlighted, loc);
+	_Move selectedMove;
+	for (const auto& move : userPossibleMoves)
+	{
+		if (move.dest == loc)
+		{
+			selectedMove = move;
+			break;
+		}
+	}
+	moveMade = Move(selectedMove);
 	cellPreviouslyHighlighted = loc;
 	ReleaseHighlights();
 	if (!isPromoting)
@@ -496,9 +503,10 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 				CellAt(move.dest)->Highlight(Cell::HighlightType::YELLOW);
 			else
 				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
-			if (typeid(piece) == typeid(Pawn) && isEnPassantable && move.dest == enPassantSquare && piece->GetTeam() != passantTeam)
+			if (move.type == MoveType::EnPassant)
 				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
 		}
+		userPossibleMoves = moves;
 	}
 }
 

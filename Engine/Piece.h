@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics.h"
+#include "UniversalTypes.h"
 
 class ChessBoard;
 class Cell;
@@ -13,8 +14,8 @@ class Piece
 public:
 	Piece(Team t, const Vei2& pos);
 	virtual void Draw(Graphics& gfx, const Vei2& loc) const = 0;
-	virtual std::vector<Vei2> GetPossibleMoves(const ChessBoard& brd) const = 0;
-	virtual std::vector<Vei2> GetPossibleAttackMoves(const ChessBoard& brd) const = 0;
+	virtual std::vector<_Move> GetPossibleMoves(const ChessBoard& brd) const = 0;
+	virtual std::vector<_Move> GetPossibleAttackMoves(const ChessBoard& brd) const = 0;
 	void Update(const Vei2& loc);
 	const Vei2& GetPosition() const;
 	void SetPosition(const Vei2& loc);

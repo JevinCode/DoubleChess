@@ -9,5 +9,6 @@ namespace DoubleChessOpenerLibrary
     public interface IDataConnection
     {
         void CreateOpeningBook(OpeningBook book);
+        void FilterDuplicates();
     }
 }

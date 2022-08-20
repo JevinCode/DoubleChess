@@ -44,7 +44,6 @@
             this.createBookButton = new System.Windows.Forms.Button();
             this.removeSelectedButton = new System.Windows.Forms.Button();
             this.board2CheckBox = new System.Windows.Forms.CheckBox();
-            this.addSymmetricCheckbox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // headerLabel
@@ -202,24 +201,12 @@
             this.board2CheckBox.Text = "Board 2";
             this.board2CheckBox.UseVisualStyleBackColor = true;
             // 
-            // addSymmetricCheckbox
-            // 
-            this.addSymmetricCheckbox.AutoSize = true;
-            this.addSymmetricCheckbox.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.addSymmetricCheckbox.Location = new System.Drawing.Point(281, 350);
-            this.addSymmetricCheckbox.Name = "addSymmetricCheckbox";
-            this.addSymmetricCheckbox.Size = new System.Drawing.Size(136, 25);
-            this.addSymmetricCheckbox.TabIndex = 16;
-            this.addSymmetricCheckbox.Text = "Add Symmetric";
-            this.addSymmetricCheckbox.UseVisualStyleBackColor = true;
-            // 
             // CreateOpeningBookForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(766, 450);
-            this.Controls.Add(this.addSymmetricCheckbox);
             this.Controls.Add(this.board2CheckBox);
             this.Controls.Add(this.removeSelectedButton);
             this.Controls.Add(this.createBookButton);
@@ -261,6 +248,5 @@
         private Button createBookButton;
         private Button removeSelectedButton;
         private CheckBox board2CheckBox;
-        private CheckBox addSymmetricCheckbox;
     }
 }

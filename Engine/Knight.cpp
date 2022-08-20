@@ -37,9 +37,9 @@ void Knight::DrawBlack(Graphics& gfx, const ChessBoard& brd)
 	gfx.DrawSprite(loc.x, loc.y, { 120,150,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
 }
 
-std::vector<Vei2> Knight::GetPossibleMoves(const ChessBoard& brd) const
+std::vector<_Move> Knight::GetPossibleMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> Moves;
+	std::vector<_Move> Moves;
 	for (const auto& offset : moveOffsets)
 	{
 		auto loc = pos + offset;
@@ -47,13 +47,13 @@ std::vector<Vei2> Knight::GetPossibleMoves(const ChessBoard& brd) const
 		{
 			auto c = brd.CellAt(loc);
 			if(c->Empty() || c->GetPiece()->GetTeam() != team)
-				Moves.push_back(loc);
+				Moves.push_back({ pos,loc,MoveType::Normal });
 		}
 	}
 	return Moves;
 }
 
-std::vector<Vei2> Knight::GetPossibleAttackMoves(const ChessBoard& brd) const
+std::vector<_Move> Knight::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
 	return GetPossibleMoves(brd);
 }

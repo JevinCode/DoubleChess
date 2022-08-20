@@ -1,4 +1,7 @@
 #include "OpeningEngine.h"
+#include <cassert>
+#include "ChiliWin.h"
+#include <debugapi.h>
 
 OpeningEngine::OpeningEngine()
 {
@@ -44,7 +47,14 @@ void OpeningEngine::CullBookVector(const OpeningMove& move)
 		else
 		{
 			it->get()->moves.erase(it->get()->moves.begin());
-			it++;
+			if (it->get()->moves.size() == 0)
+			{
+				it = openingBooks.erase(it);
+			}
+			else
+			{
+				it++;
+			}
 		}
 	}
 }
@@ -60,7 +70,13 @@ OpeningEngine::OpeningBook OpeningEngine::SelectBook(std::mt19937& rng, const Op
 	}
 	std::uniform_int_distribution dist(0, (int)openingBooks.size() - 1);
 	int idx = dist(rng);
+	assert(idx < openingBooks.size());
 	auto retval = OpeningBook(*openingBooks[dist(rng)]);
+	if (retval.moves.size() == 0)
+	{
+		OutputDebugString(L"Houston, we have a problem");
+	}
+	assert(retval.moves.size() > 0);
 	CullBookVector(retval.moves[0]);
 	return retval;
 }
