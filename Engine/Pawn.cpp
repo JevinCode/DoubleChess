@@ -23,15 +23,15 @@ void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
 std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 {
 	std::vector<Vei2> ans;
-	Vei2 ahead = team == Team::WHITE ? Vei2{ pos.x, pos.y - 1 } : Vei2{ pos.x, pos.y + 1 };
+	Vei2 ahead = team == Team::WHITE ? Vei2{ pos.x, pos.y + 1 } : Vei2{ pos.x, pos.y - 1 };
 	if (IsValidLoc(ahead) && brd.CellAt(ahead)->Empty())
 		ans.push_back( ahead);
 	
-	Vei2 ahead2 = team == Team::WHITE ? Vei2{ pos.x, pos.y - 2 } : Vei2{ pos.x, pos.y + 2 };
-	if (numMoves == 0 && brd.CellAt(ahead2)->Empty() && brd.CellAt(ahead)->Empty())
+	Vei2 ahead2 = team == Team::WHITE ? Vei2{ pos.x, pos.y + 2 } : Vei2{ pos.x, pos.y - 2 };
+	if (!hasMoved && brd.CellAt(ahead2)->Empty() && brd.CellAt(ahead)->Empty())
 		ans.push_back(ahead2);
 
-	Vei2 ahead3 = team == Team::WHITE ? Vei2{ pos.x + 1, pos.y - 1 } : Vei2{ pos.x + 1, pos.y + 1 };
+	Vei2 ahead3 = team == Team::WHITE ? Vei2{ pos.x + 1, pos.y + 1 } : Vei2{ pos.x + 1, pos.y - 1 };
 	if (IsValidLoc(ahead3))
 	{
 		auto c = brd.CellAt(ahead3);
@@ -42,7 +42,7 @@ std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 			ans.push_back(ahead3);
 	}
 
-	Vei2 ahead4 = team == Team::WHITE ? Vei2{ pos.x - 1, pos.y - 1 } : Vei2{ pos.x - 1, pos.y + 1 };
+	Vei2 ahead4 = team == Team::WHITE ? Vei2{ pos.x - 1, pos.y + 1 } : Vei2{ pos.x - 1, pos.y - 1 };
 	if (IsValidLoc(ahead4))
 	{
 		if (!brd.CellAt(ahead4)->Empty() && brd.CellAt(ahead4)->GetPiece()->GetTeam() != team)
@@ -57,7 +57,7 @@ std::vector<Vei2> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 std::vector<Vei2> Pawn::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
 	std::vector<Vei2> ans;
-	Vei2 ahead3 = team == Team::WHITE ? Vei2{ pos.x + 1, pos.y - 1 } : Vei2{ pos.x + 1, pos.y + 1 };
+	Vei2 ahead3 = team == Team::BLACK ? Vei2{ pos.x + 1, pos.y - 1 } : Vei2{ pos.x + 1, pos.y + 1 };
 	if (IsValidLoc(ahead3))
 	{
 		auto c = brd.CellAt(ahead3);
@@ -68,7 +68,7 @@ std::vector<Vei2> Pawn::GetPossibleAttackMoves(const ChessBoard& brd) const
 			ans.push_back(ahead3);
 	}
 
-	Vei2 ahead4 = team == Team::WHITE ? Vei2{ pos.x - 1, pos.y - 1 } : Vei2{ pos.x - 1, pos.y + 1 };
+	Vei2 ahead4 = team == Team::BLACK ? Vei2{ pos.x - 1, pos.y - 1 } : Vei2{ pos.x - 1, pos.y + 1 };
 	if (IsValidLoc(ahead4))
 	{
 		auto c = brd.CellAt(ahead4);

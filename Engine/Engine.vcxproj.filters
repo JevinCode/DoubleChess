@@ -108,6 +108,12 @@
     <ClInclude Include="ChessAI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OpeningEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringSplitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXErr.cpp">
@@ -182,6 +188,9 @@
     <ClCompile Include="ChessAI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OpeningEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FramebufferPS.hlsl">
@@ -203,5 +212,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Benches.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -58,7 +58,7 @@ bool Cell::Empty() const
 void Cell::DrawCell(Graphics& gfx, const Vei2& offset)
 {
 	int xDest = loc.x * dimension + offset.x;
-	int yDest = loc.y * dimension + offset.y;
+	int yDest = offset.y - ((1 + loc.y) * dimension);
 	switch (highlight)
 	{
 	case HighlightType::BLUE:

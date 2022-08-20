@@ -81,55 +81,5 @@ std::vector<Vei2> Bishop::GetPossibleMoves(const ChessBoard& brd) const
 
 std::vector<Vei2> Bishop::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> ans;
-
-	Vei2 i = { pos.x + 1, pos.y - 1 };
-	while (IsValidLoc(i))
-	{
-		if (brd.CellAt(i)->Empty())
-		{
-			i += {1, -1};
-			continue;
-		}
-		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
-		break;
-	}
-	i = { pos.x + 1, pos.y + 1 };
-	while (IsValidLoc(i))
-	{
-		if (brd.CellAt(i)->Empty())
-		{
-			i += {1, 1};
-			continue;
-		}
-		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
-		break;
-	}
-	i = { pos.x - 1, pos.y - 1 };
-	while (IsValidLoc(i))
-	{
-		if (brd.CellAt(i)->Empty())
-		{
-			i += {-1, -1};
-			continue;
-		}
-		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
-		break;
-	}
-	i = { pos.x - 1, pos.y + 1 };
-	while (IsValidLoc(i))
-	{
-		if (brd.CellAt(i)->Empty())
-		{
-			i += {-1, 1};
-			continue;
-		}
-		if (brd.CellAt(i)->GetPiece()->GetTeam() != team)
-			ans.push_back(i);
-		break;
-	}
-	return ans;
+	return GetPossibleMoves(brd);
 }

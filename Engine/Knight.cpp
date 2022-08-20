@@ -55,16 +55,5 @@ std::vector<Vei2> Knight::GetPossibleMoves(const ChessBoard& brd) const
 
 std::vector<Vei2> Knight::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> Moves;
-	for (const auto& offset : moveOffsets)
-	{
-		auto loc = pos + offset;
-		if (IsValidLoc(loc))
-		{
-			auto c = brd.CellAt(loc);
-			if (c->Empty() || c->GetPiece()->GetTeam() != team)
-				Moves.push_back(loc);
-		}
-	}
-	return Moves;
+	return GetPossibleMoves(brd);
 }

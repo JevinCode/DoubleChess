@@ -38,18 +38,7 @@ std::vector<Vei2> King::GetPossibleMoves(const ChessBoard& brd) const
 
 std::vector<Vei2> King::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
-	std::vector<Vei2> ans;
-	std::vector<Vei2> moves = { {pos.x - 1, pos.y}, {pos.x - 1, pos.y - 1}, {pos.x - 1, pos.y + 1}, {pos.x, pos.y - 1}, {pos.x, pos.y + 1}, {pos.x + 1, pos.y + 1}, {pos.x + 1, pos.y}, {pos.x + 1, pos.y - 1} };
-	for (const auto& move : moves)
-	{
-		if (IsValidLoc(move))
-		{
-			auto c = brd.CellAt(move);
-			if(!c->Empty() && c->GetPiece()->GetTeam() != team)
-				ans.push_back(move);
-		}
-	}
-	return ans;
+	return GetPossibleMoves(brd);
 }
 
 

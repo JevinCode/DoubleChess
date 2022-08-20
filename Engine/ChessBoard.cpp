@@ -17,31 +17,31 @@ ChessBoard::ChessBoard(const Vei2& topLeft)
 	}
 	for (int x = 0; x < 8; x++)
 	{
-		int i = LinearizeCoords({ x,1 });
-		cells[i]->GivePiece(std::make_shared<Pawn>(Team::BLACK, Vei2{ x,1 }));
+		int i = LinearizeCoords({ x,6 });
+		cells[i]->GivePiece(std::make_shared<Pawn>(Team::BLACK, Vei2{ x,6 }));
 	}
-	cells[LinearizeCoords({ 0,0 })]->GivePiece( std::make_shared<Rook>(Team::BLACK,  Vei2{ 0,0 }));
-	cells[LinearizeCoords({ 1,0 })]->GivePiece( std::make_shared<Knight>(Team::BLACK, Vei2{ 1,0 }));
-	cells[LinearizeCoords({ 2,0 })]->GivePiece( std::make_shared<Bishop>(Team::BLACK, Vei2{ 2,0 }));
-	cells[LinearizeCoords({ 3,0 })]->GivePiece( std::make_shared<Queen>(Team::BLACK, Vei2{ 3,0 }));
-	cells[LinearizeCoords({ 4,0 })]->GivePiece( std::make_shared<King>(Team::BLACK, Vei2{4,0 }));
-	cells[LinearizeCoords({ 5,0 })]->GivePiece( std::make_shared<Bishop>(Team::BLACK, Vei2{ 5,0 }));
-	cells[LinearizeCoords({ 6,0 })]->GivePiece( std::make_shared<Knight>(Team::BLACK, Vei2{ 6,0 }));
-	cells[LinearizeCoords({ 7,0 })]->GivePiece( std::make_shared<Rook>(Team::BLACK, Vei2{ 7,0 }));
+	cells[LinearizeCoords({ 0,7 })]->GivePiece( std::make_shared<Rook>(Team::BLACK,  Vei2{ 0,7 }));
+	cells[LinearizeCoords({ 1,7 })]->GivePiece( std::make_shared<Knight>(Team::BLACK, Vei2{ 1,7 }));
+	cells[LinearizeCoords({ 2,7 })]->GivePiece( std::make_shared<Bishop>(Team::BLACK, Vei2{ 2,7 }));
+	cells[LinearizeCoords({ 3,7 })]->GivePiece( std::make_shared<Queen>(Team::BLACK, Vei2{ 3,7 }));
+	cells[LinearizeCoords({ 4,7 })]->GivePiece( std::make_shared<King>(Team::BLACK, Vei2{4,7 }));
+	cells[LinearizeCoords({ 5,7 })]->GivePiece( std::make_shared<Bishop>(Team::BLACK, Vei2{ 5,7 }));
+	cells[LinearizeCoords({ 6,7 })]->GivePiece( std::make_shared<Knight>(Team::BLACK, Vei2{ 6,7 }));
+	cells[LinearizeCoords({ 7,7 })]->GivePiece( std::make_shared<Rook>(Team::BLACK, Vei2{ 7,7 }));
 
 	for (int x = 0; x < 8; x++)
 	{
-		int i = LinearizeCoords({ x,6 });
-		cells[i]->GivePiece(std::make_shared<Pawn>(Team::WHITE, Vei2{x,6}));
+		int i = LinearizeCoords({ x,1 });
+		cells[i]->GivePiece(std::make_shared<Pawn>(Team::WHITE, Vei2{x,1}));
 	}
-	cells[LinearizeCoords({ 0,7 })]->GivePiece(std::make_shared<Rook>(Team::WHITE, Vei2{ 0,7 }));
-	cells[LinearizeCoords({ 1,7 })]->GivePiece(std::make_shared<Knight>(Team::WHITE, Vei2{ 1,7 }));
-	cells[LinearizeCoords({ 2,7 })]->GivePiece(std::make_shared<Bishop>(Team::WHITE, Vei2{ 2,7 }));
-	cells[LinearizeCoords({ 3,7 })]->GivePiece(std::make_shared<Queen>(Team::WHITE, Vei2{ 3,7 }));
-	cells[LinearizeCoords({ 4,7 })]->GivePiece(std::make_shared<King>(Team::WHITE, Vei2{ 4,7 }));
-	cells[LinearizeCoords({ 5,7 })]->GivePiece(std::make_shared<Bishop>(Team::WHITE, Vei2{ 5,7 }));
-	cells[LinearizeCoords({ 6,7 })]->GivePiece(std::make_shared<Knight>(Team::WHITE, Vei2{ 6,7 }));
-	cells[LinearizeCoords({ 7,7 })]->GivePiece(std::make_shared<Rook>(Team::WHITE, Vei2{ 7,7 }));
+	cells[LinearizeCoords({ 0,0 })]->GivePiece(std::make_shared<Rook>(Team::WHITE, Vei2{ 0,0 }));
+	cells[LinearizeCoords({ 1,0 })]->GivePiece(std::make_shared<Knight>(Team::WHITE, Vei2{ 1,0 }));
+	cells[LinearizeCoords({ 2,0 })]->GivePiece(std::make_shared<Bishop>(Team::WHITE, Vei2{ 2,0 }));
+	cells[LinearizeCoords({ 3,0 })]->GivePiece(std::make_shared<Queen>(Team::WHITE, Vei2{ 3,0 }));
+	cells[LinearizeCoords({ 4,0 })]->GivePiece(std::make_shared<King>(Team::WHITE, Vei2{ 4,0 }));
+	cells[LinearizeCoords({ 5,0 })]->GivePiece(std::make_shared<Bishop>(Team::WHITE, Vei2{ 5,0 }));
+	cells[LinearizeCoords({ 6,0 })]->GivePiece(std::make_shared<Knight>(Team::WHITE, Vei2{ 6,0 }));
+	cells[LinearizeCoords({ 7,0 })]->GivePiece(std::make_shared<Rook>(Team::WHITE, Vei2{ 7,0 }));
 	
 }
 
@@ -49,7 +49,8 @@ void ChessBoard::Draw(Graphics& gfx) const
 {
 	for (const auto& c : cells)
 	{
-		c->DrawCell(gfx, topLeft);
+		auto offSet = GetOffset();
+		c->DrawCell(gfx, offSet);
 	}
 }
 
@@ -65,7 +66,9 @@ Vei2 ChessBoard::Dimensify(int loc)
 
 Vei2 ChessBoard::GetOffset() const
 {
-	return topLeft;
+	auto offSet = topLeft;
+	offSet.y += 8 * cellSize;
+	return offSet;
 }
 
 std::shared_ptr<Cell> ChessBoard::CellAt(const Vei2& loc)
@@ -100,7 +103,7 @@ std::vector<Vei2> ChessBoard::GetPossibleMoves(const Vei2& loc) const
 	return CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
 }
 
-void ChessBoard::Move(const Vei2& src, const Vei2& dest)
+ChessBoard::_Move ChessBoard::Move(const Vei2& src, const Vei2& dest)
 {
 	auto srcCell = CellAt(src);
 	auto destCell = CellAt(dest);
@@ -138,15 +141,34 @@ void ChessBoard::Move(const Vei2& src, const Vei2& dest)
 		}
 	}
 	PostMoveUpdate(p, dest);
+	return { src, dest };
+}
+
+ChessBoard::_Move ChessBoard::Move(ChessBoard::_Move mv)
+{
+	return Move(mv.src, mv.dest);
 }
 
 //calling function's team is the team the player is on, so we check if the opponent has been put in check (which is why it may appear backward).
 void ChessBoard::IsInCheck(Team t)
 {
 	if (t == Team::WHITE)
+	{
 		blackInCheck = IsBlackInCheck();
+		if (blackInCheck)
+		{
+			IsCheckmate(Team::BLACK);
+		}
+
+	}
 	else
+	{
 		whiteInCheck = IsWhiteInCheck();
+		if (whiteInCheck)
+		{
+			IsCheckmate(Team::WHITE);
+		}
+	}
 }
 
 bool ChessBoard::IsWhiteInCheck() const
@@ -191,21 +213,22 @@ bool ChessBoard::IsBlackInCheck() const
 	}
 	return false;
 }
-bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
+bool ChessBoard::SimulateAndCheck(_Move move)
 {
-	auto t = src->GetPiece()->GetTeam();
-	auto dest = CellAt(loc);
+	auto t = CellAt(move.src)->GetPiece()->GetTeam();
+	auto srcCell = CellAt(move.src);
+	auto destCell = CellAt(move.dest);
 
 	//make a copy of the piece at destCell
-	auto destPiece = dest->GetPiece();
+	auto destPiece = CellAt(move.dest)->GetPiece();
 
-	dest->GivePiece(src->GetPiece());
-	src->Clear();
+	destCell->GivePiece(srcCell->GetPiece());
+	srcCell->Clear();
 
 	std::shared_ptr<Piece> passant = nullptr;
 	bool passantified = false;
 
-	if (isEnPassantable && loc == enPassantSquare && typeid(*dest->GetPiece()) == typeid(Pawn))
+	if (isEnPassantable && move.dest == enPassantSquare && typeid(*destCell->GetPiece()) == typeid(Pawn))
 	{
 		passant = CellAt(enPassantPawnLoc)->GetPiece();
 		CellAt(enPassantPawnLoc)->Clear();
@@ -216,35 +239,38 @@ bool ChessBoard::SimulateAndCheck(std::shared_ptr<Cell> src, const Vei2& loc)
 	bool badMove = t == Team::WHITE ? IsWhiteInCheck() : IsBlackInCheck();
 
 	//restore pieces to their original position
-	src->GivePiece(dest->GetPiece());
-	dest->GivePiece(destPiece);
+	srcCell->GivePiece(destCell->GetPiece());
+	destCell->GivePiece(destPiece);
 	if (passantified)
 		CellAt(enPassantPawnLoc)->GivePiece(passant);
 
 	return badMove;
 }
-std::vector<Vei2> ChessBoard::GetValidMoves(const Vei2& loc)
+std::vector<ChessBoard::_Move> ChessBoard::GetValidMoves(const Vei2& loc)
 {
-	std::vector<Vei2> ans;
+	if (CellAt(loc)->Empty())
+		return {};
+	std::vector<_Move> ans;
 	auto moves = CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
 	for (const auto& move : moves)
 	{
-		if (!SimulateAndCheck(CellAt(loc), move))
-			ans.push_back(move);
+		_Move m = { loc, move };
+		if (!SimulateAndCheck(m))
+			ans.push_back(m);
 	}
 	if (loc == Vei2{4, 0})
 	{
-		if (CanCastleKingside(Team::BLACK))
-			ans.push_back({ 6,0 });
-		if (CanCastleQueenside(Team::BLACK))
-			ans.push_back({ 2,0 });
+		if (CanCastleKingside(Team::WHITE))
+			ans.push_back({ loc,{ 6,0 } });
+		if (CanCastleQueenside(Team::WHITE))
+			ans.push_back({loc, { 2,0 } });
 	}
 	if (loc == Vei2{ 4,7 })
 	{
-		if (CanCastleKingside(Team::WHITE))
-			ans.push_back({ 6,7 });
-		if (CanCastleQueenside(Team::WHITE))
-			ans.push_back({ 2,7 });
+		if (CanCastleKingside(Team::BLACK))
+			ans.push_back({ loc,{ 6,7 } });
+		if (CanCastleQueenside(Team::BLACK))
+			ans.push_back({ loc,{ 2,7 } });
 	}
 	return ans;
 }
@@ -276,11 +302,11 @@ bool ChessBoard::CanCastleKingside(Team t) const
 	{
 		if (hasCastledWhite)
 			return false;
-		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 7,7 })->Empty())
+		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 7,0 })->Empty())
 		{
-			auto k = CellAt({ 4,7 })->GetPiece();
-			auto r = CellAt({ 7,7 })->GetPiece();
-			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,7 })->Empty() && CellAt({ 6,7 })->Empty() && !IsUnderAttack(t, { 5,7 }) && !IsUnderAttack(t, { 6,7 }) && !IsWhiteInCheck())
+			auto k = CellAt({ 4,0 })->GetPiece();
+			auto r = CellAt({ 7,0 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,0 })->Empty() && CellAt({ 6,0 })->Empty() && !IsUnderAttack(t, { 5,0 }) && !IsUnderAttack(t, { 6,0 }) && !IsWhiteInCheck())
 				return true;
 		}
 	}
@@ -288,11 +314,11 @@ bool ChessBoard::CanCastleKingside(Team t) const
 	{
 		if (hasCastledBlack)
 			return false;
-		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 7,0 })->Empty())
+		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 7,7 })->Empty())
 		{
-			auto k = CellAt({ 4,0 })->GetPiece();
-			auto r = CellAt({ 7,0 })->GetPiece();
-			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,0 })->Empty() && CellAt({ 6,0 })->Empty() && !IsUnderAttack(t, { 5,0 }) && !IsUnderAttack(t, { 6,0 }) && !IsBlackInCheck())
+			auto k = CellAt({ 4,7 })->GetPiece();
+			auto r = CellAt({ 7,7 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,7 })->Empty() && CellAt({ 6,7 })->Empty() && !IsUnderAttack(t, { 5,7 }) && !IsUnderAttack(t, { 6,7 }) && !IsBlackInCheck())
 				return true;
 		}
 	}
@@ -304,11 +330,11 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 	{
 		if (hasCastledWhite)
 			return false;
-		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 0,7 })->Empty())
+		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 0,0 })->Empty())
 		{
-			auto k = CellAt({ 4,7 })->GetPiece();
-			auto r = CellAt({ 0,7 })->GetPiece();
-			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,7 })->Empty() && CellAt({ 2,7 })->Empty() && CellAt({ 3,7 })->Empty() && !IsUnderAttack(t, { 2,7 }) && !IsUnderAttack(t, { 3,7 }))
+			auto k = CellAt({ 4,0 })->GetPiece();
+			auto r = CellAt({ 0,0 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,0 })->Empty() && CellAt({ 2,0 })->Empty() && CellAt({ 3,0 })->Empty() && !IsUnderAttack(t, { 2,0 }) && !IsUnderAttack(t, { 3,0 }))
 				return true;
 		}
 	}
@@ -316,11 +342,11 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 	{
 		if (hasCastledBlack)
 			return false;
-		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 0,0 })->Empty())
+		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 0,7 })->Empty())
 		{
-			auto k = CellAt({ 4,0 })->GetPiece();
-			auto r = CellAt({ 0,0 })->GetPiece();
-			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,0 })->Empty() && CellAt({ 2,0 })->Empty() && CellAt({ 3,0 })->Empty() && !IsUnderAttack(t, { 2,0 }) && !IsUnderAttack(t, { 3,0 }))
+			auto k = CellAt({ 4,7 })->GetPiece();
+			auto r = CellAt({ 0,7 })->GetPiece();
+			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,7 })->Empty() && CellAt({ 2,7 })->Empty() && CellAt({ 3,7 })->Empty() && !IsUnderAttack(t, { 2,7 }) && !IsUnderAttack(t, { 3,7 }))
 				return true;
 		}
 	}
@@ -334,29 +360,33 @@ void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
 		if (p->GetNumMoves() == 1 && (loc.y == 4 || loc.y == 3))
 		{
 			isEnPassantable = true;
-			enPassantSquare = p->GetTeam() == Team::WHITE ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
+			enPassantSquare = p->GetTeam() == Team::BLACK ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
 			enPassantPawnLoc = loc;
 			passantTeam = p->GetTeam();
 			return;
 		}
-		else if ((loc.y == 0 && p->GetTeam() == Team::WHITE) || (loc.y == 7 && p->GetTeam() == Team::BLACK))
+		else if ((loc.y == 7 && p->GetTeam() == Team::WHITE) || (loc.y == 0 && p->GetTeam() == Team::BLACK))
 			isPromoting = true;
 	}
 	isEnPassantable = false;
 }
-bool ChessBoard::IsCheckmate(Team t)
+void ChessBoard::IsCheckmate(Team t)
 {
 	for (const auto& c : cells)
 	{
 		if (!c->Empty() && c->GetPiece()->GetTeam() == t)
 		{
-			std::vector<Vei2> moves = GetValidMoves(c->GetLoc());
+			std::vector<_Move> moves = GetValidMoves(c->GetLoc());
 			if (moves.size() > 0)
-				return false;
+				return;
 		}
 	}
 	//if no moves can be made after looping through each cell, then we must be in a checkmate state.
-	return true;
+	isCheckmate = true;
+}
+bool ChessBoard::IsCheckmate() const
+{
+	return isCheckmate;
 }
 Team ChessBoard::GetPassantTeam() const
 {
@@ -420,7 +450,7 @@ void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t)
 
 void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 {
-	Move(cellPreviouslyHighlighted, loc);
+	moveMade = Move(cellPreviouslyHighlighted, loc);
 	cellPreviouslyHighlighted = loc;
 	ReleaseHighlights();
 	if (!isPromoting)
@@ -440,15 +470,15 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 	{
 		c->Highlight(Cell::HighlightType::BLUE);
 		cellPreviouslyHighlighted = loc;
-		auto moveTargets = GetValidMoves(loc);
-		for (const auto& loc : moveTargets)
+		auto moves = GetValidMoves(loc);
+		for (const auto& move : moves)
 		{
-			if (CellAt(loc)->Empty())
-				CellAt(loc)->Highlight(Cell::HighlightType::YELLOW);
+			if (CellAt(move.dest)->Empty())
+				CellAt(move.dest)->Highlight(Cell::HighlightType::YELLOW);
 			else
-				CellAt(loc)->Highlight(Cell::HighlightType::RED);
-			if (typeid(piece) == typeid(Pawn) && isEnPassantable && loc == enPassantSquare && piece->GetTeam() != CellAt(enPassantPawnLoc)->GetPiece()->GetTeam())
-				CellAt(loc)->Highlight(Cell::HighlightType::RED);
+				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
+			if (typeid(piece) == typeid(Pawn) && isEnPassantable && move.dest == enPassantSquare && piece->GetTeam() != passantTeam)
+				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
 		}
 	}
 }

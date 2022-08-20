@@ -128,11 +128,11 @@ const wchar_t* SoundSystem::XAudioDll::GetDllPath( LoadType type )
 	switch( type )
 	{
 	case LoadType::System:
-		return systemPath;
+		return L"XAudio2_7.dll";
 	case LoadType::Folder:
-		return folderPath;
+		return L"XAudio\\XAudio2_7_64.dll";
 	case LoadType::Local:
-		return localPath;
+		return L"XAudio2_7_64.dll";
 	default:
 		assert( false && "Bad LoadType in GetDllPath function" );
 		return nullptr;

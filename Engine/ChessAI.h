@@ -3,12 +3,17 @@
 #include "Cell.h"
 #include <random>
 #include <stack>
+#include "OpeningEngine.h"
 
 class ChessAI
 {
 public:
 	ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2);
-	void Move();
+	~ChessAI()
+	{
+		delete opener;
+	}
+	void HandleMoveEvent(bool isBrd1);
 private:
 	struct CellData
 	{
@@ -20,9 +25,9 @@ private:
 		Vei2 loc = {0,0};
 		std::shared_ptr<Piece> piece = nullptr;
 	};
-	struct _Move
+	struct _AIMove
 	{
-		_Move(CellData src, CellData dest)
+		_AIMove(CellData src, CellData dest)
 			:
 			dest(dest),
 			src(src)
@@ -31,14 +36,18 @@ private:
 		CellData dest;
 	};
 
+	void Move();
+	void Move(const OpeningEngine::OpeningMove& mv);
+	OpeningEngine* opener = new OpeningEngine();
 	Team team = Team::BLACK;
 	std::mt19937 rng;
 	ChessBoard& brd1;
 	ChessBoard& brd2;
-	std::stack<_Move> moveTree;
-
+	//std::stack<_Move> moveTree;
+	bool midGame = false;
+	OpeningEngine::OpeningMove oppMove;
 	//Methods
-	std::vector<_Move> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
+	std::vector<_AIMove> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
 	int Score(const ChessBoard& brd) const;
-	_Move CalculateMove();
+	//_Move CalculateMove();
 };

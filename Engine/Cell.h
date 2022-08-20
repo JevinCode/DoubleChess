@@ -35,7 +35,7 @@ private:
 	const Shade shade;
 	static constexpr int dimension = 30;
 	const Vei2 loc;
-	inline static Surface s = "Images\\tiles.bmp";
+	inline static Surface s = std::string("Images\\tiles.bmp");
 	std::shared_ptr<Piece> piece = nullptr;
 	HighlightType highlight = HighlightType::NONE;
 };

@@ -10,6 +10,24 @@ ChessAI::ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2)
 	rng = std::mt19937(rd());
 }
 
+void ChessAI::HandleMoveEvent(bool isBrd1)
+{
+	if (midGame)
+	{
+		Move();
+	}
+	else
+	{
+		if (isBrd1)
+		{
+			Move({ isBrd1, {brd1.moveMade.src}, {brd1.moveMade.dest} });
+		}
+		else
+		{
+			Move({ isBrd1, {brd2.moveMade.src}, {brd2.moveMade.dest} });
+		}
+	}
+}
 void ChessAI::Move()
 {
 	auto b1moves = GenerateMoves(brd1);
@@ -50,12 +68,32 @@ void ChessAI::Move()
 			brd2.whiteInCheck = brd2.IsWhiteInCheck();
 		}
 	}
-
 }
 
-std::vector<ChessAI::_Move> ChessAI::GenerateMoves(ChessBoard& brd)
+void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
 {
-	std::vector<ChessAI::_Move> moves;
+	if (opener->OutOfMoves())
+	{
+		midGame = true;
+		Move();
+	}
+
+	auto mov = opener->SelectMove(rng, mv);
+	if (opener->OutOfMoves())
+	{
+		midGame = true;
+		Move();
+		return;
+	}
+	if (mv.isBoard1)
+		brd1.Move(mov.src, mov.dest);
+	else
+		brd2.Move(mov.src, mov.dest);
+}
+
+std::vector<ChessAI::_AIMove> ChessAI::GenerateMoves(ChessBoard& brd)
+{
+	std::vector<ChessAI::_AIMove> AImoves;
 	for (int x = 0; x < 8; x++)
 	{
 		for (int y = 0; y < 8; y++)
@@ -64,15 +102,15 @@ std::vector<ChessAI::_Move> ChessAI::GenerateMoves(ChessBoard& brd)
 			if (!cell->Empty() && cell->GetPiece()->GetTeam() == team) 
 			{
 				Vei2 src = { x,y };
-				auto locs = brd.GetValidMoves(src);
-				for (auto loc : locs)
+				auto moves = brd.GetValidMoves(src);
+				for (auto move : moves)
 				{
-					moves.emplace_back(ChessAI::_Move{ {src, cell->GetPiece()}, {loc, brd.CellAt({x,y})->GetPiece()} });
+					AImoves.push_back({ {src, cell->GetPiece()}, {move.dest, brd.CellAt(move.dest)->GetPiece()} });
 				}
 			}
 		}
 	}
-	return moves;
+	return AImoves;
 }
 
 int ChessAI::Score(const ChessBoard& brd) const

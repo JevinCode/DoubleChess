@@ -24,7 +24,7 @@ public:
 	int GetNumAdjDefenders(const ChessBoard& brd) const;
 protected:
 	bool IsValidLoc(const Vei2& loc) const;
-	inline static Surface s = "Images\\chess_pieces.bmp";
+	inline static Surface s = std::string("Images\\chess_pieces.bmp");
 	Vei2 pos;
 	Team team;
 	bool hasMoved = false;

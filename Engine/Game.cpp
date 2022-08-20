@@ -58,7 +58,7 @@ void Game::UpdateModel()
 	}
 	if (playerTurn == Team::BLACK)
 	{
-		mrAI.Move();
+		mrAI.HandleMoveEvent(curSelection == BoardSelection::Board1);
 		playerTurn = Team::WHITE;
 	}
 	while (!wnd.mouse.IsEmpty())
@@ -82,29 +82,33 @@ void Game::UpdateModel()
 			}
 		}
 	}
-	if (brd1.IsCheckmate(playerTurn) || brd2.IsCheckmate(playerTurn))
+}
+void Game::TestForCheckmate()
+{
+	if (brd1.IsCheckmate() || brd2.IsCheckmate())
 	{
 		gameIsOver = true;
 	}
 }
-
 Vei2 Game::MapToCell(const Vei2& loc)
 {
-	//if we click outside of the board, return a dummy value
-	if (loc.x >= brd1.GetOffset().x && loc.x <= brd1.GetOffset().x + ChessBoard::boardSize && loc.y >= brd1.GetOffset().y && loc.y <= brd1.GetOffset().y + ChessBoard::boardSize)
+	auto offSet1 = brd1.GetOffset();
+	auto offSet2 = brd2.GetOffset();
+	if (loc.x >= offSet1.x && loc.x <= offSet1.x + ChessBoard::boardSize && loc.y <= offSet1.y && loc.y >= offSet1.y - 240)
 	{
-		int xDest = (loc.x - brd1.GetOffset().x) / ChessBoard::cellSize;
-		int yDest = (loc.y - brd1.GetOffset().y) / ChessBoard::cellSize;
+		int xDest = (loc.x - offSet1.x) / ChessBoard::cellSize;
+		int yDest = (offSet1.y - loc.y) / ChessBoard::cellSize;
 		curSelection = BoardSelection::Board1;
 		return { xDest,yDest };
 	}
-	else if(loc.x >= brd2.GetOffset().x && loc.x <= brd2.GetOffset().x + ChessBoard::boardSize && loc.y >= brd2.GetOffset().y && loc.y <= brd2.GetOffset().y + ChessBoard::boardSize)
+	else if (loc.x >= offSet2.x && loc.x <= offSet2.x + ChessBoard::boardSize && loc.y <= offSet2.y && loc.y >= offSet2.y - 240)
 	{
-		int xDest = (loc.x - brd2.GetOffset().x) / ChessBoard::cellSize;
-		int yDest = (loc.y - brd2.GetOffset().y) / ChessBoard::cellSize;
+		int xDest = (loc.x - offSet2.x) / ChessBoard::cellSize;
+		int yDest = (offSet2.y - loc.y) / ChessBoard::cellSize;
 		curSelection = BoardSelection::Board2;
 		return { xDest,yDest };
 	}
+	//if we click outside of the board, return a dummy value
 	return { 799,599 };
 
 }
@@ -130,6 +134,7 @@ void Game::OnClick(const Vei2& loc)
 
 		if (brd1.turnSwap)
 		{
+			TestForCheckmate();
 			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 			brd1.turnSwap = false;
 		}
@@ -146,6 +151,7 @@ void Game::OnClick(const Vei2& loc)
 
 		if (brd2.turnSwap)
 		{
+			TestForCheckmate();
 			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 			brd2.turnSwap = false;
 		}

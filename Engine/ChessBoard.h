@@ -9,6 +9,7 @@
 #include "Rook.h"
 #include "King.h"
 #include "Queen.h"
+#include <string>
 
 class ChessAI;
 
@@ -28,29 +29,43 @@ public:
 	Vei2 GetEnPassantSquare() const;
 	Vei2 GetEnPassantPawnLoc() const;
 	Team GetPassantTeam() const;
+	bool IsCheckmate() const;
+
+	struct _Move
+	{
+		_Move() = default;
+		_Move(const Vei2& src, const Vei2& dest)
+			:
+			src(src),
+			dest(dest)
+		{}
+		Vei2 src;
+		Vei2 dest;
+	};
 private:
 	//member functions
 	void ReleaseHighlights();
 	std::vector<Vei2> GetPossibleMoves(const Vei2& loc) const;
-	void Move(const Vei2& src, const Vei2& dest);
+	_Move Move(const Vei2& src, const Vei2& dest);
+	_Move Move(_Move mv);
 	bool IsWhiteInCheck() const;
 	bool IsBlackInCheck() const;
 	void IsInCheck(Team t);
-	bool SimulateAndCheck(std::shared_ptr<Cell> cell, const Vei2& loc);
-	std::vector<Vei2> GetValidMoves(const Vei2& loc);
+	bool SimulateAndCheck(_Move move);
+	std::vector<_Move> GetValidMoves(const Vei2& loc);
 	bool IsUnderAttack(Team t, const Vei2& loc) const;
 	bool CanCastleKingside(Team t) const;
 	bool CanCastleQueenside(Team t) const;
 	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
-	bool IsCheckmate(Team t);
-	void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t);
-	void ChessBoard::HandleMoveClick(const Vei2& loc, Team t);
-	void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t);
+	void IsCheckmate(Team t);
+	void HandlePromotionClick(const Vei2& loc, Team t);
+	void HandleMoveClick(const Vei2& loc, Team t);
+	void HandleSelectionClick(const Vei2& loc, Team t);
 
 	//member data
 	bool turnSwap = false;
 	Vei2 cellPreviouslyHighlighted = { 0,6 };
-	Surface sPieces = "Images\\chess_pieces.bmp";
+	Surface sPieces = std::string("Images\\chess_pieces.bmp");
 	const Vei2 topLeft;
 	std::shared_ptr<Cell> cells[64];
 	bool hasCastledWhite = false;
@@ -59,9 +74,11 @@ private:
 	bool isEnPassantable = false;
 	bool whiteInCheck = false;
 	bool blackInCheck = false;
+	bool isCheckmate = false;
 	Vei2 enPassantSquare = { 0,0 };
 	Vei2 enPassantPawnLoc = { 0,0 };
 	Team passantTeam = Team::WHITE;
+	_Move moveMade;
 	friend class Game;
 	friend class ChessAI;
 public:

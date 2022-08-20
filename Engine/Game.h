@@ -49,6 +49,7 @@ private:
 	/********************************/
 	Vei2 MapToCell(const Vei2& loc);
 	void OnClick(const Vei2& loc);
+	void TestForCheckmate();
 private:
 	MainWindow& wnd;
 	Graphics gfx;
