@@ -49,17 +49,19 @@ void OpeningEngine::CullBookVector(const OpeningMove& move)
 	}
 }
 
-OpeningEngine::OpeningMove OpeningEngine::SelectMove(std::mt19937& rng, const OpeningMove& move)
+OpeningEngine::OpeningBook OpeningEngine::SelectBook(std::mt19937& rng, const OpeningMove& move)
 {
 	CullBookVector(move);
 	if (openingBooks.empty())
 	{
 		outOfMoves = true;
-		return { true, {0,0},{0,0} };
+		std::vector<OpeningMove> mvs;
+		return { std::string("Empty"), mvs };
 	}
 	std::uniform_int_distribution dist(0, (int)openingBooks.size() - 1);
-	auto retval = openingBooks[dist(rng)]->moves[0];
-	CullBookVector(retval);
+	int idx = dist(rng);
+	auto retval = OpeningBook(*openingBooks[dist(rng)]);
+	CullBookVector(retval.moves[0]);
 	return retval;
 }
 

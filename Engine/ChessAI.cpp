@@ -28,6 +28,16 @@ void ChessAI::HandleMoveEvent(bool isBrd1)
 		}
 	}
 }
+
+bool ChessAI::MidGame() const
+{
+	return midGame;
+}
+
+std::string ChessAI::GetBookName() const
+{
+	return bookName;
+}
 void ChessAI::Move()
 {
 	auto b1moves = GenerateMoves(brd1);
@@ -78,7 +88,8 @@ void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
 		Move();
 	}
 
-	auto mov = opener->SelectMove(rng, mv);
+	auto book = opener->SelectBook(rng, mv);
+	bookName = book.name;
 	if (opener->OutOfMoves())
 	{
 		midGame = true;
@@ -86,9 +97,9 @@ void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
 		return;
 	}
 	if (mv.isBoard1)
-		brd1.Move(mov.src, mov.dest);
+		brd1.Move(book.moves[0].src, book.moves[0].dest);
 	else
-		brd2.Move(mov.src, mov.dest);
+		brd2.Move(book.moves[0].src, book.moves[0].dest);
 }
 
 std::vector<ChessAI::_AIMove> ChessAI::GenerateMoves(ChessBoard& brd)

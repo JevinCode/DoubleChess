@@ -18,7 +18,7 @@ public:
 		{}
 		bool operator==(const OpeningMove& other)
 		{
-			return this->src == other.src && this->dest == other.dest;
+			return this->src == other.src && this->dest == other.dest && this->isBoard1 == other.isBoard1;
 		}
 		bool operator!=(const OpeningMove& other)
 		{
@@ -34,13 +34,17 @@ public:
 			:
 			name(name),
 			moves(moves)
-		{
-		}
+		{}
+		OpeningBook(const OpeningBook& other)
+			:
+			name(other.name),
+			moves(other.moves)
+		{}
 		std::string name;
 		std::vector<OpeningMove> moves;
 	};
 	OpeningEngine();
-	OpeningMove SelectMove(std::mt19937& rng, const OpeningMove& move);
+	OpeningBook SelectBook(std::mt19937& rng, const OpeningMove& move);
 	bool OutOfMoves() const;
 private:
 

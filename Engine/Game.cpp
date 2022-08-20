@@ -59,7 +59,9 @@ void Game::UpdateModel()
 	if (playerTurn == Team::BLACK)
 	{
 		mrAI.HandleMoveEvent(curSelection == BoardSelection::Board1);
-		playerTurn = Team::WHITE;
+		TestForCheckmate();
+		if(!gameIsOver)
+			playerTurn = Team::WHITE;
 	}
 	while (!wnd.mouse.IsEmpty())
 	{
@@ -82,6 +84,12 @@ void Game::UpdateModel()
 			}
 		}
 	}
+	if (!mrAI.MidGame())
+	{
+		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
+		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
+	}
+	
 }
 void Game::TestForCheckmate()
 {

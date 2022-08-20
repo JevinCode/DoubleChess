@@ -14,6 +14,8 @@ public:
 		delete opener;
 	}
 	void HandleMoveEvent(bool isBrd1);
+	bool MidGame() const;
+	std::string GetBookName() const;
 private:
 	struct CellData
 	{
@@ -46,6 +48,7 @@ private:
 	//std::stack<_Move> moveTree;
 	bool midGame = false;
 	OpeningEngine::OpeningMove oppMove;
+	std::string bookName = "";
 	//Methods
 	std::vector<_AIMove> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.
 	int Score(const ChessBoard& brd) const;

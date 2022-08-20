@@ -446,6 +446,15 @@ void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t)
 		isPromoting = false;
 		IsInCheck(t);
 	}
+
+	if (t == Team::WHITE)
+	{
+		whiteInCheck = false;
+	}
+	else
+	{
+		blackInCheck = false;
+	}
 }
 
 void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
@@ -457,6 +466,16 @@ void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 	{
 		//as we are not promoting a piece, we now test to see if we have put the other player in check.
 		turnSwap = true;
+		//if white successfully makes a move, then white necessarily cannot be in check.
+		if (t == Team::WHITE)
+		{
+			whiteInCheck = false;
+		}
+		//similarly for black.
+		else
+		{
+			blackInCheck = false;
+		}
 		IsInCheck(t);
 	}
 }

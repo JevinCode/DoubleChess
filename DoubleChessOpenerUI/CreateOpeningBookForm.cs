@@ -108,7 +108,8 @@ namespace DoubleChessOpenerUI
             if(ValidateForm())
             {
                 OpeningBook ob = new OpeningBook(nameTextBox.Text, moves.ToList());
-                if(addSymmetricCheckbox.Checked)
+                Config.connection.CreateOpeningBook(ob);
+                if (addSymmetricCheckbox.Checked)
                 {
                     List<Move> otherMoves = moves.ToList();
                     foreach(Move move in otherMoves)
@@ -118,7 +119,6 @@ namespace DoubleChessOpenerUI
                     OpeningBook ob2 = new OpeningBook(nameTextBox.Text + "\'", otherMoves);
                     Config.connection.CreateOpeningBook(ob2);
                 }
-                Config.connection.CreateOpeningBook(ob);
                 moves.Clear();
                 nameTextBox.Clear();
             }
