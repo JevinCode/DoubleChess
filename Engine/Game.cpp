@@ -27,8 +27,8 @@ Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
 	gfx( wnd ),
-	brd1({ 30,30 }),
-	brd2({ 430, 30 }),
+	brd1({ 80,50 }),
+	brd2({ 480, 50 }),
 	mrAI(Team::BLACK, brd1, brd2),
 	font("Images\\Fixedsys16x28.bmp")
 {
@@ -72,24 +72,20 @@ void Game::UpdateModel()
 			OnClick(loc);
 			if (brd1.turnSwap)
 			{
-				playerTurn = Team::BLACK;
+				TestForCheckmate();
+				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 				brd2.isEnPassantable = false;
 				brd1.turnSwap = false;
 			}
 			else if (brd2.turnSwap)
 			{
-				playerTurn = Team::BLACK;
+				TestForCheckmate();
+				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 				brd1.isEnPassantable = false;
 				brd2.turnSwap = false;
 			}
 		}
 	}
-	if (!mrAI.MidGame())
-	{
-		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
-		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
-	}
-	
 }
 void Game::TestForCheckmate()
 {
@@ -123,6 +119,20 @@ Vei2 Game::MapToCell(const Vei2& loc)
 
 void Game::OnClick(const Vei2& loc)
 {
+	if (brd1.isPromoting)
+	{
+		if (queenPromotionArea.Contains(loc))
+			brd1.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
+		else if (knightPromotionArea.Contains(loc))
+			brd1.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+	}
+	else if (brd2.isPromoting)
+	{
+		if (queenPromotionArea.Contains(loc))
+			brd2.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
+		else if (knightPromotionArea.Contains(loc))
+			brd2.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+	}
 	auto gridPos = MapToCell(loc);
 	if (curSelection != prevSelection)
 	{
@@ -134,35 +144,18 @@ void Game::OnClick(const Vei2& loc)
 	{
 		if (brd2.whiteInCheck)
 			return;
-		if (brd1.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
-			brd1.OnClick(gridPos, playerTurn);
 
 		else if (ChessBoard::IsValidLoc(gridPos))
 			brd1.OnClick(gridPos, playerTurn);
 
-		if (brd1.turnSwap)
-		{
-			TestForCheckmate();
-			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-			brd1.turnSwap = false;
-		}
 	}
 	else
 	{
 		if (brd1.whiteInCheck)
 			return;
-		if (brd2.isPromoting && (gridPos == Vei2{ 8,0 } || gridPos == Vei2{ 8,1 }))
-			brd2.OnClick(gridPos, playerTurn);
 
 		else if (ChessBoard::IsValidLoc(gridPos))
 			brd2.OnClick(gridPos, playerTurn);
-
-		if (brd2.turnSwap)
-		{
-			TestForCheckmate();
-			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-			brd2.turnSwap = false;
-		}
 	}
 }
 
@@ -170,31 +163,23 @@ void Game::ComposeFrame()
 {
 	brd1.Draw(gfx);
 	brd2.Draw(gfx);
-	if (brd1.isPromoting)
+	if (!mrAI.MidGame())
 	{
-		if (playerTurn == Team::WHITE)
-		{
-			Queen::DrawWhite(gfx, brd1);
-			Knight::DrawWhite(gfx, brd1);
-		}
-		else
-		{
-			Queen::DrawBlack(gfx, brd1);
-			Knight::DrawBlack(gfx, brd1);
-		}
+		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
+		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
 	}
-
-	else if (brd2.isPromoting)
+	if (brd1.isPromoting || brd2.isPromoting)
 	{
+		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);
 		if (playerTurn == Team::WHITE)
 		{
-			Queen::DrawWhite(gfx, brd1);
-			Knight::DrawWhite(gfx, brd1);
+			Queen::DrawWhite(gfx, { 550, 400 });
+			Knight::DrawWhite(gfx, { 600, 400 });
 		}
 		else
 		{
-			Queen::DrawBlack(gfx, brd1);
-			Knight::DrawBlack(gfx, brd1);
+			Queen::DrawBlack(gfx, { 550, 400 });
+			Knight::DrawBlack(gfx, { 600, 400 });
 		}
 	}
 }

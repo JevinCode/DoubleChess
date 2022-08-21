@@ -5,6 +5,13 @@
 
 namespace SpriteEffect
 {
+	class BorderHover
+	{
+	public:
+		void operator()();
+	private:
+		Color borderColor;
+	};
 	class Chroma
 	{
 	public:

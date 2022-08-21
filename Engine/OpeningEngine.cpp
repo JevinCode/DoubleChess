@@ -31,19 +31,19 @@ OpeningEngine::OpeningEngine()
 				std::string castleInstruction = coords[1];
 				if (castleInstruction == "kb")
 				{
-					m.move = { {4,7}, {0,0}, MoveType::KingsideCastle };
+					m.move = { {4,7}, {6,7}, MoveType::KingsideCastle };
 				}
 				else if (castleInstruction == "qb")
 				{
-					m.move = { {4,7}, {0,0}, MoveType::QueensideCastle };
+					m.move = { {4,7}, {2,7}, MoveType::QueensideCastle };
 				}
 				else if (castleInstruction == "kw")
 				{
-					m.move = { {4,0},{0,0}, MoveType::KingsideCastle };
+					m.move = { {4,0},{6,0}, MoveType::KingsideCastle };
 				}
 				else if (castleInstruction == "qw")
 				{
-					m.move = { {4,0},{0,0}, MoveType::QueensideCastle };
+					m.move = { {4,0},{2,0}, MoveType::QueensideCastle };
 				}
 			}
 			else

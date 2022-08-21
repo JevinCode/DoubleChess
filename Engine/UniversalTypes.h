@@ -6,7 +6,9 @@ enum class MoveType
 	Normal,
 	EnPassant,
 	KingsideCastle,
-	QueensideCastle
+	QueensideCastle,
+	QueenPromotion,
+	KnightPromotion
 };
 
 struct _Move

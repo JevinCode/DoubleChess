@@ -105,22 +105,34 @@ std::vector<_Move> ChessBoard::GetPossibleMoves(const Vei2& loc) const
 
 _Move ChessBoard::Move(_Move move)
 {
+	auto srcCell = CellAt(move.src);
+	auto team = srcCell->GetPiece()->GetTeam();
+	auto destCell = CellAt(move.dest);
 	switch (move.type)
 	{
 	case MoveType::Normal:
 	{
-		auto srcCell = CellAt(move.src);
-		auto destCell = CellAt(move.dest);
 		destCell->GivePiece(srcCell->GetPiece());
 		srcCell->Clear();
-		auto p = destCell->GetPiece();
 		break;
 	}
 	case MoveType::EnPassant:
+	{
+		destCell->GivePiece(srcCell->GetPiece());
+		srcCell->Clear();
 		CellAt(enPassantPawnLoc)->Clear();
 		break;
+	}
+	case MoveType::QueenPromotion:
+		destCell->GivePiece(std::make_shared<Queen>(team, move.dest));
+		srcCell->Clear();
+		break;
+	case MoveType::KnightPromotion:
+		destCell->GivePiece(std::make_shared<Knight>(team, move.dest));
+		srcCell->Clear();
+		break;
 	case MoveType::KingsideCastle:
-		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
+		if (team == Team::WHITE)
 		{
 			CellAt({ 6,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
 			CellAt({ 6,0 })->GetPiece()->Update({ 6,0 });
@@ -142,7 +154,7 @@ _Move ChessBoard::Move(_Move move)
 		}
 		break;
 	case MoveType::QueensideCastle:
-		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
+		if (team == Team::WHITE)
 		{
 			CellAt({ 2,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
 			CellAt({ 2,0 })->GetPiece()->Update({ 2,0 });
@@ -164,7 +176,7 @@ _Move ChessBoard::Move(_Move move)
 		}
 	}
 
-	if(move.type == MoveType::Normal || move.type == MoveType::EnPassant)
+	if(move.type != MoveType::KingsideCastle && move.type != MoveType::QueensideCastle)
 		PostMoveUpdate(CellAt(move.dest)->GetPiece(), move.dest);
 	return move;
 }
@@ -417,12 +429,6 @@ If we click on a highlighted square (either yellow or red), we will move the sel
 phase, we will only promote a piece if the relevant piece choice is clicked on.*/
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
-	//if we are in the promotion phase, we only handle clicks relevant to promoting a piece.
-	if (isPromoting)
-	{
-		HandlePromotionClick(loc, t);
-		return;
-	}
 
 	//otherwise, we must be in the selection phase, so we handle piece selection and movement. The following handles movement.
 	auto c = CellAt(loc);
@@ -436,19 +442,19 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 	HandleSelectionClick(loc, t);
 }
 
-void ChessBoard::HandlePromotionClick(const Vei2& loc, Team t)
+void ChessBoard::HandlePromotionClick(Team t, MoveType type)
 {
-	if (loc == Vei2{ 8, 0 })
+	if (type == MoveType::QueenPromotion)
 	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Queen>(t, cellPreviouslyHighlighted));
+		moveMade = Move({ moveMade.src, moveMade.dest,MoveType::QueenPromotion });
 		turnSwap = true;
 		isPromoting = false;
 		IsInCheck(t);
 	}
 
-	else if (loc == Vei2{ 8,1 })
+	else if (type == MoveType::KnightPromotion)
 	{
-		CellAt(cellPreviouslyHighlighted)->GivePiece(std::make_shared<Knight>(t, cellPreviouslyHighlighted));
+		moveMade = Move({ moveMade.src, moveMade.dest,MoveType::KnightPromotion });
 		turnSwap = true;
 		isPromoting = false;
 		IsInCheck(t);
@@ -472,14 +478,14 @@ void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 		if (move.dest == loc)
 		{
 			selectedMove = move;
+			moveMade = selectedMove;
 			break;
 		}
 	}
-	moveMade = Move(selectedMove);
-	cellPreviouslyHighlighted = loc;
-	ReleaseHighlights();
+	isPromoting = (selectedMove.type == MoveType::QueenPromotion || selectedMove.type == MoveType::KnightPromotion) ? true : false;
 	if (!isPromoting)
 	{
+		moveMade = Move(selectedMove);
 		//as we are not promoting a piece, we now test to see if we have put the other player in check.
 		turnSwap = true;
 		//if white successfully makes a move, then white necessarily cannot be in check.
@@ -494,6 +500,8 @@ void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 		}
 		IsInCheck(t);
 	}
+	cellPreviouslyHighlighted = loc;
+	ReleaseHighlights();
 }
 
 void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)

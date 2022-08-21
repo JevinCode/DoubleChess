@@ -23,34 +23,90 @@ void Pawn::Draw(Graphics& gfx, const Vei2& loc) const
 std::vector<_Move> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 {
 	std::vector<_Move> ans;
-	Vei2 ahead = team == Team::WHITE ? Vei2{ pos.x, pos.y + 1 } : Vei2{ pos.x, pos.y - 1 };
-	if (IsValidLoc(ahead) && brd.CellAt(ahead)->Empty())
-		ans.push_back({pos, ahead, MoveType::Normal});
+	if (team == Team::WHITE)
+	{
+		Vei2 ahead = { pos.x,pos.y + 1 };
+		Vei2 aheadLeft = { pos.x - 1, pos.y + 1 };
+		Vei2 aheadRight = { pos.x + 1, pos.y + 1 };
+		if (brd.CellAt(ahead)->Empty())
+		{
+			if (pos.y == 6)
+			{
+				ans.push_back({ pos, ahead, MoveType::QueenPromotion });
+				ans.push_back({ pos, ahead, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, ahead, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadLeft) && !brd.CellAt(aheadLeft)->Empty() && brd.CellAt(aheadLeft)->GetPiece()->GetTeam() != team)
+		{
+			if (pos.y == 6)
+			{
+				ans.push_back({ pos, aheadLeft, MoveType::QueenPromotion });
+				ans.push_back({ pos, aheadLeft, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, aheadLeft, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadRight) && !brd.CellAt(aheadRight)->Empty() && brd.CellAt(aheadRight)->GetPiece()->GetTeam() != team)
+		{
+			if (pos.y == 6)
+			{
+				ans.push_back({ pos, aheadRight, MoveType::QueenPromotion });
+				ans.push_back({ pos, aheadRight, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, aheadRight, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadLeft) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadLeft)
+			ans.push_back({ pos, aheadLeft, MoveType::EnPassant });
+		if (IsValidLoc(aheadRight) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadRight)
+			ans.push_back({ pos, aheadRight, MoveType::EnPassant });
+	}
+	else
+	{
+		Vei2 ahead = { pos.x, pos.y - 1 };
+		Vei2 aheadLeft = { pos.x - 1, pos.y - 1 };
+		Vei2 aheadRight = { pos.x + 1, pos.y - 1 };
+		if (brd.CellAt(ahead)->Empty())
+		{
+			if (pos.y == 1)
+			{
+				ans.push_back({ pos, ahead, MoveType::QueenPromotion });
+				ans.push_back({ pos, ahead, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, ahead, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadLeft) && !brd.CellAt(aheadLeft)->Empty() && brd.CellAt(aheadLeft)->GetPiece()->GetTeam() != team)
+		{
+			if (pos.y == 1)
+			{
+				ans.push_back({ pos, aheadLeft, MoveType::QueenPromotion });
+				ans.push_back({ pos, aheadLeft, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, aheadLeft, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadRight) && !brd.CellAt(aheadRight)->Empty() && brd.CellAt(aheadRight)->GetPiece()->GetTeam() != team)
+		{
+			if (pos.y == 1)
+			{
+				ans.push_back({ pos, aheadRight, MoveType::QueenPromotion });
+				ans.push_back({ pos, aheadRight, MoveType::KnightPromotion });
+			}
+			else
+				ans.push_back({ pos, aheadRight, MoveType::Normal });
+		}
+		if (IsValidLoc(aheadLeft) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadLeft)
+			ans.push_back({ pos, aheadLeft, MoveType::EnPassant });
+		if (IsValidLoc(aheadRight) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadRight)
+			ans.push_back({ pos, aheadRight, MoveType::EnPassant });
+	}
 	
 	Vei2 ahead2 = team == Team::WHITE ? Vei2{ pos.x, pos.y + 2 } : Vei2{ pos.x, pos.y - 2 };
-	if (!hasMoved && brd.CellAt(ahead2)->Empty() && brd.CellAt(ahead)->Empty())
+	if (!hasMoved && brd.CellAt(ahead2)->Empty() && brd.CellAt(ahead2)->Empty())
 		ans.push_back({ pos, ahead2, MoveType::Normal });
-
-	Vei2 ahead3 = team == Team::WHITE ? Vei2{ pos.x + 1, pos.y + 1 } : Vei2{ pos.x + 1, pos.y - 1 };
-	if (IsValidLoc(ahead3))
-	{
-		auto c = brd.CellAt(ahead3);
-		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
-			ans.push_back({ pos,ahead3,MoveType::Normal });
-		//Check for En Passant
-		else if (brd.IsEnPassantable() && brd.GetPassantTeam() != team && brd.GetEnPassantSquare() == ahead3)
-			ans.push_back({pos,ahead3,MoveType::EnPassant});
-	}
-
-	Vei2 ahead4 = team == Team::WHITE ? Vei2{ pos.x - 1, pos.y + 1 } : Vei2{ pos.x - 1, pos.y - 1 };
-	if (IsValidLoc(ahead4))
-	{
-		if (!brd.CellAt(ahead4)->Empty() && brd.CellAt(ahead4)->GetPiece()->GetTeam() != team)
-			ans.push_back({ pos,ahead4,MoveType::Normal });
-		//Check for En Passant
-		else if (brd.IsEnPassantable() && brd.GetPassantTeam() != team && brd.GetEnPassantSquare() == ahead4)
-			ans.push_back({ pos,ahead4,MoveType::EnPassant });
-	}
 	return ans;
 }
 
@@ -59,24 +115,10 @@ std::vector<_Move> Pawn::GetPossibleAttackMoves(const ChessBoard& brd) const
 	std::vector<_Move> ans;
 	Vei2 ahead3 = team == Team::BLACK ? Vei2{ pos.x + 1, pos.y - 1 } : Vei2{ pos.x + 1, pos.y + 1 };
 	if (IsValidLoc(ahead3))
-	{
-		auto c = brd.CellAt(ahead3);
-		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
-			ans.push_back({ pos,ahead3,MoveType::Normal });
-		//Check for En Passant
-		else if (brd.IsEnPassantable() && brd.GetPassantTeam() != team && brd.GetEnPassantSquare() == ahead3)
-			ans.push_back({ pos,ahead3,MoveType::EnPassant });
-	}
+		ans.push_back({ pos,ahead3,MoveType::Normal });
 
 	Vei2 ahead4 = team == Team::BLACK ? Vei2{ pos.x - 1, pos.y - 1 } : Vei2{ pos.x - 1, pos.y + 1 };
 	if (IsValidLoc(ahead4))
-	{
-		auto c = brd.CellAt(ahead4);
-		if (!c->Empty() && c->GetPiece()->GetTeam() != team)
-			ans.push_back({ pos,ahead4,MoveType::Normal });
-		//Check for En Passant
-		else if (brd.IsEnPassantable() && brd.GetPassantTeam() != team && brd.GetEnPassantSquare() == ahead4)
-			ans.push_back({ pos,ahead4,MoveType::EnPassant });
-	}
+		ans.push_back({ pos,ahead4,MoveType::Normal });
 	return ans;
 }

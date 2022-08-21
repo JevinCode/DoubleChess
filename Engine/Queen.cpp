@@ -20,17 +20,13 @@ void Queen::Draw(Graphics& gfx, const Vei2& loc) const
 	}
 }
 
-void Queen::DrawWhite(Graphics& gfx, const ChessBoard& brd)
+void Queen::DrawWhite(Graphics& gfx, const Vei2& loc)
 {
-	Vei2 loc = brd.GetOffset();
-	loc.x += brd.boardSize - ChessBoard::cellSize;
 	gfx.DrawSprite(loc.x, loc.y, { 30,60,27,57 }, s, SpriteEffect::Chroma{ Colors::Red });
 }
 
-void Queen::DrawBlack(Graphics& gfx, const ChessBoard& brd)
+void Queen::DrawBlack(Graphics& gfx, const Vei2& loc)
 {
-	Vei2 loc = brd.GetOffset();
-	loc.x += brd.boardSize - ChessBoard::cellSize;
 	gfx.DrawSprite(loc.x, loc.y, { 30,60,2,32 }, s, SpriteEffect::Chroma{ Colors::Red });
 }
 

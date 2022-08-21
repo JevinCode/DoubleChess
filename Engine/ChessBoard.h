@@ -32,6 +32,7 @@ public:
 	bool IsCheckmate() const;
 	bool CanCastleKingside(Team t) const;
 	bool CanCastleQueenside(Team t) const;
+	void HandlePromotionClick(Team t, MoveType type);
 
 private:
 	//member functions
@@ -46,7 +47,6 @@ private:
 	bool IsUnderAttack(Team t, const Vei2& loc) const;
 	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
 	void IsCheckmate(Team t);
-	void HandlePromotionClick(const Vei2& loc, Team t);
 	void HandleMoveClick(const Vei2& loc, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
 
