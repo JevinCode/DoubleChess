@@ -44,6 +44,10 @@
             this.createBookButton = new System.Windows.Forms.Button();
             this.removeSelectedButton = new System.Windows.Forms.Button();
             this.board2CheckBox = new System.Windows.Forms.CheckBox();
+            this.kingsideCastleBlackCheckBox = new System.Windows.Forms.CheckBox();
+            this.kingsideCastleWhiteCheckBox = new System.Windows.Forms.CheckBox();
+            this.queensideCastleBlackCheckBox = new System.Windows.Forms.CheckBox();
+            this.queensideCastleWhiteCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // headerLabel
@@ -156,7 +160,7 @@
             this.addPlyButton.BackColor = System.Drawing.Color.LightGreen;
             this.addPlyButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.addPlyButton.Font = new System.Drawing.Font("Segoe UI Semibold", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.addPlyButton.Location = new System.Drawing.Point(120, 243);
+            this.addPlyButton.Location = new System.Drawing.Point(119, 319);
             this.addPlyButton.Name = "addPlyButton";
             this.addPlyButton.Size = new System.Drawing.Size(108, 55);
             this.addPlyButton.TabIndex = 12;
@@ -201,12 +205,60 @@
             this.board2CheckBox.Text = "Board 2";
             this.board2CheckBox.UseVisualStyleBackColor = true;
             // 
+            // kingsideCastleBlackCheckBox
+            // 
+            this.kingsideCastleBlackCheckBox.AutoSize = true;
+            this.kingsideCastleBlackCheckBox.Location = new System.Drawing.Point(98, 239);
+            this.kingsideCastleBlackCheckBox.Name = "kingsideCastleBlackCheckBox";
+            this.kingsideCastleBlackCheckBox.Size = new System.Drawing.Size(137, 19);
+            this.kingsideCastleBlackCheckBox.TabIndex = 16;
+            this.kingsideCastleBlackCheckBox.Text = "Kingside Castle Black";
+            this.kingsideCastleBlackCheckBox.UseVisualStyleBackColor = true;
+            this.kingsideCastleBlackCheckBox.CheckedChanged += new System.EventHandler(this.kingsideCastleBlackCheckBox_CheckedChanged);
+            // 
+            // kingsideCastleWhiteCheckBox
+            // 
+            this.kingsideCastleWhiteCheckBox.AutoSize = true;
+            this.kingsideCastleWhiteCheckBox.Location = new System.Drawing.Point(266, 239);
+            this.kingsideCastleWhiteCheckBox.Name = "kingsideCastleWhiteCheckBox";
+            this.kingsideCastleWhiteCheckBox.Size = new System.Drawing.Size(140, 19);
+            this.kingsideCastleWhiteCheckBox.TabIndex = 17;
+            this.kingsideCastleWhiteCheckBox.Text = "Kingside Castle White";
+            this.kingsideCastleWhiteCheckBox.UseVisualStyleBackColor = true;
+            this.kingsideCastleWhiteCheckBox.CheckedChanged += new System.EventHandler(this.kingsideCastleWhiteCheckBox_CheckedChanged);
+            // 
+            // queensideCastleBlackCheckBox
+            // 
+            this.queensideCastleBlackCheckBox.AutoSize = true;
+            this.queensideCastleBlackCheckBox.Location = new System.Drawing.Point(98, 275);
+            this.queensideCastleBlackCheckBox.Name = "queensideCastleBlackCheckBox";
+            this.queensideCastleBlackCheckBox.Size = new System.Drawing.Size(148, 19);
+            this.queensideCastleBlackCheckBox.TabIndex = 18;
+            this.queensideCastleBlackCheckBox.Text = "Queenside Castle Black";
+            this.queensideCastleBlackCheckBox.UseVisualStyleBackColor = true;
+            this.queensideCastleBlackCheckBox.CheckedChanged += new System.EventHandler(this.queensideCastleBlackCheckBox_CheckedChanged);
+            // 
+            // queensideCastleWhiteCheckBox
+            // 
+            this.queensideCastleWhiteCheckBox.AutoSize = true;
+            this.queensideCastleWhiteCheckBox.Location = new System.Drawing.Point(266, 275);
+            this.queensideCastleWhiteCheckBox.Name = "queensideCastleWhiteCheckBox";
+            this.queensideCastleWhiteCheckBox.Size = new System.Drawing.Size(151, 19);
+            this.queensideCastleWhiteCheckBox.TabIndex = 19;
+            this.queensideCastleWhiteCheckBox.Text = "Queenside Castle White";
+            this.queensideCastleWhiteCheckBox.UseVisualStyleBackColor = true;
+            this.queensideCastleWhiteCheckBox.CheckedChanged += new System.EventHandler(this.queensideCastleWhiteCheckBox_CheckedChanged);
+            // 
             // CreateOpeningBookForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(766, 450);
+            this.Controls.Add(this.queensideCastleWhiteCheckBox);
+            this.Controls.Add(this.queensideCastleBlackCheckBox);
+            this.Controls.Add(this.kingsideCastleWhiteCheckBox);
+            this.Controls.Add(this.kingsideCastleBlackCheckBox);
             this.Controls.Add(this.board2CheckBox);
             this.Controls.Add(this.removeSelectedButton);
             this.Controls.Add(this.createBookButton);
@@ -248,5 +300,9 @@
         private Button createBookButton;
         private Button removeSelectedButton;
         private CheckBox board2CheckBox;
+        private CheckBox kingsideCastleBlackCheckBox;
+        private CheckBox kingsideCastleWhiteCheckBox;
+        private CheckBox queensideCastleBlackCheckBox;
+        private CheckBox queensideCastleWhiteCheckBox;
     }
 }

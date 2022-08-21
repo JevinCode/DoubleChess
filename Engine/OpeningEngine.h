@@ -4,29 +4,29 @@
 #include "StringSplitter.h"
 #include <random>
 #include "Vec2.h"
+#include "UniversalTypes.h"
+
 class OpeningEngine
 {
 public:
 	struct OpeningMove
 	{
 		OpeningMove() = default;
-		OpeningMove(bool isBoard1, const Vei2& src, const Vei2& dest)
+		OpeningMove(bool isBoard1, const _Move& move)
 			:
 			isBoard1(isBoard1),
-			src(src),
-			dest(dest)
+			move(move)
 		{}
 		bool operator==(const OpeningMove& other)
 		{
-			return this->src == other.src && this->dest == other.dest && this->isBoard1 == other.isBoard1;
+			return this->move == other.move && this->isBoard1 == other.isBoard1;
 		}
 		bool operator!=(const OpeningMove& other)
 		{
 			return !(*this == other);
 		}
 		bool isBoard1;
-		Vei2 src;
-		Vei2 dest;
+		_Move move;
 	};
 	struct OpeningBook
 	{

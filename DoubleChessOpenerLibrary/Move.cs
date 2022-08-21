@@ -15,9 +15,18 @@ namespace DoubleChessOpenerLibrary
             SourceY = sY;
             DestX = dX;
             DestY = dY;
+            IsCastleMove = false;
+        }
+        public Move(int board, string castle)
+        {
+            Board = board;
+            IsCastleMove = true;
+            CastleString = castle;
         }
         public bool Equals(Move other)
         {
+            if (other.Board == Board && other.IsCastleMove == true && IsCastleMove == true && other.CastleString == CastleString)
+                return true;
             if (other.Board == Board && other.SourceX == SourceX && other.SourceY == SourceY && other.DestX == DestX && other.DestY == DestY)
                 return true;
             return false;
@@ -30,6 +39,9 @@ namespace DoubleChessOpenerLibrary
             int syHash = SourceY.GetHashCode();
             int dXHash = DestX.GetHashCode();
             int dYHash = DestY.GetHashCode();
+            int castleHash = CastleString.GetHashCode();
+            if (IsCastleMove)
+                return boardHash ^ castleHash;
             return boardHash ^ sXHash ^ syHash ^ dXHash ^ dYHash;
         }
         public int Board { get; set; }
@@ -37,10 +49,14 @@ namespace DoubleChessOpenerLibrary
         public int SourceY { get; set; }
         public int DestX { get; set; }
         public int DestY { get; set; }
+        public string CastleString { get; set; }
+        public bool IsCastleMove { get; set; }
         public string DisplayMove { 
             get
             {
-                return $"{Board}:\t({SourceX},{SourceY}), ({DestX},{DestY})";
+                if(!IsCastleMove)
+                    return $"{Board}:\t({SourceX},{SourceY}), ({DestX},{DestY})";
+                return $"{Board}:\t{CastleString}";
             }
         }
     }

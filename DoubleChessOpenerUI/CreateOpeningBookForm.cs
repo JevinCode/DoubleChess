@@ -19,7 +19,33 @@ namespace DoubleChessOpenerUI
 
         private void addPlyButton_Click(object sender, EventArgs e)
         {
-            if(ValidateCoordinates())
+            if (board2CheckBox.Checked)
+                board = 2;
+            else
+                board = 1;
+
+            if (kingsideCastleBlackCheckBox.Checked)
+            {
+                moves.Add(new Move(board, "kb"));
+                kingsideCastleBlackCheckBox.Checked = false;
+            }
+            else if (kingsideCastleWhiteCheckBox.Checked)
+            {
+                moves.Add(new Move(board, "kw"));
+                kingsideCastleWhiteCheckBox.Checked = false;
+            }
+            else if (queensideCastleBlackCheckBox.Checked)
+            {
+                moves.Add(new Move(board, "qb"));
+                queensideCastleBlackCheckBox.Checked = false;
+            }
+            else if (queensideCastleWhiteCheckBox.Checked)
+            {
+                moves.Add(new Move(board, "qw"));
+                queensideCastleWhiteCheckBox.Checked = false;
+            }
+
+            else if (ValidateCoordinates())
             {
                 Move m = new Move(board, sourceX, sourceY, destX, destY);
                 moves.Add(m);
@@ -39,14 +65,6 @@ namespace DoubleChessOpenerUI
         bool ValidateCoordinates()
         {
             string errorMsg = "";
-            if(board2CheckBox.Checked)
-            {
-                board = 2;
-            }
-            else
-            {
-                board = 1;
-            }
             bool output = true;
             if(int.TryParse(sourceXTextBox.Text, out sourceX) == false)
             {
@@ -114,7 +132,7 @@ namespace DoubleChessOpenerUI
                 {
                     move.Board = move.Board == 1 ? 2 : 1;
                 }
-                OpeningBook ob2 = new OpeningBook(nameTextBox.Text + "\'", otherMoves);
+                OpeningBook ob2 = new OpeningBook(nameTextBox.Text, otherMoves);
                 Config.connection.CreateOpeningBook(ob2);
                 moves.Clear();
                 nameTextBox.Clear();
@@ -144,6 +162,34 @@ namespace DoubleChessOpenerUI
         private void filterDuplicatesButton_Click(object sender, EventArgs e)
         {
             Config.connection.FilterDuplicates();
+        }
+
+        private void kingsideCastleBlackCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            kingsideCastleWhiteCheckBox.Checked = false;
+            queensideCastleWhiteCheckBox.Checked = false;
+            queensideCastleBlackCheckBox.Checked = false;
+        }
+
+        private void kingsideCastleWhiteCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            kingsideCastleBlackCheckBox.Checked = false;
+            queensideCastleWhiteCheckBox.Checked = false;
+            queensideCastleBlackCheckBox.Checked = false;
+        }
+
+        private void queensideCastleBlackCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            kingsideCastleWhiteCheckBox.Checked = false;
+            queensideCastleWhiteCheckBox.Checked = false;
+            kingsideCastleBlackCheckBox.Checked = false;
+        }
+
+        private void queensideCastleWhiteCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            kingsideCastleWhiteCheckBox.Checked = false;
+            queensideCastleBlackCheckBox.Checked = false;
+            kingsideCastleBlackCheckBox.Checked = false;
         }
     }
 }

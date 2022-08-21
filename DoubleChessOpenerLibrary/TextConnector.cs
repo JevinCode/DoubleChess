@@ -19,9 +19,11 @@ namespace DoubleChessOpenerLibrary
             string line = book.Name;
             foreach(Move m in book.Moves)
             {
-                line += $",{m.Board}|{m.SourceX}|{m.SourceY}|{m.DestX}|{m.DestY}|";
+                if (m.IsCastleMove)
+                    line += $",{m.Board}|{m.CastleString}";
+                else
+                    line += $",{m.Board}|{m.SourceX}|{m.SourceY}|{m.DestX}|{m.DestY}|";
             }
-
             File.AppendAllText(OpeningBooksFile.FullFilePath(), line + Environment.NewLine);
         }
 

@@ -123,16 +123,20 @@ _Move ChessBoard::Move(_Move move)
 		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
 		{
 			CellAt({ 6,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
+			CellAt({ 6,0 })->GetPiece()->Update({ 6,0 });
 			CellAt({ 4,0 })->Clear();
 			CellAt({ 5,0 })->GivePiece(CellAt({ 7,0 })->GetPiece());
+			CellAt({ 5,0 })->GetPiece()->Update({ 5,0 });
 			CellAt({ 7,0 })->Clear();
 			hasCastledWhite = true;
 		}
 		else
 		{
 			CellAt({ 6,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
+			CellAt({ 6,7 })->GetPiece()->Update({ 6,7 });
 			CellAt({ 4,7 })->Clear();
 			CellAt({ 5,7 })->GivePiece(CellAt({ 7,7 })->GetPiece());
+			CellAt({ 5,7 })->GetPiece()->Update({ 5,7 });
 			CellAt({ 7,7 })->Clear();
 			hasCastledBlack = true;
 		}
@@ -141,22 +145,27 @@ _Move ChessBoard::Move(_Move move)
 		if (CellAt(move.src)->GetPiece()->GetTeam() == Team::WHITE)
 		{
 			CellAt({ 2,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
+			CellAt({ 2,0 })->GetPiece()->Update({ 2,0 });
 			CellAt({ 4,0 })->Clear();
 			CellAt({ 3,0 })->GivePiece(CellAt({ 0,0 })->GetPiece());
+			CellAt({ 3,0 })->GetPiece()->Update({ 3,0 });
 			CellAt({ 0,0 })->Clear();
 			hasCastledWhite = true;
 		}
 		else
 		{
 			CellAt({ 2,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
+			CellAt({ 2,7 })->GetPiece()->Update({ 2,7 });
 			CellAt({ 4,7 })->Clear();
 			CellAt({ 3,7 })->GivePiece(CellAt({ 0,7 })->GetPiece());
+			CellAt({ 3,7 })->GetPiece()->Update({ 3,7 });
 			CellAt({ 0,7 })->Clear();
 			hasCastledBlack = true;
 		}
 	}
 
-	PostMoveUpdate(CellAt(move.dest)->GetPiece(), move.dest);
+	if(move.type == MoveType::Normal || move.type == MoveType::EnPassant)
+		PostMoveUpdate(CellAt(move.dest)->GetPiece(), move.dest);
 	return move;
 }
 
@@ -227,7 +236,7 @@ bool ChessBoard::IsBlackInCheck() const
 bool ChessBoard::SimulateAndCheck(_Move move)
 {
 	if (move.type == MoveType::KingsideCastle || move.type == MoveType::QueensideCastle)
-		return true;
+		return false;
 	auto t = CellAt(move.src)->GetPiece()->GetTeam();
 	auto srcCell = CellAt(move.src);
 	auto destCell = CellAt(move.dest);

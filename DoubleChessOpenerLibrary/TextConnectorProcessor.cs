@@ -29,15 +29,16 @@ namespace DoubleChessOpenerLibrary.TextHelpers
 
             foreach (string line in lines)
             {
-                //opening book is stored as name,int|int|int|int,int|int|int|int,...
+                //opening book is stored as name,int|int|int|int,int|int|int|int,...,kb,...,int|int|int|int
                 List<Move> moves = new List<Move>();
                 string[] cols = line.Split(',');
                 string name = cols[0];
                 for(int i = 1; i < cols.Length; i++)
                 {
                     string[] coords = cols[i].Split('|');
-                    Move m = new Move(int.Parse(coords[0]), int.Parse(coords[1]), int.Parse(coords[2]), int.Parse(coords[3]), int.Parse(coords[4]));
-                    moves.Add(m);
+                    if (coords.Count() < 3)
+                        moves.Add(new Move(int.Parse(coords[0]), coords[1]));
+                    else moves.Add(new Move(int.Parse(coords[0]), int.Parse(coords[1]), int.Parse(coords[2]), int.Parse(coords[3]), int.Parse(coords[4])));
                 }
                 OpeningBook ob = new OpeningBook(name, moves);
                 books.Add(ob);

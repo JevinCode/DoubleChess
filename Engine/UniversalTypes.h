@@ -22,6 +22,10 @@ struct _Move
 		dest(dest),
 		type(t)
 	{}
+	bool operator==(const _Move& other)
+	{
+		return this->src == other.src && this->dest == other.dest && this->type == other.type;
+	}
 	MoveType type = MoveType::Normal;
 	Vei2 src = { -1,-1 };
 	Vei2 dest = { -1,-1 };

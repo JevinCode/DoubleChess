@@ -20,11 +20,11 @@ void ChessAI::HandleMoveEvent(bool isBrd1)
 	{
 		if (isBrd1)
 		{
-			Move({ isBrd1, {brd1.moveMade.src}, {brd1.moveMade.dest} });
+			Move({ isBrd1, brd1.moveMade });
 		}
 		else
 		{
-			Move({ isBrd1, {brd2.moveMade.src}, {brd2.moveMade.dest} });
+			Move({ isBrd1, brd2.moveMade });
 		}
 	}
 }
@@ -97,9 +97,9 @@ void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
 		return;
 	}
 	if (mv.isBoard1)
-		brd1.Move({ book.moves[0].src, book.moves[0].dest, MoveType::Normal });
+		brd1.Move(book.moves[0].move);
 	else
-		brd2.Move({ book.moves[0].src, book.moves[0].dest, MoveType::Normal });
+		brd2.Move(book.moves[0].move);
 }
 
 std::vector<_Move> ChessAI::GenerateMoves(ChessBoard& brd)

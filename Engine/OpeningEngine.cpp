@@ -26,12 +26,34 @@ OpeningEngine::OpeningEngine()
 		{
 			std::vector<std::string> coords = StringSplitter::split(components[i], '|');
 			m.isBoard1 = std::stoi(coords[0]) == 1 ? true : false;
-			m.src = Vei2{ std::stoi(coords[1]), std::stoi(coords[2]) };
-			m.dest = Vei2{ std::stoi(coords[3]),std::stoi(coords[4]) };
+			if (coords.size() < 3)
+			{
+				std::string castleInstruction = coords[1];
+				if (castleInstruction == "kb")
+				{
+					m.move = { {4,7}, {0,0}, MoveType::KingsideCastle };
+				}
+				else if (castleInstruction == "qb")
+				{
+					m.move = { {4,7}, {0,0}, MoveType::QueensideCastle };
+				}
+				else if (castleInstruction == "kw")
+				{
+					m.move = { {4,0},{0,0}, MoveType::KingsideCastle };
+				}
+				else if (castleInstruction == "qw")
+				{
+					m.move = { {4,0},{0,0}, MoveType::QueensideCastle };
+				}
+			}
+			else
+			{
+				m.move = { {std::stoi(coords[1]), std::stoi(coords[2])}, {std::stoi(coords[3]), std::stoi(coords[4])}, MoveType::Normal };
+			}
 			opener.push_back(m);
 
 		}
-		std::shared_ptr<OpeningBook> ob = std::make_shared<OpeningBook>(components[0], opener);
+		auto ob = std::make_shared<OpeningBook>(name, opener);
 		openingBooks.push_back(ob);
 	}
 }

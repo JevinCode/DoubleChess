@@ -34,15 +34,36 @@ std::vector<_Move> King::GetPossibleMoves(const ChessBoard& brd) const
 		}
 	}
 	if (brd.CanCastleKingside(team))
-		ans.push_back({ pos,{0,0},MoveType::KingsideCastle });
+	{
+		if (team == Team::WHITE)
+			ans.push_back({ pos,{6,0},MoveType::KingsideCastle });
+		else
+			ans.push_back({ pos,{6,7},MoveType::KingsideCastle });
+	}
 	if (brd.CanCastleQueenside(team))
-		ans.push_back({ pos,{0,0},MoveType::QueensideCastle });
+	{
+		if (team == Team::WHITE)
+			ans.push_back({ pos,{2,0},MoveType::QueensideCastle });
+		else
+			ans.push_back({ pos,{2,7},MoveType::QueensideCastle });
+	}
 	return ans;
 }
 
 std::vector<_Move> King::GetPossibleAttackMoves(const ChessBoard& brd) const
 {
-	return GetPossibleMoves(brd);
+	std::vector<_Move> ans;
+	std::vector<Vei2> moves = { {pos.x - 1, pos.y}, {pos.x - 1, pos.y - 1}, {pos.x - 1, pos.y + 1}, {pos.x, pos.y - 1}, {pos.x, pos.y + 1}, {pos.x + 1, pos.y + 1}, {pos.x + 1, pos.y}, {pos.x + 1, pos.y - 1} };
+	for (const auto& move : moves)
+	{
+		if (IsValidLoc(move))
+		{
+			auto c = brd.CellAt(move);
+			if (c->Empty() || c->GetPiece()->GetTeam() != team)
+				ans.push_back({ pos,move,MoveType::Normal });
+		}
+	}
+	return ans;
 }
 
 
