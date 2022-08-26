@@ -16,6 +16,21 @@ void Graphics::PutPixel( int x,int y,Color c )
 	pSysBuffer[Graphics::ScreenWidth * y + x] = c;
 }
 
+void Graphics::DrawBorder(const RectI& s, Color borderColor, int borderWidth)
+{
+	RectI outer = s.GetExpanded(borderWidth);
+	for (int y = outer.top; y <= outer.bottom; y++)
+	{
+		for (int x = outer.left; x <= outer.right; x++)
+		{
+			if (outer.Contains({ x,y }) && !s.Contains({ x,y }) && Graphics::GetScreenRect().Contains({ x,y }))
+			{
+				PutPixel(x, y, borderColor);
+			}
+		}
+	}
+}
+
 Color Graphics::GetPixel( int x,int y ) const
 {
 	assert( x >= 0 );

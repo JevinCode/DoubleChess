@@ -26,6 +26,7 @@ std::vector<_Move> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 	if (team == Team::WHITE)
 	{
 		Vei2 ahead = { pos.x,pos.y + 1 };
+		Vei2 ahead2 = { pos.x, pos.y + 2 };
 		Vei2 aheadLeft = { pos.x - 1, pos.y + 1 };
 		Vei2 aheadRight = { pos.x + 1, pos.y + 1 };
 		if (brd.CellAt(ahead)->Empty())
@@ -58,6 +59,8 @@ std::vector<_Move> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 			else
 				ans.push_back({ pos, aheadRight, MoveType::Normal });
 		}
+		if (!hasMoved && brd.CellAt(ahead)->Empty() && brd.CellAt(ahead2)->Empty())
+			ans.push_back({ pos, ahead2, MoveType::Normal });
 		if (IsValidLoc(aheadLeft) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadLeft)
 			ans.push_back({ pos, aheadLeft, MoveType::EnPassant });
 		if (IsValidLoc(aheadRight) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadRight)
@@ -66,6 +69,7 @@ std::vector<_Move> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 	else
 	{
 		Vei2 ahead = { pos.x, pos.y - 1 };
+		Vei2 ahead2 = { pos.x, pos.y - 2 };
 		Vei2 aheadLeft = { pos.x - 1, pos.y - 1 };
 		Vei2 aheadRight = { pos.x + 1, pos.y - 1 };
 		if (brd.CellAt(ahead)->Empty())
@@ -98,15 +102,13 @@ std::vector<_Move> Pawn::GetPossibleMoves(const ChessBoard& brd) const
 			else
 				ans.push_back({ pos, aheadRight, MoveType::Normal });
 		}
+		if (!hasMoved && brd.CellAt(ahead)->Empty() && brd.CellAt(ahead2)->Empty())
+			ans.push_back({ pos, ahead2, MoveType::Normal });
 		if (IsValidLoc(aheadLeft) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadLeft)
 			ans.push_back({ pos, aheadLeft, MoveType::EnPassant });
 		if (IsValidLoc(aheadRight) && brd.IsEnPassantable() && brd.GetEnPassantSquare() == aheadRight)
 			ans.push_back({ pos, aheadRight, MoveType::EnPassant });
 	}
-	
-	Vei2 ahead2 = team == Team::WHITE ? Vei2{ pos.x, pos.y + 2 } : Vei2{ pos.x, pos.y - 2 };
-	if (!hasMoved && brd.CellAt(ahead2)->Empty() && brd.CellAt(ahead2)->Empty())
-		ans.push_back({ pos, ahead2, MoveType::Normal });
 	return ans;
 }
 

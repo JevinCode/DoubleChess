@@ -181,5 +181,13 @@ void Game::ComposeFrame()
 			Queen::DrawBlack(gfx, { 550, 400 });
 			Knight::DrawBlack(gfx, { 600, 400 });
 		}
+		if (queenPromotionArea.Contains(wnd.mouse.GetPos()))
+		{
+			gfx.DrawBorder(queenPromotionArea, Colors::Blue, 3);
+		}
+		else if (knightPromotionArea.Contains(wnd.mouse.GetPos()))
+		{
+			gfx.DrawBorder(knightPromotionArea, Colors::Blue, 3);
+		}
 	}
 }

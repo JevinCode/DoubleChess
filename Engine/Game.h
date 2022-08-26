@@ -63,8 +63,8 @@ private:
 	BoardSelection prevSelection = BoardSelection::NIL;
 	ChessAI mrAI;
 
-	RectI queenPromotionArea = { {510,390}, {550, 440} };
-	RectI knightPromotionArea = { {590, 390}, {640, 440} };
+	RectI queenPromotionArea = { {551, 400}, {581, 431} };
+	RectI knightPromotionArea = { {599, 400}, {629, 430} };
 	MoveType promotionPiece = MoveType::Normal;
 
 	bool gameIsOver = false;
