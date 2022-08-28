@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="Bencher.h" />
     <ClInclude Include="Bishop.h" />
+    <ClInclude Include="BitBoard.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="ChessAI.h" />
     <ClInclude Include="ChessBoard.h" />

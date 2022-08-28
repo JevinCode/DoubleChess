@@ -64,6 +64,18 @@ Vei2 ChessBoard::Dimensify(int loc)
 	return { loc % 8, loc / 8 };
 }
 
+ChessBoard::Square ChessBoard::CoordsToSquare(const Vei2& coords) const
+{
+	return (Square)(8 * coords.y + coords.x);
+}
+
+BitBoard ChessBoard::SquareToBitboard(const Square sq) const
+{
+	BitBoard position = 0x0000000000000001;
+	//sets a 1 bit for the position encoded by Square using LERF enumeration.
+	return position << (int)sq;
+}
+
 Vei2 ChessBoard::GetOffset() const
 {
 	auto offSet = topLeft;
@@ -506,10 +518,11 @@ void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
 
 void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 {
+	BitBoard pos = SquareToBitboard(CoordsToSquare(loc));
 	auto c = CellAt(loc);
 	ReleaseHighlights();
 	auto piece = c->OnClick(t);
-	if (piece)
+	if(pieceBBs[(int)t] & pos )
 	{
 		c->Highlight(Cell::HighlightType::BLUE);
 		cellPreviouslyHighlighted = loc;
