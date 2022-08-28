@@ -1,6 +1,12 @@
 #pragma once
 #include "Vec2.h"
 
+enum class Team
+{
+	WHITE,
+	BLACK
+};
+
 enum class MoveType
 {
 	Normal,

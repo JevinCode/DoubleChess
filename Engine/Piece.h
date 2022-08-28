@@ -4,30 +4,21 @@
 
 class ChessBoard;
 class Cell;
-enum class Team
-{
-	WHITE,
-	BLACK
-};
 class Piece
 {
 public:
-	Piece(Team t, const Vei2& pos);
-	virtual void Draw(Graphics& gfx, const Vei2& loc) const = 0;
-	virtual std::vector<_Move> GetPossibleMoves(const ChessBoard& brd) const = 0;
-	virtual std::vector<_Move> GetPossibleAttackMoves(const ChessBoard& brd) const = 0;
-	void Update(const Vei2& loc);
-	const Vei2& GetPosition() const;
-	void SetPosition(const Vei2& loc);
-	bool HasMoved() const;
-	Team GetTeam() const;
-	int GetNumMoves();
-	int GetNumAdjDefenders(const ChessBoard& brd) const;
-protected:
-	bool IsValidLoc(const Vei2& loc) const;
+	enum class PieceType
+	{
+		Pawn,
+		Rook,
+		Knight,
+		Bishop,
+		Queen,
+		King
+	};
+
+	Piece() = delete;
+	static void Draw(Graphics& gfx, const Vei2& loc, PieceType p, Team t);
+private:
 	inline static Surface s = std::string("Images\\chess_pieces.bmp");
-	Vei2 pos;
-	Team team;
-	bool hasMoved = false;
-	int numMoves = 0;
 };

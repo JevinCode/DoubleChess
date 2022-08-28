@@ -1,16 +1,8 @@
 #pragma once
-#include "Graphics.h"
 #include <memory>
 #include "Piece.h"
 #include <typeinfo>
-#include "Pawn.h"
-#include "Knight.h"
-#include "Bishop.h"
-#include "Rook.h"
-#include "King.h"
-#include "Queen.h"
 #include <string>
-#include "UniversalTypes.h"
 #include "BitBoard.h"
 class ChessAI;
 
@@ -34,7 +26,6 @@ public:
 	static Vei2 Dimensify(int loc);
 	Vei2 GetOffset() const;
 	void OnClick(const Vei2& loc, Team t);
-	std::shared_ptr<Cell> CellAt(const Vei2& loc);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
 	static bool IsValidLoc(const Vei2& loc);
 	bool IsEnPassantable() const;
@@ -47,10 +38,18 @@ public:
 	void HandlePromotionClick(Team t, MoveType type);
 	Square CoordsToSquare(const Vei2& coords) const;
 	BitBoard SquareToBitboard(const Square sq) const;
+	std::vector<Square> BitBoardToSquares(const BitBoard bb) const;
+	Vei2 SquareToCoords(const Square sq) const;
+	std::vector<Vei2> SquaresToCoords(const std::vector<Square>& squares) const;
+	Vei2 GetScreenCoords(const Square sq) const;
+	std::vector<Vei2> GetScreenCoords(const std::vector<Square>& squares) const;
+
 
 private:
 	//member functions
-	void ReleaseHighlights();
+
+	void DrawPieces(Graphics& gfx) const;
+	void ClearHighlights();
 	std::vector<_Move> GetPossibleMoves(const Vei2& loc) const;
 	_Move Move(_Move mv);
 	bool IsWhiteInCheck() const;
@@ -70,34 +69,22 @@ private:
 	{
 		White,
 		Black,
-		WhitePawn,
-		BlackPawn,
-		WhiteRook,
-		BlackRook,
-		WhiteKnight,
-		BlackKnight,
-		WhiteBishop,
-		BlackBishop,
-		WhiteQueen,
-		BlackQueen,
-		WhiteKing,
-		BlackKing
+		Pawns,
+		Rooks,
+		Knights,
+		Bishops,
+		Queens,
+		Kings
 	};
 	BitBoard pieceBBs[14] = {
 		0x000000000000FFFF, //White pieces (aka first two ranks)
 		0xFFFF000000000000, //Black pieces (aka last two ranks)
-		0x000000000000FF00, //White pawns
-		0x00FF000000000000, //Black pawns
-		0x0000000000000081, //White Rooks
-		0x8100000000000000, //Black Rooks
-		0x0000000000000042, //White Knights
-		0x4200000000000000, //Black Knights
-		0x0000000000000024, //White Bishops
-		0x2400000000000000, //Black Bishops
-		0x0000000000000008, //White Queen
-		0x0800000000000000, //Black Queen
-		0x0000000000000010, //White King
-		0x1000000000000000, //Black King
+		0x00FF00000000FF00, //Pawns
+		0x8100000000000081, //Rooks
+		0x4200000000000042, //Knights
+		0x2400000000000024, //Bishops
+		0x0800000000000008, //Queens
+		0x1000000000000010, //Kings
 	}; 
 
 
@@ -122,5 +109,5 @@ private:
 	friend class ChessAI;
 public:
 	static constexpr int cellSize = 30;
-	static constexpr int boardSize = 9 * cellSize;
+	static constexpr int boardSize = 8 * cellSize;
 };

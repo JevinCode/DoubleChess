@@ -141,7 +141,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Bencher.h" />
-    <ClInclude Include="Bishop.h" />
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="ChessAI.h" />
@@ -156,17 +155,12 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="King.h" />
-    <ClInclude Include="Knight.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="OpeningEngine.h" />
-    <ClInclude Include="Pawn.h" />
     <ClInclude Include="Piece.h" />
-    <ClInclude Include="Queen.h" />
     <ClInclude Include="Rect.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="Rook.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundEffect.h" />
     <ClInclude Include="SpriteEffect.h" />
@@ -176,7 +170,6 @@
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Bishop.cpp" />
     <ClCompile Include="Cell.cpp" />
     <ClCompile Include="ChessAI.cpp" />
     <ClCompile Include="ChessBoard.cpp" />
@@ -203,16 +196,11 @@
       </SDLCheck>
     </ClCompile>
     <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="King.cpp" />
-    <ClCompile Include="Knight.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="OpeningEngine.cpp" />
-    <ClCompile Include="Pawn.cpp" />
     <ClCompile Include="Piece.cpp" />
-    <ClCompile Include="Queen.cpp" />
-    <ClCompile Include="Rook.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Surface.cpp">
       <SDLCheck Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

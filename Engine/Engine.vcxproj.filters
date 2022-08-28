@@ -16,12 +16,6 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{8b6c92a8-f65d-451e-80e3-d65773602b92}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Pieces">
-      <UniqueIdentifier>{cf6c5511-2c21-43a2-9602-57983007edb7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Pieces">
-      <UniqueIdentifier>{06dab60e-bd4c-4106-846a-5ccb048eb1e4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChiliWin.h">
@@ -102,28 +96,10 @@
     <ClInclude Include="UniversalTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bishop.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="King.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="Knight.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="Pawn.h">
-      <Filter>Header Files\Pieces</Filter>
+    <ClInclude Include="BitBoard.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Piece.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="Queen.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="Rook.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
-    <ClInclude Include="BitBoard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -182,26 +158,8 @@
     <ClCompile Include="OpeningEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bishop.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
-    <ClCompile Include="King.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
-    <ClCompile Include="Knight.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
-    <ClCompile Include="Pawn.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
     <ClCompile Include="Piece.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
-    <ClCompile Include="Queen.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
-    <ClCompile Include="Rook.cpp">
-      <Filter>Source Files\Pieces</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

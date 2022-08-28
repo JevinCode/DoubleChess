@@ -47,22 +47,18 @@ void Game::UpdateModel()
 	if (gameIsOver)
 	{
 		if (playerTurn == Team::BLACK)
-		{
 			font.DrawText("White Wins!", { 375, 400 }, Colors::White, gfx);
-		}
 		else
-		{
 			font.DrawText("Black Wins!", { 375, 400 }, Colors::White, gfx);
-		}
 		return;
 	}
-	if (playerTurn == Team::BLACK)
-	{
-		mrAI.HandleMoveEvent(curSelection == BoardSelection::Board1);
-		TestForCheckmate();
-		if(!gameIsOver)
-			playerTurn = Team::WHITE;
-	}
+	//if (playerTurn == Team::BLACK)
+	//{
+	//	mrAI.HandleMoveEvent(curSelection == BoardSelection::Board1);
+	//	TestForCheckmate();
+	//	if(!gameIsOver)
+	//		playerTurn = Team::WHITE;
+	//}
 	while (!wnd.mouse.IsEmpty())
 	{
 		const auto e = wnd.mouse.Read();
@@ -87,6 +83,7 @@ void Game::UpdateModel()
 		}
 	}
 }
+
 void Game::TestForCheckmate()
 {
 	if (brd1.IsCheckmate() || brd2.IsCheckmate())
@@ -98,17 +95,17 @@ Vei2 Game::MapToCell(const Vei2& loc)
 {
 	auto offSet1 = brd1.GetOffset();
 	auto offSet2 = brd2.GetOffset();
-	if (loc.x >= offSet1.x && loc.x <= offSet1.x + ChessBoard::boardSize && loc.y <= offSet1.y && loc.y >= offSet1.y - 240)
+	if (loc.x >= offSet1.x && loc.x <= offSet1.x + ChessBoard::boardSize && loc.y >= offSet1.y && loc.y <= offSet1.y + 240)
 	{
 		int xDest = (loc.x - offSet1.x) / ChessBoard::cellSize;
-		int yDest = (offSet1.y - loc.y) / ChessBoard::cellSize;
+		int yDest = 7 - (loc.y - offSet1.y) / ChessBoard::cellSize;
 		curSelection = BoardSelection::Board1;
 		return { xDest,yDest };
 	}
-	else if (loc.x >= offSet2.x && loc.x <= offSet2.x + ChessBoard::boardSize && loc.y <= offSet2.y && loc.y >= offSet2.y - 240)
+	else if (loc.x >= offSet2.x && loc.x <= offSet2.x + ChessBoard::boardSize && loc.y >= offSet2.y && loc.y <= offSet2.y + 240)
 	{
 		int xDest = (loc.x - offSet2.x) / ChessBoard::cellSize;
-		int yDest = (offSet2.y - loc.y) / ChessBoard::cellSize;
+		int yDest = 7 - (loc.y - offSet2.y) / ChessBoard::cellSize;
 		curSelection = BoardSelection::Board2;
 		return { xDest,yDest };
 	}
@@ -136,8 +133,8 @@ void Game::OnClick(const Vei2& loc)
 	auto gridPos = MapToCell(loc);
 	if (curSelection != prevSelection)
 	{
-		brd1.ReleaseHighlights();
-		brd2.ReleaseHighlights();
+		brd1.ClearHighlights();
+		brd2.ClearHighlights();
 	}
 	prevSelection = curSelection;
 	if(curSelection == BoardSelection::Board1)
@@ -162,32 +159,22 @@ void Game::OnClick(const Vei2& loc)
 void Game::ComposeFrame()
 {
 	brd1.Draw(gfx);
-	brd2.Draw(gfx);
+	brd2.Draw(gfx);/*
 	if (!mrAI.MidGame())
 	{
 		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
 		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
-	}
+	}*/
 	if (brd1.isPromoting || brd2.isPromoting)
 	{
 		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);
-		if (playerTurn == Team::WHITE)
-		{
-			Queen::DrawWhite(gfx, { 550, 400 });
-			Knight::DrawWhite(gfx, { 600, 400 });
-		}
-		else
-		{
-			Queen::DrawBlack(gfx, { 550, 400 });
-			Knight::DrawBlack(gfx, { 600, 400 });
-		}
+		Piece::Draw(gfx, { 550, 400 }, Piece::PieceType::Queen, playerTurn);
+		Piece::Draw(gfx, { 600, 400 }, Piece::PieceType::Knight, playerTurn);
+
 		if (queenPromotionArea.Contains(wnd.mouse.GetPos()))
-		{
 			gfx.DrawBorder(queenPromotionArea, Colors::Blue, 3);
-		}
+
 		else if (knightPromotionArea.Contains(wnd.mouse.GetPos()))
-		{
 			gfx.DrawBorder(knightPromotionArea, Colors::Blue, 3);
-		}
 	}
 }
