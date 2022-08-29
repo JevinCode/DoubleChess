@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="Bencher.h" />
     <ClInclude Include="BitBoard.h" />
+    <ClInclude Include="BBTwiddler.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="ChessAI.h" />
     <ClInclude Include="ChessBoard.h" />
@@ -157,8 +158,8 @@
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Mouse.h" />
-    <ClInclude Include="OpeningEngine.h" />
     <ClInclude Include="Piece.h" />
+    <ClInclude Include="PseudoLegalMoveGenerator.h" />
     <ClInclude Include="Rect.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sound.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BBTwiddler.cpp" />
     <ClCompile Include="Cell.cpp" />
     <ClCompile Include="ChessAI.cpp" />
     <ClCompile Include="ChessBoard.cpp" />
@@ -199,8 +201,8 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Mouse.cpp" />
-    <ClCompile Include="OpeningEngine.cpp" />
     <ClCompile Include="Piece.cpp" />
+    <ClCompile Include="PseudoLegalMoveGenerator.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Surface.cpp">
       <SDLCheck Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

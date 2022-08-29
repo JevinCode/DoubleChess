@@ -19,6 +19,7 @@ public:
 
 	Piece() = delete;
 	static void Draw(Graphics& gfx, const Vei2& loc, PieceType p, Team t);
+	//int GetNumAdjDefenders(const ChessBoard& brd) const;
 private:
 	inline static Surface s = std::string("Images\\chess_pieces.bmp");
 };

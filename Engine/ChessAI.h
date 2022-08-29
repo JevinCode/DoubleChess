@@ -3,16 +3,11 @@
 #include "Cell.h"
 #include <random>
 #include <stack>
-#include "OpeningEngine.h"
 #include "UniversalTypes.h"
 class ChessAI
 {
 public:
 	ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2);
-	~ChessAI()
-	{
-		delete opener;
-	}
 	void HandleMoveEvent(bool isBrd1);
 	bool MidGame() const;
 	std::string GetBookName() const;
@@ -39,15 +34,12 @@ private:
 	};
 
 	void Move();
-	void Move(const OpeningEngine::OpeningMove& mv);
-	OpeningEngine* opener = new OpeningEngine();
 	Team team = Team::BLACK;
 	std::mt19937 rng;
 	ChessBoard& brd1;
 	ChessBoard& brd2;
 	//std::stack<_Move> moveTree;
 	bool midGame = false;
-	OpeningEngine::OpeningMove oppMove;
 	std::string bookName = "";
 	//Methods
 	std::vector<_Move> GenerateMoves(ChessBoard& brd); //not const as it makes a call to getValidMoves, which runs a simulation that mutates the board state.

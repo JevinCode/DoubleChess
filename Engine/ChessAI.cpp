@@ -80,28 +80,6 @@ void ChessAI::Move()
 //	}
 }
 
-void ChessAI::Move(const OpeningEngine::OpeningMove& mv)
-{
-//	if (opener->OutOfMoves())
-//	{
-//		midGame = true;
-//		Move();
-//	}
-//
-//	auto book = opener->SelectBook(rng, mv);
-//	bookName = book.name;
-//	if (opener->OutOfMoves())
-//	{
-//		midGame = true;
-//		Move();
-//		return;
-//	}/*
-//	if (mv.isBoard1)
-//		brd1.Move(book.moves[0].move);
-//	else
-//		brd2.Move(book.moves[0].move);*/
-}
-
 std::vector<_Move> ChessAI::GenerateMoves(ChessBoard& brd)
 {
 	std::vector<_Move> AImoves;

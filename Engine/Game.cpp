@@ -71,6 +71,7 @@ void Game::UpdateModel()
 				TestForCheckmate();
 				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 				brd2.isEnPassantable = false;
+				brd1.GenerateMoves(playerTurn);
 				brd1.turnSwap = false;
 			}
 			else if (brd2.turnSwap)
@@ -78,6 +79,7 @@ void Game::UpdateModel()
 				TestForCheckmate();
 				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 				brd1.isEnPassantable = false;
+				brd2.GenerateMoves(playerTurn);
 				brd2.turnSwap = false;
 			}
 		}

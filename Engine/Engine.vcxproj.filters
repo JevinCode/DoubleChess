@@ -87,9 +87,6 @@
     <ClInclude Include="ChessAI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpeningEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StringSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -100,6 +97,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Piece.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BBTwiddler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PseudoLegalMoveGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -155,10 +158,13 @@
     <ClCompile Include="ChessAI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpeningEngine.cpp">
+    <ClCompile Include="Piece.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Piece.cpp">
+    <ClCompile Include="BBTwiddler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PseudoLegalMoveGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

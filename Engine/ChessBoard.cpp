@@ -1,23 +1,83 @@
 #include "ChessBoard.h"
 #include "Cell.h"
+#include "PseudoLegalMoveGenerator.h"
 
+void ChessBoard::GenerateRayAttackBBs()
+{
+	int squaresToEdge[64][8];
+	//numbers correspond to N,E,S,W,NE,SE,SW,NW respectively
+	int directionOffsets[8] = { 8,1,-8,-1,9,-7,-9,7 };
+	for (int square = 0; square < 64; square++)
+	{
+		auto coords = SquareToCoords((Square)square);
+		squaresToEdge[square][0] = 7 - coords.y;
+		squaresToEdge[square][1] = 7 - coords.x;
+		squaresToEdge[square][2] = coords.y;
+		squaresToEdge[square][3] = coords.x;
+		squaresToEdge[square][4] = std::min(squaresToEdge[square][0], squaresToEdge[square][1]);
+		squaresToEdge[square][5] = std::min(squaresToEdge[square][2], squaresToEdge[square][1]);
+		squaresToEdge[square][6] = std::min(squaresToEdge[square][2], squaresToEdge[square][3]);
+		squaresToEdge[square][7] = std::min(squaresToEdge[square][0], squaresToEdge[square][3]);
+
+		for (int dir = 0; dir < 8; dir++)
+		{
+			int offset = directionOffsets[dir];
+			BitBoard ray = 0;
+			for (int i = 0; i < squaresToEdge[square][dir]; i++)
+			{
+				int curRaySquare = square + (i + 1) * offset;
+				ray |= SquareToBitBoard((Square)curRaySquare);
+			}
+			RayAttacks[square][dir] = ray;
+		}
+	}
+}
+
+void ChessBoard::GenerateKnightAttackBBs()
+{
+	for (int count = 0; count < 64; count++)
+	{
+		BitBoard pos = (BitBoard)1 << count;
+		BitBoard result = 0;
+		result |= (pos & NotHFile) << 17;
+		result |= (pos & NotGHFile) << 10;
+		result |= (pos & NotGHFile) >> 6;
+		result |= (pos & NotHFile) >> 15;
+		result |= (pos & NotAFile) << 15;
+		result |= (pos & NotABFile) << 6;
+		result |= (pos & NotABFile) >> 10;
+		result |= (pos & NotAFile) >> 17;
+
+		KnightAttacks[count] = result;
+	}
+
+}
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
 	topLeft(topLeft)
 {
 	for (int row = 0; row < 8; row++)
 	{
-		Cell::Shade startShade = row % 2 ? Cell::Shade::DARK : Cell::Shade::LIGHT;
+		Cell::Shade startShade = row % 2 ? Cell::Shade::LIGHT : Cell::Shade::DARK;
 		for (int col = 0; col < 8; col++)
 		{
-			Vei2 loc = { row,col };
+			Vei2 loc = { col,row };
 			auto sh = Cell::Shade(((int)startShade + col) % 2);
 			cells[LinearizeCoords(loc)] = std::make_shared<Cell>(sh, loc);
+
+			Square sq = CoordsToSquare({ col,row });
 		}
 	}
+	GenerateRayAttackBBs();
+	GenerateKnightAttackBBs();
+	GenerateMoves(Team::WHITE);
 }
 
-std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(const BitBoard bb) const
+std::vector<BitBoard> ChessBoard::GetPieceBBs() const
+{
+	return pieceBBs;
+}
+std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(const BitBoard bb)
 {
 	std::vector<ChessBoard::Square> squares;
 	for (int i = 0; i < 64; i++)
@@ -31,14 +91,14 @@ std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(const BitBoard bb)
 	return squares;
 }
 
-Vei2 ChessBoard::SquareToCoords(const Square sq) const
+Vei2 ChessBoard::SquareToCoords(const Square sq)
 {
 	int rank = (int)sq / 8;
 	int file = (int)sq % 8;
 	return { file, rank };
 }
 
-std::vector<Vei2> ChessBoard::SquaresToCoords(const std::vector<Square>& squares) const
+std::vector<Vei2> ChessBoard::SquaresToCoords(const std::vector<Square>& squares)
 {
 	std::vector<Vei2> result;
 	for (const Square& square : squares)
@@ -148,16 +208,46 @@ Vei2 ChessBoard::Dimensify(int loc)
 	return { loc % 8, loc / 8 };
 }
 
-ChessBoard::Square ChessBoard::CoordsToSquare(const Vei2& coords) const
+ChessBoard::Square ChessBoard::CoordsToSquare(const Vei2& coords)
 {
 	return (Square)(8 * coords.y + coords.x);
 }
 
-BitBoard ChessBoard::SquareToBitboard(const Square sq) const
+BitBoard ChessBoard::SquareToBitBoard(const Square sq)
 {
 	BitBoard position = 0x0000000000000001;
 	//sets a 1 bit for the position encoded by Square using LERF enumeration.
 	return position << (int)sq;
+}
+
+BitBoard ChessBoard::SquaresToBitBoard(const std::vector<Square> squares)
+{
+	BitBoard result = 0;
+	for (const auto& square : squares)
+	{
+		result |= SquareToBitBoard(square);
+	}
+	return result;
+}
+
+_Move::PieceType ChessBoard::ParseCapture(Square sq) const
+{
+	auto bb = SquareToBitBoard(sq);
+	if (pieceBBs[(int)Pieces::Pawns] | bb)
+		return _Move::PieceType::Pawn;
+	if (pieceBBs[(int)Pieces::Rooks] | bb)
+		return _Move::PieceType::Rook;
+	if (pieceBBs[(int)Pieces::Knights] | bb)
+		return _Move::PieceType::Knight;
+	if (pieceBBs[(int)Pieces::Bishops] | bb)
+		return _Move::PieceType::Bishop;
+	return _Move::PieceType::Queen;
+}
+
+
+void ChessBoard::GenerateMoves(Team t)
+{
+	userPossibleMoves = PseudoLegalMoveGenerator::GenerateMoves(t, *this);
 }
 
 Vei2 ChessBoard::GetOffset() const
@@ -168,6 +258,11 @@ Vei2 ChessBoard::GetOffset() const
 std::shared_ptr<Cell> ChessBoard::CellAt(const Vei2& loc) const
 {
 	return cells[LinearizeCoords(loc)];
+}
+
+std::shared_ptr<Cell> ChessBoard::CellAt(const Square sq) const
+{
+	return cells[(int)sq];
 }
 
 void ChessBoard::ClearHighlights()
@@ -185,10 +280,17 @@ bool ChessBoard::IsValidLoc(const Vei2& loc)
 	return false;
 }
 
-//std::vector<_Move> ChessBoard::GetPossibleMoves(const Vei2& loc) const
-//{
-//	return CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
-//}
+std::vector<_Move> ChessBoard::GetPossibleMoves(const Square square) const
+{
+	std::vector<_Move> result;
+	for (const auto& move : userPossibleMoves)
+	{
+		Square source = (Square)move.GetSource();
+		if (square == source)
+			result.push_back(move);
+	}
+	return result;
+}
 
 //_Move ChessBoard::Move(_Move move)
 //{
@@ -511,12 +613,81 @@ Vei2 ChessBoard::GetEnPassantPawnLoc() const
 	return enPassantPawnLoc;
 }
 
+void ChessBoard::ApplyMove(_Move m, Team t)
+{
+	auto flags = m.GetFlags();
+	_Move::PieceType srcPiece = m.GetSourcePiece();
+	_Move::PieceType captured = m.GetCapturedPiece();
+	Square src = (Square)m.GetSource();
+	Square dest = (Square)m.GetTarget();
+	auto srcBB = SquareToBitBoard(src);
+	auto destBB = SquareToBitBoard(dest);
+	//no matter what kind of move it is, we always clear out the source square. So we will update the bitboards accordingly.
+	occupied ^= srcBB;
+	empty |= srcBB;
+	pieceBBs[(int)Pieces::White] &= occupied;
+	pieceBBs[(int)Pieces::Black] &= occupied;
+	if (flags & (ushort)_Move::Flag::Capture)
+	{
+		if (t == Team::WHITE)
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::Black] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::White] |= destBB;
+		}
+		else
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::White] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		}
+		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
+		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
+	}
+	else if (!flags)
+	{
+		occupied |= destBB;
+		empty ^= destBB;
+		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
+		pieceBBs[PieceTypeMatcher(srcPiece)] &= occupied;
+		if (t == Team::WHITE)
+			pieceBBs[(int)Pieces::White] |= destBB;
+		else
+			pieceBBs[(int)Pieces::Black] |= destBB;
+	}
+}
+
+int ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
+{
+	switch (p)
+	{
+	case _Move::PieceType::Pawn:
+		return (int)Pieces::Pawns;
+	case _Move::PieceType::Rook:
+		return (int)Pieces::Rooks;
+	case _Move::PieceType::Knight:
+		return (int)Pieces::Knights;
+	case _Move::PieceType::Bishop:
+		return (int)Pieces::Bishops;
+	case _Move::PieceType::Queen:
+		return (int)Pieces::Queens;
+	case _Move::PieceType::King:
+		return (int)Pieces::Kings;
+	default:
+		return -1;
+	}
+}
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
+	Square sq = CoordsToSquare(loc);
 	auto c = CellAt(loc);
 	if (c->GetHighlight() == Cell::HighlightType::YELLOW || c->GetHighlight() == Cell::HighlightType::RED)
 	{
-		HandleMoveClick(loc, t);
+		HandleMoveClick(sq, t);
 		return;
 	}
 
@@ -551,60 +722,63 @@ void ChessBoard::HandlePromotionClick(Team t, MoveType type)
 	}
 }
 
-void ChessBoard::HandleMoveClick(const Vei2& loc, Team t)
+void ChessBoard::HandleMoveClick(const Square sq, Team t)
 {
-//	_Move selectedMove;
-//	for (const auto& move : userPossibleMoves)
-//	{
-//		if (move.dest == loc)
-//		{
-//			selectedMove = move;
-//			moveMade = selectedMove;
-//			break;
-//		}
-//	}
-//	isPromoting = (selectedMove.type == MoveType::QueenPromotion || selectedMove.type == MoveType::KnightPromotion) ? true : false;
-//	if (!isPromoting)
-//	{
-//		moveMade = Move(selectedMove);
-//		//as we are not promoting a piece, we now test to see if we have put the other player in check.
-//		turnSwap = true;
-//		//if white successfully makes a move, then white necessarily cannot be in check.
-//		if (t == Team::WHITE)
-//		{
-//			whiteInCheck = false;
-//		}
-//		//similarly for black.
-//		else
-//		{
-//			blackInCheck = false;
-//		}
-//		IsInCheck(t);
-//	}
-//	cellPreviouslyHighlighted = loc;
-//	ClearHighlights();
+	_Move selectedMove;
+	for (const auto& move : userPossibleMoves)
+	{
+		if ((Square)move.GetTarget() == sq && (Square)move.GetSource() == squarePreviouslyHighlighted)
+		{
+			selectedMove = move;
+			moveMade = selectedMove;
+			break;
+		}
+	}
+	isPromoting = (selectedMove.GetFlags() & (uint)_Move::Flag::QueenPromotion || selectedMove.GetFlags() & (uint)_Move::Flag::KnightPromotion) ? true : false;
+	if (!isPromoting)
+	{
+		ApplyMove(selectedMove, t);
+		//as we are not promoting a piece, we now test to see if we have put the other player in check.
+		turnSwap = true;
+		//if white successfully makes a move, then white necessarily cannot be in check.
+		//if (t == Team::WHITE)
+		//{
+		//	whiteInCheck = false;
+		//}
+		////similarly for black.
+		//else
+		//{
+		//	blackInCheck = false;
+		//}
+		//IsInCheck(t);
+	}
+	ClearHighlights();
 }
 
 void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 {
-	BitBoard pos = SquareToBitboard(CoordsToSquare(loc));
+	Square sq = CoordsToSquare(loc);
+	BitBoard pos = SquareToBitBoard(sq);
+
 	auto c = CellAt(loc);
 	ClearHighlights();
 	if(pieceBBs[(int)t] & pos )
 	{
-		c->Highlight(Cell::HighlightType::BLUE);/*
-		cellPreviouslyHighlighted = loc;
-		auto moves = GetValidMoves(loc);
+		c->Highlight(Cell::HighlightType::BLUE);
+		squarePreviouslyHighlighted = sq;
+
+		auto moves = GetPossibleMoves(sq);
 		for (const auto& move : moves)
 		{
-			if (CellAt(move.dest)->Empty())
-				CellAt(move.dest)->Highlight(Cell::HighlightType::YELLOW);
+			auto flags = move.GetFlags();
+			auto target = move.GetTarget();
+			if (flags & (unsigned short)_Move::Flag::Capture || flags & (unsigned short)_Move::Flag::EnPassant)
+			{
+				CellAt((Square)target)->Highlight(Cell::HighlightType::RED);
+			}
 			else
-				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
-			if (move.type == MoveType::EnPassant)
-				CellAt(move.dest)->Highlight(Cell::HighlightType::RED);
+				CellAt((Square)target)->Highlight(Cell::HighlightType::YELLOW);
 		}
-		userPossibleMoves = moves;*/
 	}
 }
 
