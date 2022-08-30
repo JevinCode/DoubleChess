@@ -240,30 +240,32 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateMoves(Team t, const ChessBo
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	moreMoves = GeneratePawnMoves(t, brd);
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+	moreMoves = GenerateKingMoves(t, brd);
+	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	return moves;
 }
 BitBoard PseudoLegalMoveGenerator::SinglePushTargetsWhite(const ChessBoard& brd)
 {
 	auto whitePawns = brd.pieceBBs[(int)ChessBoard::Pieces::White] & brd.pieceBBs[(int)ChessBoard::Pieces::Pawns];
-	return BBTwiddler::RankNorth(whitePawns) & brd.empty;
+	return BBTwiddler::NorthOne(whitePawns) & brd.empty;
 }
 
 BitBoard PseudoLegalMoveGenerator::DoublePushTargetsWhite(const ChessBoard& brd)
 {
 	auto singlePushTargets = SinglePushTargetsWhite(brd);
-	return BBTwiddler::RankNorth(singlePushTargets) & brd.empty & ChessBoard::Rank4;
+	return BBTwiddler::NorthOne(singlePushTargets) & brd.empty & ChessBoard::Rank4;
 }
 
 BitBoard PseudoLegalMoveGenerator::SinglePushTargetsBlack(const ChessBoard& brd)
 {
 	auto blackPawns = brd.pieceBBs[(int)ChessBoard::Pieces::Black] & brd.pieceBBs[(int)ChessBoard::Pieces::Pawns];
-	return BBTwiddler::RankSouth(blackPawns) & brd.empty;
+	return BBTwiddler::SouthOne(blackPawns) & brd.empty;
 }
 
 BitBoard PseudoLegalMoveGenerator::DoublePushTargetsBlack(const ChessBoard& brd)
 {
 	auto singlePushTargets = SinglePushTargetsBlack(brd);
-	return BBTwiddler::RankSouth(singlePushTargets) & brd.empty & ChessBoard::Rank5;
+	return BBTwiddler::SouthOne(singlePushTargets) & brd.empty & ChessBoard::Rank5;
 }
 
 std::vector<_Move> PseudoLegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoard& brd)
@@ -381,6 +383,26 @@ std::vector<_Move> PseudoLegalMoveGenerator::GeneratePawnMoves(Team t, const Che
 	return moves;
 }
 
+std::vector<_Move> PseudoLegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> moves;
+	auto kingPos = brd.pieceBBs[(int)ChessBoard::Pieces::Kings] & brd.pieceBBs[(int)t];
+	auto kingSquare = ChessBoard::BitBoardToSquares(kingPos);
+	auto attackBB = brd.KingAttacks[(int)kingSquare[0]];
+	auto attackSquares = ChessBoard::BitBoardToSquares(attackBB & brd.pieceBBs[1 - (int)t]);
+	auto quietSquares = ChessBoard::BitBoardToSquares(attackBB & brd.empty);
+	for (const auto square : attackSquares)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, _Move::PieceType::King, capturePT });
+	}
+	for (const auto square : quietSquares)
+	{
+		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, _Move::PieceType::King });
+	}
+	return moves;
+}
+
 BitBoard PseudoLegalMoveGenerator::WhitePawnEastAttacks(BitBoard wPawns)
 {
 	return BBTwiddler::NortheastOne(wPawns);
@@ -406,4 +428,14 @@ BitBoard PseudoLegalMoveGenerator::WhitePawnAttacks(BitBoard wPawns)
 BitBoard PseudoLegalMoveGenerator::BlackPawnAttacks(BitBoard bPawns)
 {
 	return BlackPawnEastAttacks(bPawns) | BlackPawnWestAttacks(bPawns);
+}
+
+BitBoard PseudoLegalMoveGenerator::KingAttacks(BitBoard kingSet)
+{
+	auto originalSet = kingSet;
+	BitBoard attacks = BBTwiddler::EastOne(kingSet) | BBTwiddler::WestOne(kingSet);
+	kingSet |= attacks;
+	attacks |= BBTwiddler::NorthOne(kingSet) | BBTwiddler::SouthOne(kingSet);
+	attacks ^= originalSet;
+	return attacks;
 }

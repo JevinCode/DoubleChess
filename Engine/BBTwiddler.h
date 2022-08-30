@@ -6,8 +6,10 @@ class BBTwiddler
 public:
 	static int bitScanForward(BitBoard bb);
 	static int bitScanReverse(BitBoard bb);
-	static BitBoard RankNorth(BitBoard bb);
-	static BitBoard RankSouth(BitBoard bb);
+	static BitBoard NorthOne(BitBoard bb);
+	static BitBoard EastOne(BitBoard bb);
+	static BitBoard SouthOne(BitBoard bb);
+	static BitBoard WestOne(BitBoard bb);
 	static BitBoard NortheastOne(BitBoard bb);
 	static BitBoard NorthwestOne(BitBoard bb);
 	static BitBoard SoutheastOne(BitBoard bb);

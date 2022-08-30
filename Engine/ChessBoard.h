@@ -55,6 +55,7 @@ private:
 
 	void GenerateRayAttackBBs();
 	void GenerateKnightAttackBBs();
+	void GenerateKingAttackBBs();
 	void GenerateMoves(Team t);
 	void DrawPieces(Graphics& gfx) const;
 	void ClearHighlights();
@@ -117,7 +118,7 @@ private:
 	BitBoard KnightAttacks[64];
 	static BitBoard BishopAttacks[64];
 	static BitBoard QueenAttacks[64];
-	static BitBoard KingAttacks[64];
+	BitBoard KingAttacks[64];
 
 	BitBoard occupied = pieceBBs[(int)Pieces::White] | pieceBBs[(int)Pieces::Black];
 	BitBoard empty = occupied ^ 0xFFFFFFFFFFFFFFFF;

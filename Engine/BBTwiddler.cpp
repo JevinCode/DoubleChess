@@ -39,14 +39,22 @@ int BBTwiddler::bitScanReverse(BitBoard bb)
 	bb |= bb >> 32;
 	return rIndex64[(bb * debruijn64) >> 58];
 }
-BitBoard BBTwiddler::RankNorth(BitBoard bb)
+BitBoard BBTwiddler::NorthOne(BitBoard bb)
 {
 	return bb << 8;
 }
 
-BitBoard BBTwiddler::RankSouth(BitBoard bb)
+BitBoard BBTwiddler::SouthOne(BitBoard bb)
 {
 	return bb >> 8;
+}
+BitBoard BBTwiddler::EastOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotHFile) << 1;
+}
+BitBoard BBTwiddler::WestOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotAFile) >> 1;
 }
 BitBoard BBTwiddler::NortheastOne(BitBoard bb)
 {

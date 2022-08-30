@@ -10,6 +10,8 @@ public:
 	static std::vector<_Move> GenerateKnightMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateSlidingMoves(Team t, const ChessBoard& brd); 
 	static std::vector<_Move> GeneratePawnMoves(Team t, const ChessBoard& brd);
+	static std::vector<_Move> GenerateKingMoves(Team t, const ChessBoard& brd);
+	static BitBoard KingAttacks(BitBoard kingSet);
 
 private:
 	static BitBoard GetPositiveRayAttack(BitBoard occupied, Direction dir, ChessBoard::Square square, const ChessBoard& brd);
@@ -26,4 +28,5 @@ private:
 
 	static BitBoard WhitePawnAttacks(BitBoard wpawns);
 	static BitBoard BlackPawnAttacks(BitBoard bPawns);
+
 };

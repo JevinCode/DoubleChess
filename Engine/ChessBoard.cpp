@@ -53,6 +53,15 @@ void ChessBoard::GenerateKnightAttackBBs()
 
 }
 
+void ChessBoard::GenerateKingAttackBBs()
+{
+	for (int count = 0; count < 64; count++)
+	{
+		BitBoard pos = (BitBoard)1 << count;
+		KingAttacks[count] = PseudoLegalMoveGenerator::KingAttacks(pos);
+	}
+}
+
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
 	topLeft(topLeft)
@@ -71,6 +80,7 @@ ChessBoard::ChessBoard(const Vei2& topLeft)
 	}
 	GenerateRayAttackBBs();
 	GenerateKnightAttackBBs();
+	GenerateKingAttackBBs();
 	GenerateMoves(Team::WHITE);
 }
 
@@ -245,7 +255,6 @@ _Move::PieceType ChessBoard::ParseCapture(Square sq) const
 		return _Move::PieceType::Bishop;
 	return _Move::PieceType::Queen;
 }
-
 
 void ChessBoard::GenerateMoves(Team t)
 {
