@@ -1,5 +1,5 @@
 #include "BBTwiddler.h"
-
+#include "ChessBoard.h"
 
 /**
  * bitScanForward
@@ -38,4 +38,29 @@ int BBTwiddler::bitScanReverse(BitBoard bb)
 	bb |= bb >> 16;
 	bb |= bb >> 32;
 	return rIndex64[(bb * debruijn64) >> 58];
+}
+BitBoard BBTwiddler::RankNorth(BitBoard bb)
+{
+	return bb << 8;
+}
+
+BitBoard BBTwiddler::RankSouth(BitBoard bb)
+{
+	return bb >> 8;
+}
+BitBoard BBTwiddler::NortheastOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotHFile) << 9;
+}
+BitBoard BBTwiddler::NorthwestOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotAFile) << 7;
+}
+BitBoard BBTwiddler::SoutheastOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotHFile) >> 7;
+}
+BitBoard BBTwiddler::SouthwestOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotAFile) >> 9;
 }

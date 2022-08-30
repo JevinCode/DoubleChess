@@ -52,6 +52,7 @@ void ChessBoard::GenerateKnightAttackBBs()
 	}
 
 }
+
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
 	topLeft(topLeft)
@@ -77,6 +78,7 @@ std::vector<BitBoard> ChessBoard::GetPieceBBs() const
 {
 	return pieceBBs;
 }
+
 std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(const BitBoard bb)
 {
 	std::vector<ChessBoard::Square> squares;
@@ -233,13 +235,13 @@ BitBoard ChessBoard::SquaresToBitBoard(const std::vector<Square> squares)
 _Move::PieceType ChessBoard::ParseCapture(Square sq) const
 {
 	auto bb = SquareToBitBoard(sq);
-	if (pieceBBs[(int)Pieces::Pawns] | bb)
+	if (pieceBBs[(int)Pieces::Pawns] & bb)
 		return _Move::PieceType::Pawn;
-	if (pieceBBs[(int)Pieces::Rooks] | bb)
+	if (pieceBBs[(int)Pieces::Rooks] & bb)
 		return _Move::PieceType::Rook;
-	if (pieceBBs[(int)Pieces::Knights] | bb)
+	if (pieceBBs[(int)Pieces::Knights] & bb)
 		return _Move::PieceType::Knight;
-	if (pieceBBs[(int)Pieces::Bishops] | bb)
+	if (pieceBBs[(int)Pieces::Bishops] & bb)
 		return _Move::PieceType::Bishop;
 	return _Move::PieceType::Queen;
 }
@@ -615,7 +617,7 @@ Vei2 ChessBoard::GetEnPassantPawnLoc() const
 
 void ChessBoard::ApplyMove(_Move m, Team t)
 {
-	auto flags = m.GetFlags();
+	auto flag = m.GetFlag();
 	_Move::PieceType srcPiece = m.GetSourcePiece();
 	_Move::PieceType captured = m.GetCapturedPiece();
 	Square src = (Square)m.GetSource();
@@ -627,8 +629,71 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	empty |= srcBB;
 	pieceBBs[(int)Pieces::White] &= occupied;
 	pieceBBs[(int)Pieces::Black] &= occupied;
-	if (flags & (ushort)_Move::Flag::Capture)
+	pieceBBs[PieceTypeMatcher(srcPiece)] &= occupied;
+
+	switch (flag)
 	{
+	case _Move::Flag::KnightPromotionCapture:
+		if (t == Team::WHITE)
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::Black] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::White] |= destBB;
+		}
+		else
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::White] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		}
+		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
+		pieceBBs[(int)Pieces::Knights] |= destBB;
+		break;
+	case _Move::Flag::QueenPromotionCapture:
+		if (t == Team::WHITE)
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::Black] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::White] |= destBB;
+		}
+		else
+		{
+			//remove captured piece
+			pieceBBs[(int)Pieces::White] ^= destBB;
+
+			//add piece as appropriate
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		}
+		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
+		pieceBBs[(int)Pieces::Queens] |= destBB;
+		break;
+	case _Move::Flag::KnightPromotion:
+		occupied |= destBB;
+		empty ^= destBB;
+		pieceBBs[(int)Pieces::Knights] |= destBB;
+		pieceBBs[(int)Pieces::Pawns] &= occupied;
+		if (t == Team::WHITE)
+			pieceBBs[(int)Pieces::White] |= destBB;
+		else
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		break;
+	case _Move::Flag::QueenPromotion:
+		occupied |= destBB;
+		empty ^= destBB;
+		pieceBBs[(int)Pieces::Queens] |= destBB;
+		pieceBBs[(int)Pieces::Pawns] &= occupied;
+		if (t == Team::WHITE)
+			pieceBBs[(int)Pieces::White] |= destBB;
+		else
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		break;
+	case _Move::Flag::Capture:
 		if (t == Team::WHITE)
 		{
 			//remove captured piece
@@ -647,9 +712,19 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
-	}
-	else if (!flags)
-	{
+		break;
+	case _Move::Flag::PawnDoublePush:
+		isEnPassantable = true;
+		//TODO - figure out enpassant square
+		occupied |= destBB;
+		empty ^= destBB;
+		pieceBBs[(int)Pieces::Pawns] |= destBB;
+		if (t == Team::WHITE)
+			pieceBBs[(int)Pieces::White] |= destBB;
+		else
+			pieceBBs[(int)Pieces::Black] |= destBB;
+		break;
+	case _Move::Flag::None:
 		occupied |= destBB;
 		empty ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
@@ -658,7 +733,9 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[(int)Pieces::White] |= destBB;
 		else
 			pieceBBs[(int)Pieces::Black] |= destBB;
+		break;
 	}
+	plies.push(m);
 }
 
 int ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
@@ -681,6 +758,7 @@ int ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
 		return -1;
 	}
 }
+
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
 	Square sq = CoordsToSquare(loc);
@@ -695,31 +773,50 @@ void ChessBoard::OnClick(const Vei2& loc, Team t)
 }
 
 void ChessBoard::HandlePromotionClick(Team t, MoveType type)
-{/*
+{
 	if (type == MoveType::QueenPromotion)
 	{
-		moveMade = Move({ moveMade.src, moveMade.dest,MoveType::QueenPromotion });
+		if (CellAt(squarePreviouslyHighlighted)->GetHighlight() == Cell::HighlightType::RED)
+		{
+			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			ApplyMove(moveMade, t);
+		}
+		else
+		{
+			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			ApplyMove(moveMade, t);
+		}
 		turnSwap = true;
 		isPromoting = false;
-		IsInCheck(t);
+		//IsInCheck(t);
 	}
 
 	else if (type == MoveType::KnightPromotion)
 	{
-		moveMade = Move({ moveMade.src, moveMade.dest,MoveType::KnightPromotion });
+		if (CellAt(squarePreviouslyHighlighted)->GetHighlight() == Cell::HighlightType::RED)
+		{
+			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			ApplyMove(moveMade, t);
+		}
+		else
+		{
+			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			ApplyMove(moveMade, t);
+		}
 		turnSwap = true;
 		isPromoting = false;
-		IsInCheck(t);
-	}*/
+		//IsInCheck(t);
+	}
+	ClearHighlights();
 
-	if (t == Team::WHITE)
-	{
-		whiteInCheck = false;
-	}
-	else
-	{
-		blackInCheck = false;
-	}
+	//if (t == Team::WHITE)
+	//{
+	//	whiteInCheck = false;
+	//}
+	//else
+	//{
+	//	blackInCheck = false;
+	//}
 }
 
 void ChessBoard::HandleMoveClick(const Square sq, Team t)
@@ -734,7 +831,13 @@ void ChessBoard::HandleMoveClick(const Square sq, Team t)
 			break;
 		}
 	}
-	isPromoting = (selectedMove.GetFlags() & (uint)_Move::Flag::QueenPromotion || selectedMove.GetFlags() & (uint)_Move::Flag::KnightPromotion) ? true : false;
+	auto flag = selectedMove.GetFlag();
+	if (flag == _Move::Flag::KnightPromotion || flag == _Move::Flag::KnightPromotionCapture || flag == _Move::Flag::QueenPromotion || flag == _Move::Flag::QueenPromotionCapture)
+	{
+		squarePreviouslyHighlighted = sq;
+		isPromoting = true;
+	}
+
 	if (!isPromoting)
 	{
 		ApplyMove(selectedMove, t);
@@ -751,8 +854,8 @@ void ChessBoard::HandleMoveClick(const Square sq, Team t)
 		//	blackInCheck = false;
 		//}
 		//IsInCheck(t);
+		ClearHighlights();
 	}
-	ClearHighlights();
 }
 
 void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
@@ -770,12 +873,10 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 		auto moves = GetPossibleMoves(sq);
 		for (const auto& move : moves)
 		{
-			auto flags = move.GetFlags();
+			auto flag = move.GetFlag();
 			auto target = move.GetTarget();
-			if (flags & (unsigned short)_Move::Flag::Capture || flags & (unsigned short)_Move::Flag::EnPassant)
-			{
+			if (flag == _Move::Flag::Capture || flag == _Move::Flag::EnPassant || flag == _Move::Flag::KnightPromotionCapture || flag == _Move::Flag::QueenPromotionCapture)
 				CellAt((Square)target)->Highlight(Cell::HighlightType::RED);
-			}
 			else
 				CellAt((Square)target)->Highlight(Cell::HighlightType::YELLOW);
 		}

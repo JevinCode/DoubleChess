@@ -34,13 +34,15 @@ struct _Move
 	enum class Flag
 	{
 		None,
-		Capture = 1,
-		QueenPromotion = 2,
-		KnightPromotion = 4,
-		KingsideCastle = 8,
-		QueensideCastle = 16,
-		PawnDoublePush = 32,
-		EnPassant = 64
+		Capture,
+		QueenPromotion,
+		KnightPromotion,
+		QueenPromotionCapture,
+		KnightPromotionCapture,
+		KingsideCastle,
+		QueensideCastle,
+		PawnDoublePush,
+		EnPassant
 	};
 	enum class PieceType
 	{
@@ -55,19 +57,19 @@ struct _Move
 	_Move() = default;
 	_Move(uint flags, uint source, uint target, uint srcPiece, uint capturedPiece)
 	{
-		move = (flags << 26) | source << 20 | target << 14 | srcPiece << 11 | capturedPiece << 8;
+		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | capturedPiece << 10;
 	}
 	_Move(uint flags, uint source, uint target, uint srcPiece)
 	{
-		move = (flags << 26) | source << 20 | target << 14 | srcPiece << 11 | (uint)PieceType::Empty << 8;
+		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | (uint)PieceType::Empty << 10;
 	}
 	_Move(uint flags, uint source, uint target, PieceType srcPiece, PieceType capturedPiece)
 	{
-		move = (flags << 26) | source << 20 | target << 14 | (uint)srcPiece << 11 | (uint)capturedPiece << 8;
+		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)capturedPiece << 10;
 	}
 	_Move(uint flags, uint source, uint target, PieceType srcPiece)
 	{
-		move = (flags << 26) | source << 20 | target << 14 | (uint)srcPiece << 11 | (uint)PieceType::Empty << 8;
+		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)PieceType::Empty << 10;
 	}
 	_Move(const _Move& other)
 	{
@@ -92,31 +94,31 @@ struct _Move
 
 	uint GetSource() const
 	{
-		return (move & sourceMask) >> 20;
+		return (move & sourceMask) >> 22;
 	}
 	uint GetTarget() const
 	{
-		return (move & targetMask) >> 14;
+		return (move & targetMask) >> 16;
 	}
-	uint GetFlags() const
+	Flag GetFlag() const
 	{
-		return (move & flagMask) >> 26;
+		return (Flag)((move & flagMask) >> 28);
 	}
 	PieceType GetSourcePiece() const
 	{
-		return (PieceType)((move & pieceMask) >> 11);
+		return (PieceType)((move & pieceMask) >> 13);
 	}
 	PieceType GetCapturedPiece() const
 	{
-		return (PieceType)((move & capturedMask) >> 8);
+		return (PieceType)((move & capturedMask) >> 10);
 	}
 
-	//move data is stored in a packed short. 6 most significant bits store flag data, next 6 store source square, next 6 store target square, next 3 store source piece type, last 3 store captured piece type
+	//move data is stored in a packed short. 4 most significant bits store flag data, next 6 store source square, next 6 store target square, next 3 store source piece type, last 3 store captured piece type
 protected:
 	uint move;
-	static constexpr uint flagMask = 0xFC000000;
-	static constexpr uint sourceMask = 0x03F00000;
-	static constexpr uint targetMask = 0x000FC000;
-	static constexpr uint pieceMask = 0x00003800;
-	static constexpr uint capturedMask = 0x00000700;
+	static constexpr uint flagMask = 0xF0000000;
+	static constexpr uint sourceMask = 0x0FC00000;
+	static constexpr uint targetMask = 0x003F0000;
+	static constexpr uint pieceMask = 0x0000E000;
+	static constexpr uint capturedMask = 0x00001C00;
 };

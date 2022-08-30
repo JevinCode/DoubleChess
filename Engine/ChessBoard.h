@@ -5,6 +5,7 @@
 #include <string>
 #include "BitBoard.h"
 #include "BBTwiddler.h"
+#include <stack>
 class ChessAI;
 class ChessBoard
 {
@@ -111,6 +112,7 @@ private:
 	//second index is used as follows: 0 = North, 1 = East, 2 = South, 3 = West, 4 = Northeast, 5 = Southeast, 6 = Southwest, 7 = Northeast
 
 	BitBoard RayAttacks[64][8];
+	//0 = White, 1 = Black
 	static BitBoard RookAttacks[64];
 	BitBoard KnightAttacks[64];
 	static BitBoard BishopAttacks[64];
@@ -120,7 +122,7 @@ private:
 	BitBoard occupied = pieceBBs[(int)Pieces::White] | pieceBBs[(int)Pieces::Black];
 	BitBoard empty = occupied ^ 0xFFFFFFFFFFFFFFFF;
 
-
+	std::stack<_Move> plies;
 	bool turnSwap = false;
 	Square squarePreviouslyHighlighted = Square::a1;
 	Surface sPieces = std::string("Images\\chess_pieces.bmp");
@@ -142,6 +144,9 @@ private:
 	friend class ChessAI;
 	friend class PseudoLegalMoveGenerator;
 
+public:
+	static constexpr int cellSize = 30;
+	static constexpr int boardSize = 8 * cellSize;
 	//constants
 	static constexpr BitBoard Universe = 0xFFFFFFFFFFFFFFFF;
 	static constexpr BitBoard Empty = 0;
@@ -158,9 +163,8 @@ private:
 	static constexpr BitBoard NotGHFile = GHFile ^ Universe;
 	static constexpr BitBoard Rank1 = 0x00000000000000FF;
 	static constexpr BitBoard Rank2 = 0x000000000000FF00;
+	static constexpr BitBoard Rank4 = 0x00000000FF000000;
+	static constexpr BitBoard Rank5 = 0x000000FF00000000;
 	static constexpr BitBoard Rank7 = 0x00FF000000000000;
 	static constexpr BitBoard Rank8 = 0xFF00000000000000;
-public:
-	static constexpr int cellSize = 30;
-	static constexpr int boardSize = 8 * cellSize;
 };

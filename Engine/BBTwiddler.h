@@ -6,6 +6,12 @@ class BBTwiddler
 public:
 	static int bitScanForward(BitBoard bb);
 	static int bitScanReverse(BitBoard bb);
+	static BitBoard RankNorth(BitBoard bb);
+	static BitBoard RankSouth(BitBoard bb);
+	static BitBoard NortheastOne(BitBoard bb);
+	static BitBoard NorthwestOne(BitBoard bb);
+	static BitBoard SoutheastOne(BitBoard bb);
+	static BitBoard SouthwestOne(BitBoard bb);
 private:
 	static constexpr int index64[64] = {
 	0,  1, 48,  2, 57, 49, 28,  3,
