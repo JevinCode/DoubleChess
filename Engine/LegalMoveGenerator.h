@@ -3,6 +3,7 @@
 
 class LegalMoveGenerator
 {
+public:
 	static std::vector<_Move> GenerateMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateKnightMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateSlidingMoves(Team t, const ChessBoard& brd);

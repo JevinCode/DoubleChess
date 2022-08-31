@@ -1,6 +1,7 @@
 #include "ChessBoard.h"
 #include "Cell.h"
 #include "PseudoLegalMoveGenerator.h"
+#include "LegalMoveGenerator.h"
 
 void ChessBoard::GenerateRayAttackBBs()
 {
@@ -50,7 +51,7 @@ void ChessBoard::GenerateKnightAttackBBs()
 		result |= (pos & NotABFile) >> 10;
 		result |= (pos & NotAFile) >> 17;
 
-		KnightAttacks[count] = result;
+		KnightAttacks.push_back(result);
 	}
 
 }
@@ -60,13 +61,17 @@ void ChessBoard::GenerateKingAttackBBs()
 	for (int count = 0; count < 64; count++)
 	{
 		BitBoard pos = (BitBoard)1 << count;
-		KingAttacks[count] = PseudoLegalMoveGenerator::KingAttacks(pos);
+		KingAttacks.push_back(BBTwiddler::KingAttacks(pos));
 	}
 }
 
 const std::vector<std::vector<BitBoard>> ChessBoard::GetRayAttacks() const
 {
 	return RayAttacks;
+}
+BitBoard ChessBoard::GetKingDangerSquares(Team t) const
+{
+	return KingDangerSquares[(int)t];
 }
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
@@ -267,6 +272,8 @@ void ChessBoard::GenerateMoves(Team t)
 {
 	b.Start();
 	userPossibleMoves = PseudoLegalMoveGenerator::GenerateMoves(t, *this);
+	auto kingMoves = LegalMoveGenerator::GenerateKingMoves(t, *this);
+	userPossibleMoves.insert(userPossibleMoves.end(), kingMoves.begin(), kingMoves.end());
 	b.End();
 }
 
@@ -756,6 +763,7 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	plies.push(m);
 
 	//finally, need to update other team's king danger squares
+	KingDangerSquares[1 - (int)t] = CalculateKingDangerSquares((Team)(1 - (int)t));
 
 }
 
@@ -778,6 +786,32 @@ int ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
 	default:
 		return -1;
 	}
+}
+
+BitBoard ChessBoard::CalculateKingDangerSquares(Team t)
+{
+	auto occupied = pieceBBs[(int)BBIndex::Occupied]; 
+	auto otherTeam = pieceBBs[1 - (int)t];
+	occupied ^= pieceBBs[(int)BBIndex::Kings] & pieceBBs[(int)t];
+	auto rooks = pieceBBs[(int)BBIndex::Rooks] & otherTeam;
+	auto bishops = pieceBBs[(int)BBIndex::Bishops] & otherTeam;
+	auto queens = pieceBBs[(int)BBIndex::Queens] & otherTeam;
+	auto knights = pieceBBs[(int)BBIndex::Knights] & otherTeam;
+	auto pawns = pieceBBs[(int)BBIndex::Pawns] & otherTeam;
+
+	auto otherKing = pieceBBs[(int)BBIndex::Kings] & pieceBBs[1 - (int)t];
+	BitBoard dangers = BBTwiddler::GetRookAttackBB(occupied, rooks, RayAttacks);
+	dangers |= BBTwiddler::GetBishopAttackBB(occupied, bishops, RayAttacks);
+	dangers |= BBTwiddler::GetQueenAttackBB(occupied, queens, RayAttacks);
+	dangers |= BBTwiddler::GetKnightAttackBB(knights, KnightAttacks);
+	if (t == Team::WHITE)
+		dangers |= BBTwiddler::BlackPawnAttacks(pawns);
+	else
+		dangers |= BBTwiddler::WhitePawnAttacks(pawns);
+	dangers |= BBTwiddler::KingAttacks(otherKing);
+
+	return dangers;
+
 }
 
 void ChessBoard::OnClick(const Vei2& loc, Team t)

@@ -65,6 +65,7 @@ public:
 	std::vector<Vei2> GetScreenCoords(const std::vector<Square>& squares) const;
 	_Move::PieceType ParseCapture(Square sq) const;
 	const std::vector<std::vector<BitBoard>> GetRayAttacks() const;
+	BitBoard GetKingDangerSquares(Team t) const;
 
 
 private:
@@ -89,6 +90,7 @@ private:
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
 	int PieceTypeMatcher(_Move::PieceType p) const;
+	BitBoard CalculateKingDangerSquares(Team t);
 	//member dataclass
 
 	enum class DirectionOffsets
@@ -121,10 +123,10 @@ private:
 
 	std::vector<std::vector<BitBoard>> RayAttacks;
 	//static BitBoard RookAttacks[64];
-	BitBoard KnightAttacks[64];
-	//static BitBoard BishopAttacks[64];
-	//static BitBoard QueenAttacks[64];
-	BitBoard KingAttacks[64];
+	std::vector<BitBoard> KnightAttacks;
+	BitBoard BishopAttacks[64];
+	static BitBoard QueenAttacks[64];
+	std::vector<BitBoard> KingAttacks;
 	//0 = White, 1 = Black
 	BitBoard KingDangerSquares[2] = { 0,0 };
 

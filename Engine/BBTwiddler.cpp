@@ -73,7 +73,7 @@ BitBoard BBTwiddler::SouthwestOne(BitBoard bb)
 	return (bb & ChessBoard::NotAFile) >> 9;
 }
 
-BitBoard BBTwiddler::GetPositiveRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks)
+BitBoard BBTwiddler::GetPositiveRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>>& RayAttacks)
 {
 	BitBoard attacks = RayAttacks[square][(int)dir];
 	BitBoard blocker = attacks & occupied;
@@ -84,7 +84,7 @@ BitBoard BBTwiddler::GetPositiveRayAttack(const BitBoard occupied, Direction dir
 	}
 	return attacks;
 }
-BitBoard BBTwiddler::GetNegativeRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks)
+BitBoard BBTwiddler::GetNegativeRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>>& RayAttacks)
 {
 	BitBoard attacks = RayAttacks[(int)square][(int)dir];
 	BitBoard blocker = attacks & occupied;
@@ -93,5 +93,122 @@ BitBoard BBTwiddler::GetNegativeRayAttack(const BitBoard occupied, Direction dir
 		square = BBTwiddler::bitScanReverse(blocker);
 		attacks ^= RayAttacks[(int)square][(int)dir];
 	}
+	return attacks;
+}
+
+BitBoard BBTwiddler::GetRookAttackBBSingle(const BitBoard occupied, int square, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+		return 
+		GetPositiveRayAttack(occupied, Direction::North, square, RayAttacks) |
+		GetPositiveRayAttack(occupied, Direction::East, square, RayAttacks) |
+		GetNegativeRayAttack(occupied, Direction::South, square, RayAttacks) |
+		GetNegativeRayAttack(occupied, Direction::West, square, RayAttacks);
+}
+
+BitBoard BBTwiddler::GetRookAttackBB(const BitBoard occupied, BitBoard rooks, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+	if (!rooks)
+		return 0;
+	//we assume there are at most two rooks
+	int squareIdx1 = bitScanForward(rooks);
+	int squareIdx2 = bitScanReverse(rooks);
+
+	BitBoard attacks1 = GetRookAttackBBSingle(occupied, squareIdx1, RayAttacks);
+
+	if (squareIdx1 == squareIdx2)
+		return attacks1;
+
+	BitBoard attacks2 = GetRookAttackBBSingle(occupied, squareIdx2, RayAttacks);
+
+	return attacks1 | attacks2;
+}
+
+BitBoard BBTwiddler::GetBishopAttackBBSingle(const BitBoard occupied, int square, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+	return
+		GetPositiveRayAttack(occupied, Direction::Northeast, square, RayAttacks) |
+		GetPositiveRayAttack(occupied, Direction::Northwest, square, RayAttacks) |
+		GetNegativeRayAttack(occupied, Direction::Southeast, square, RayAttacks) |
+		GetNegativeRayAttack(occupied, Direction::Southwest, square, RayAttacks);
+}
+
+BitBoard BBTwiddler::GetBishopAttackBB(const BitBoard occupied, const BitBoard bishops, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+	if (!bishops)
+		return 0;
+	//we assume there are at most two rooks
+	int squareIdx1 = bitScanForward(bishops);
+	int squareIdx2 = bitScanReverse(bishops);
+
+	BitBoard attacks1 = GetBishopAttackBBSingle(occupied, squareIdx1, RayAttacks);
+
+	if (squareIdx1 == squareIdx2)
+		return attacks1;
+
+	BitBoard attacks2 = GetBishopAttackBBSingle(occupied, squareIdx2, RayAttacks);
+
+	return attacks1 | attacks2;
+}
+
+BitBoard BBTwiddler::GetQueenAttackBBSingle(const BitBoard occupied, int square, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+	return GetRookAttackBBSingle(occupied, square, RayAttacks) | GetBishopAttackBBSingle(occupied, square, RayAttacks);
+}
+
+BitBoard BBTwiddler::GetQueenAttackBB(const BitBoard occupied, const BitBoard queens, const std::vector<std::vector<BitBoard>>& RayAttacks)
+{
+	auto squares = BitBoardToSquares(queens);
+	BitBoard result = 0;
+	for (int square : squares)
+	{
+		result |= GetQueenAttackBBSingle(occupied, square, RayAttacks);
+	}
+	return result;
+}
+
+BitBoard BBTwiddler::GetKnightAttackBB(BitBoard knights, std::vector<BitBoard>& knightAttacks)
+{
+	auto knightSquares = BitBoardToSquares(knights);
+	BitBoard result = 0;
+	for (int square : knightSquares)
+	{
+		result |= knightAttacks[square];
+	}
+	return result;
+}
+BitBoard BBTwiddler::WhitePawnEastAttacks(BitBoard wPawns)
+{
+	return BBTwiddler::NortheastOne(wPawns);
+}
+BitBoard BBTwiddler::WhitePawnWestAttacks(BitBoard wPawns)
+{
+	return BBTwiddler::NorthwestOne(wPawns);
+}
+BitBoard BBTwiddler::BlackPawnEastAttacks(BitBoard bPawns)
+{
+	return BBTwiddler::SoutheastOne(bPawns);
+}
+BitBoard BBTwiddler::BlackPawnWestAttacks(BitBoard bPawns)
+{
+	return BBTwiddler::SouthwestOne(bPawns);
+}
+
+BitBoard BBTwiddler::WhitePawnAttacks(BitBoard wPawns)
+{
+	return WhitePawnEastAttacks(wPawns) | WhitePawnWestAttacks(wPawns);
+}
+
+BitBoard BBTwiddler::BlackPawnAttacks(BitBoard bPawns)
+{
+	return BlackPawnEastAttacks(bPawns) | BlackPawnWestAttacks(bPawns);
+}
+
+BitBoard BBTwiddler::KingAttacks(BitBoard kingSet)
+{
+	auto originalSet = kingSet;
+	BitBoard attacks = BBTwiddler::EastOne(kingSet) | BBTwiddler::WestOne(kingSet);
+	kingSet |= attacks;
+	attacks |= BBTwiddler::NorthOne(kingSet) | BBTwiddler::SouthOne(kingSet);
+	attacks ^= originalSet;
 	return attacks;
 }
