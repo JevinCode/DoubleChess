@@ -6,6 +6,7 @@
 #include "BitBoard.h"
 #include "BBTwiddler.h"
 #include <stack>
+#include "Bencher.h"
 class ChessAI;
 class ChessBoard
 {
@@ -21,6 +22,20 @@ public:
 		a7, b7, c7, d7, e7, f7, g7, h7,
 		a8, b8, c8, d8, e8, f8, g8, h8
 	};
+	enum class BBIndex
+	{
+		White,
+		Black,
+		Pawns,
+		Rooks,
+		Knights,
+		Bishops,
+		Queens,
+		Kings,
+		Occupied,
+		Empty
+	};
+	Bencher b;
 	ChessBoard(const Vei2& topLeft);
 	void ApplyMove(_Move m, Team t);
 	void Draw(Graphics& gfx) const;
@@ -48,6 +63,8 @@ public:
 	static std::vector<Vei2> SquaresToCoords(const std::vector<Square>& squares);
 	Vei2 GetScreenCoords(const Square sq) const;
 	std::vector<Vei2> GetScreenCoords(const std::vector<Square>& squares) const;
+	_Move::PieceType ParseCapture(Square sq) const;
+	const std::vector<std::vector<BitBoard>> GetRayAttacks() const;
 
 
 private:
@@ -72,20 +89,8 @@ private:
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
 	int PieceTypeMatcher(_Move::PieceType p) const;
-	_Move::PieceType ParseCapture(Square sq) const;
 	//member dataclass
 
-	enum class Pieces
-	{
-		White,
-		Black,
-		Pawns,
-		Rooks,
-		Knights,
-		Bishops,
-		Queens,
-		Kings
-	};
 	enum class DirectionOffsets
 	{
 		North = 8,
@@ -108,20 +113,21 @@ private:
 		0x2400000000000024, //Bishops
 		0x0800000000000008, //Queens
 		0x1000000000000010, //Kings
+		0xFFFF00000000FFFF, //Occupied
+		0x0000FFFFFFFF0000 //Empty
 	};
 
 	//second index is used as follows: 0 = North, 1 = East, 2 = South, 3 = West, 4 = Northeast, 5 = Southeast, 6 = Southwest, 7 = Northeast
 
-	BitBoard RayAttacks[64][8];
-	//0 = White, 1 = Black
-	static BitBoard RookAttacks[64];
+	std::vector<std::vector<BitBoard>> RayAttacks;
+	//static BitBoard RookAttacks[64];
 	BitBoard KnightAttacks[64];
-	static BitBoard BishopAttacks[64];
-	static BitBoard QueenAttacks[64];
+	//static BitBoard BishopAttacks[64];
+	//static BitBoard QueenAttacks[64];
 	BitBoard KingAttacks[64];
+	//0 = White, 1 = Black
+	BitBoard KingDangerSquares[2] = { 0,0 };
 
-	BitBoard occupied = pieceBBs[(int)Pieces::White] | pieceBBs[(int)Pieces::Black];
-	BitBoard empty = occupied ^ 0xFFFFFFFFFFFFFFFF;
 
 	std::stack<_Move> plies;
 	bool turnSwap = false;

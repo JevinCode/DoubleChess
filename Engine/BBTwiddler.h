@@ -1,5 +1,7 @@
 #pragma once
 #include "BitBoard.h"
+#include "UniversalTypes.h"
+#include <vector>
 #include <cassert>
 class BBTwiddler
 {
@@ -14,6 +16,8 @@ public:
 	static BitBoard NorthwestOne(BitBoard bb);
 	static BitBoard SoutheastOne(BitBoard bb);
 	static BitBoard SouthwestOne(BitBoard bb);
+	static BitBoard GetPositiveRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks);
+	static BitBoard GetNegativeRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks);
 private:
 	static constexpr int index64[64] = {
 	0,  1, 48,  2, 57, 49, 28,  3,

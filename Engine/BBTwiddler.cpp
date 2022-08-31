@@ -72,3 +72,26 @@ BitBoard BBTwiddler::SouthwestOne(BitBoard bb)
 {
 	return (bb & ChessBoard::NotAFile) >> 9;
 }
+
+BitBoard BBTwiddler::GetPositiveRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks)
+{
+	BitBoard attacks = RayAttacks[square][(int)dir];
+	BitBoard blocker = attacks & occupied;
+	if (blocker)
+	{
+		square = BBTwiddler::bitScanForward(blocker);
+		attacks ^= RayAttacks[(int)square][(int)dir];
+	}
+	return attacks;
+}
+BitBoard BBTwiddler::GetNegativeRayAttack(const BitBoard occupied, Direction dir, int square, const std::vector<std::vector<BitBoard>> RayAttacks)
+{
+	BitBoard attacks = RayAttacks[(int)square][(int)dir];
+	BitBoard blocker = attacks & occupied;
+	if (blocker)
+	{
+		square = BBTwiddler::bitScanReverse(blocker);
+		attacks ^= RayAttacks[(int)square][(int)dir];
+	}
+	return attacks;
+}
