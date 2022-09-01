@@ -126,6 +126,7 @@ void Game::OnClick(const Vei2& loc)
 			brd1.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
 		else if (knightPromotionArea.Contains(loc))
 			brd1.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+		return;
 	}
 	else if (brd2.isPromoting)
 	{
@@ -133,6 +134,7 @@ void Game::OnClick(const Vei2& loc)
 			brd2.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
 		else if (knightPromotionArea.Contains(loc))
 			brd2.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+		return;
 	}
 	auto gridPos = MapToCell(loc);
 	if (curSelection != prevSelection)
