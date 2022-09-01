@@ -7,6 +7,8 @@
 #include "BBTwiddler.h"
 #include <stack>
 #include "Bencher.h"
+#include "EnumArray.h"
+
 class ChessAI;
 class ChessBoard
 {
@@ -20,7 +22,8 @@ public:
 		a5, b5, c5, d5, e5, f5, g5, h5,
 		a6, b6, c6, d6, e6, f6, g6, h6,
 		a7, b7, c7, d7, e7, f7, g7, h7,
-		a8, b8, c8, d8, e8, f8, g8, h8
+		a8, b8, c8, d8, e8, f8, g8, h8,
+		kMaxValue = h8
 	};
 	enum class BBIndex
 	{
@@ -33,7 +36,8 @@ public:
 		Queens,
 		Kings,
 		Occupied,
-		Empty
+		Empty,
+		kMaxValue = Empty
 	};
 	Bencher b;
 	ChessBoard(const Vei2& topLeft);
@@ -42,7 +46,7 @@ public:
 	static int LinearizeCoords(const Vei2& loc);
 	static Vei2 Dimensify(int loc);
 	Vei2 GetOffset() const;
-	std::vector<BitBoard> GetPieceBBs() const;
+	EnumArray<BBIndex, BitBoard> GetPieceBBs() const;
 	void OnClick(const Vei2& loc, Team t);
 	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
 	std::shared_ptr<Cell> CellAt(const Square sq) const;
@@ -58,7 +62,7 @@ public:
 	static Square CoordsToSquare(const Vei2& coords);
 	static BitBoard SquareToBitBoard(const Square sq);
 	static BitBoard SquaresToBitBoard(const std::vector<Square> squares);
-	static std::vector<Square> BitBoardToSquares(const BitBoard bb);
+	static std::vector<Square> BitBoardToSquares(BitBoard bb);
 	static Vei2 SquareToCoords(const Square sq);
 	static std::vector<Vei2> SquaresToCoords(const std::vector<Square>& squares);
 	Vei2 GetScreenCoords(const Square sq) const;
@@ -82,15 +86,14 @@ private:
 	bool IsWhiteInCheck() const;
 	bool IsBlackInCheck() const;
 	void IsInCheck(Team t);
-	bool SimulateAndCheck(_Move move);
 	std::vector<_Move> GetValidMoves(const Vei2& loc);
 	bool IsUnderAttack(Team t, const Vei2& loc) const;
-	void PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc);
 	void IsCheckmate(Team t);
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
-	int PieceTypeMatcher(_Move::PieceType p) const;
+	BBIndex PieceTypeMatcher(_Move::PieceType p) const;
 	BitBoard CalculateKingDangerSquares(Team t);
+	BitBoard GetKnightAttackBB(Team t);
 	//member dataclass
 
 	enum class DirectionOffsets
@@ -105,28 +108,16 @@ private:
 		NorthWest = 7
 	};
 
-	std::vector<BitBoard> pieceBBs =
-	{
-		Rank1 | Rank2, //White pieces
-		Rank7 | Rank8, //Black pieces
-		Rank2 | Rank7 , //Pawns
-		0x8100000000000081, //Rooks
-		0x4200000000000042, //Knights
-		0x2400000000000024, //Bishops
-		0x0800000000000008, //Queens
-		0x1000000000000010, //Kings
-		0xFFFF00000000FFFF, //Occupied
-		0x0000FFFFFFFF0000 //Empty
-	};
+	EnumArray<BBIndex, BitBoard> pieceBBs;
 
 	//second index is used as follows: 0 = North, 1 = East, 2 = South, 3 = West, 4 = Northeast, 5 = Southeast, 6 = Southwest, 7 = Northeast
 
 	std::vector<std::vector<BitBoard>> RayAttacks;
 	//static BitBoard RookAttacks[64];
-	std::vector<BitBoard> KnightAttacks;
+	EnumArray<Square, BitBoard> KnightAttacks;
 	BitBoard BishopAttacks[64];
-	static BitBoard QueenAttacks[64];
-	std::vector<BitBoard> KingAttacks;
+	BitBoard QueenAttacks[64];
+	EnumArray<Square, BitBoard> KingAttacks;
 	//0 = White, 1 = Black
 	BitBoard KingDangerSquares[2] = { 0,0 };
 

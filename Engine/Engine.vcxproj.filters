@@ -108,6 +108,9 @@
     <ClInclude Include="LegalMoveGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EnumArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXErr.cpp">

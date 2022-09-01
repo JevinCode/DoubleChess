@@ -3,21 +3,15 @@
 
 /**
  * bitScanForward
- * @author Martin Läuter (1997)
- *         Charles E. Leiserson
- *         Harald Prokop
- *         Keith H. Randall
- * "Using de Bruijn Sequences to Index a 1 in a Computer Word"
+ * @author Kim Walisch (2012)
  * @param bb bitboard to scan
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-
-int BBTwiddler::bitScanForward(BitBoard bb)
-{
-	const BitBoard debruijn64 = C64(0x03f79d71b4cb0a89);
+int BBTwiddler::bitScanForward(BitBoard bb) {
+	const BitBoard debruijn64 = BitBoard(0x03f79d71b4cb0a89);
 	assert(bb != 0);
-	return index64[((bb & -bb) * debruijn64) >> 58];
+	return index64[((bb ^ (bb - 1)) * debruijn64) >> 58];
 }
 
 /**
@@ -166,16 +160,6 @@ BitBoard BBTwiddler::GetQueenAttackBB(const BitBoard occupied, const BitBoard qu
 	return result;
 }
 
-BitBoard BBTwiddler::GetKnightAttackBB(BitBoard knights, std::vector<BitBoard>& knightAttacks)
-{
-	auto knightSquares = BitBoardToSquares(knights);
-	BitBoard result = 0;
-	for (int square : knightSquares)
-	{
-		result |= knightAttacks[square];
-	}
-	return result;
-}
 BitBoard BBTwiddler::WhitePawnEastAttacks(BitBoard wPawns)
 {
 	return BBTwiddler::NortheastOne(wPawns);

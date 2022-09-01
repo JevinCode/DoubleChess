@@ -51,7 +51,7 @@ void ChessBoard::GenerateKnightAttackBBs()
 		result |= (pos & NotABFile) >> 10;
 		result |= (pos & NotAFile) >> 17;
 
-		KnightAttacks.push_back(result);
+		KnightAttacks[count] = result;
 	}
 
 }
@@ -61,7 +61,7 @@ void ChessBoard::GenerateKingAttackBBs()
 	for (int count = 0; count < 64; count++)
 	{
 		BitBoard pos = (BitBoard)1 << count;
-		KingAttacks.push_back(BBTwiddler::KingAttacks(pos));
+		KingAttacks[count] = BBTwiddler::KingAttacks(pos);
 	}
 }
 
@@ -76,7 +76,19 @@ BitBoard ChessBoard::GetKingDangerSquares(Team t) const
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
 	topLeft(topLeft),
-	b("Results.txt")
+	b("Results.txt"),
+	pieceBBs({ 
+		Rank1 | Rank2, //White pieces
+		Rank7 | Rank8, //Black pieces
+		Rank2 | Rank7, //Pawns
+		0x8100000000000081, //Rooks
+		0x4200000000000042, //Knights
+		0x2400000000000024, //Bishops
+		0x0800000000000008, //Queens
+		0x1000000000000010, //Kings
+		0xFFFF00000000FFFF, //Occupied
+		0x0000FFFFFFFF0000 //Empty
+		})
 {
 	for (int row = 0; row < 8; row++)
 	{
@@ -96,21 +108,19 @@ ChessBoard::ChessBoard(const Vei2& topLeft)
 	GenerateMoves(Team::WHITE);
 }
 
-std::vector<BitBoard> ChessBoard::GetPieceBBs() const
+EnumArray<ChessBoard::BBIndex, BitBoard> ChessBoard::GetPieceBBs() const
 {
 	return pieceBBs;
 }
 
-std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(const BitBoard bb)
+std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(BitBoard bb)
 {
-	std::vector<ChessBoard::Square> squares;
-	for (int i = 0; i < 64; i++)
+	std::vector<Square> squares;
+	while (bb)
 	{
-		BitBoard mask = (BitBoard)0x1 << i;
-		if (bb & mask)
-		{
-			squares.push_back(Square(i));
-		}
+		int idx = BBTwiddler::bitScanForward(bb);
+		squares.push_back((Square)idx);
+		bb ^= (BitBoard)0x1 << idx;
 	}
 	return squares;
 }
@@ -151,62 +161,62 @@ std::vector<Vei2> ChessBoard::GetScreenCoords(const std::vector<Square>& squares
 
 void ChessBoard::DrawPieces(Graphics& gfx) const
 {
-	BitBoard blackPawns = pieceBBs[(int)BBIndex::Pawns] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackPawns = pieceBBs[BBIndex::Pawns] & pieceBBs[BBIndex::Black];
 	std::vector<Vei2> locs = GetScreenCoords(BitBoardToSquares(blackPawns));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Pawn, Team::BLACK);
 
-	BitBoard whitePawns = pieceBBs[(int)BBIndex::Pawns] & pieceBBs[(int)BBIndex::White];
+	BitBoard whitePawns = pieceBBs[BBIndex::Pawns] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whitePawns));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Pawn, Team::WHITE);
 
-	BitBoard blackRooks = pieceBBs[(int)BBIndex::Rooks] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackRooks = pieceBBs[BBIndex::Rooks] & pieceBBs[BBIndex::Black];
 	locs = GetScreenCoords(BitBoardToSquares(blackRooks));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Rook, Team::BLACK);
 
-	BitBoard whiteRooks = pieceBBs[(int)BBIndex::Rooks] & pieceBBs[(int)BBIndex::White];
+	BitBoard whiteRooks = pieceBBs[BBIndex::Rooks] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whiteRooks));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Rook, Team::WHITE);
 
-	BitBoard blackKnights = pieceBBs[(int)BBIndex::Knights] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackKnights = pieceBBs[BBIndex::Knights] & pieceBBs[BBIndex::Black];
 	locs = GetScreenCoords(BitBoardToSquares(blackKnights));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Knight, Team::BLACK);
 
-	BitBoard whiteKnights = pieceBBs[(int)BBIndex::Knights] & pieceBBs[(int)BBIndex::White];
+	BitBoard whiteKnights = pieceBBs[BBIndex::Knights] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whiteKnights));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Knight, Team::WHITE);
 
-	BitBoard blackBishops = pieceBBs[(int)BBIndex::Bishops] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackBishops = pieceBBs[BBIndex::Bishops] & pieceBBs[BBIndex::Black];
 	locs = GetScreenCoords(BitBoardToSquares(blackBishops));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Bishop, Team::BLACK);
 
-	BitBoard whiteBishops = pieceBBs[(int)BBIndex::Bishops] & pieceBBs[(int)BBIndex::White];
+	BitBoard whiteBishops = pieceBBs[BBIndex::Bishops] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whiteBishops));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Bishop, Team::WHITE);
 
-	BitBoard blackQueens = pieceBBs[(int)BBIndex::Queens] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackQueens = pieceBBs[BBIndex::Queens] & pieceBBs[BBIndex::Black];
 	locs = GetScreenCoords(BitBoardToSquares(blackQueens));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Queen, Team::BLACK);
 
-	BitBoard whiteQueens = pieceBBs[(int)BBIndex::Queens] & pieceBBs[(int)BBIndex::White];
+	BitBoard whiteQueens = pieceBBs[BBIndex::Queens] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whiteQueens));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::Queen, Team::WHITE);
 
-	BitBoard blackKing = pieceBBs[(int)BBIndex::Kings] & pieceBBs[(int)BBIndex::Black];
+	BitBoard blackKing = pieceBBs[BBIndex::Kings] & pieceBBs[BBIndex::Black];
 	locs = GetScreenCoords(BitBoardToSquares(blackKing));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::King, Team::BLACK);
 
-	BitBoard whiteKing = pieceBBs[(int)BBIndex::Kings] & pieceBBs[(int)BBIndex::White];
+	BitBoard whiteKing = pieceBBs[BBIndex::Kings] & pieceBBs[BBIndex::White];
 	locs = GetScreenCoords(BitBoardToSquares(whiteKing));
 	for (const auto& loc : locs)
 		Piece::Draw(gfx, loc, Piece::PieceType::King, Team::WHITE);
@@ -257,13 +267,13 @@ BitBoard ChessBoard::SquaresToBitBoard(const std::vector<Square> squares)
 _Move::PieceType ChessBoard::ParseCapture(Square sq) const
 {
 	auto bb = SquareToBitBoard(sq);
-	if (pieceBBs[(int)BBIndex::Pawns] & bb)
+	if (pieceBBs[BBIndex::Pawns] & bb)
 		return _Move::PieceType::Pawn;
-	if (pieceBBs[(int)BBIndex::Rooks] & bb)
+	if (pieceBBs[BBIndex::Rooks] & bb)
 		return _Move::PieceType::Rook;
-	if (pieceBBs[(int)BBIndex::Knights] & bb)
+	if (pieceBBs[BBIndex::Knights] & bb)
 		return _Move::PieceType::Knight;
-	if (pieceBBs[(int)BBIndex::Bishops] & bb)
+	if (pieceBBs[BBIndex::Bishops] & bb)
 		return _Move::PieceType::Bishop;
 	return _Move::PieceType::Queen;
 }
@@ -650,11 +660,11 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	auto srcBB = SquareToBitBoard(src);
 	auto destBB = SquareToBitBoard(dest);
 	//no matter what kind of move it is, we always clear out the source square. So we will update the bitboards accordingly.
-	pieceBBs[(int)BBIndex::Occupied] ^= srcBB;
-	pieceBBs[(int)BBIndex::Empty] |= srcBB;
-	pieceBBs[(int)BBIndex::White] &= pieceBBs[(int)BBIndex::Occupied];
-	pieceBBs[(int)BBIndex::Black] &= pieceBBs[(int)BBIndex::Occupied];
-	pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[(int)BBIndex::Occupied];
+	pieceBBs[BBIndex::Occupied] ^= srcBB;
+	pieceBBs[BBIndex::Empty] |= srcBB;
+	pieceBBs[BBIndex::White] &= pieceBBs[BBIndex::Occupied];
+	pieceBBs[BBIndex::Black] &= pieceBBs[BBIndex::Occupied];
+	pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[BBIndex::Occupied];
 
 	switch (flag)
 	{
@@ -662,78 +672,78 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		if (t == Team::WHITE)
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::Black] ^= destBB;
+			pieceBBs[BBIndex::Black] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		}
 		else
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::White] ^= destBB;
+			pieceBBs[BBIndex::White] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
-		pieceBBs[(int)BBIndex::Knights] |= destBB;
+		pieceBBs[BBIndex::Knights] |= destBB;
 		break;
 	case _Move::Flag::QueenPromotionCapture:
 		if (t == Team::WHITE)
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::Black] ^= destBB;
+			pieceBBs[BBIndex::Black] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		}
 		else
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::White] ^= destBB;
+			pieceBBs[BBIndex::White] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
-		pieceBBs[(int)BBIndex::Queens] |= destBB;
+		pieceBBs[BBIndex::Queens] |= destBB;
 		break;
 	case _Move::Flag::KnightPromotion:
-		pieceBBs[(int)BBIndex::Occupied] |= destBB;
-		pieceBBs[(int)BBIndex::Empty] ^= destBB;
-		pieceBBs[(int)BBIndex::Knights] |= destBB;
-		pieceBBs[(int)BBIndex::Pawns] &= pieceBBs[(int)BBIndex::Occupied];
+		pieceBBs[BBIndex::Occupied] |= destBB;
+		pieceBBs[BBIndex::Empty] ^= destBB;
+		pieceBBs[BBIndex::Knights] |= destBB;
+		pieceBBs[BBIndex::Pawns] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		else
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		break;
 	case _Move::Flag::QueenPromotion:
-		pieceBBs[(int)BBIndex::Occupied] |= destBB;
-		pieceBBs[(int)BBIndex::Empty] ^= destBB;
-		pieceBBs[(int)BBIndex::Queens] |= destBB;
-		pieceBBs[(int)BBIndex::Pawns] &= pieceBBs[(int)BBIndex::Occupied];
+		pieceBBs[BBIndex::Occupied] |= destBB;
+		pieceBBs[BBIndex::Empty] ^= destBB;
+		pieceBBs[BBIndex::Queens] |= destBB;
+		pieceBBs[BBIndex::Pawns] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		else
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		break;
 	case _Move::Flag::Capture:
 		if (t == Team::WHITE)
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::Black] ^= destBB;
+			pieceBBs[BBIndex::Black] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		}
 		else
 		{
 			//remove captured piece
-			pieceBBs[(int)BBIndex::White] ^= destBB;
+			pieceBBs[BBIndex::White] ^= destBB;
 
 			//add piece as appropriate
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
@@ -741,23 +751,23 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	case _Move::Flag::PawnDoublePush:
 		isEnPassantable = true;
 		//TODO - figure out enpassant square
-		pieceBBs[(int)BBIndex::Occupied] |= destBB;
-		pieceBBs[(int)BBIndex::Empty] ^= destBB;
-		pieceBBs[(int)BBIndex::Pawns] |= destBB;
+		pieceBBs[BBIndex::Occupied] |= destBB;
+		pieceBBs[BBIndex::Empty] ^= destBB;
+		pieceBBs[BBIndex::Pawns] |= destBB;
 		if (t == Team::WHITE)
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		else
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		break;
 	case _Move::Flag::None:
-		pieceBBs[(int)BBIndex::Occupied] |= destBB;
-		pieceBBs[(int)BBIndex::Empty] ^= destBB;
+		pieceBBs[BBIndex::Occupied] |= destBB;
+		pieceBBs[BBIndex::Empty] ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
-		pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[(int)BBIndex::Occupied];
+		pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
-			pieceBBs[(int)BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::White] |= destBB;
 		else
-			pieceBBs[(int)BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::Black] |= destBB;
 		break;
 	}
 	plies.push(m);
@@ -767,27 +777,38 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 
 }
 
-int ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
+ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
 {
 	switch (p)
 	{
 	case _Move::PieceType::Pawn:
-		return (int)BBIndex::Pawns;
+		return BBIndex::Pawns;
 	case _Move::PieceType::Rook:
-		return (int)BBIndex::Rooks;
+		return BBIndex::Rooks;
 	case _Move::PieceType::Knight:
-		return (int)BBIndex::Knights;
+		return BBIndex::Knights;
 	case _Move::PieceType::Bishop:
-		return (int)BBIndex::Bishops;
+		return BBIndex::Bishops;
 	case _Move::PieceType::Queen:
-		return (int)BBIndex::Queens;
+		return BBIndex::Queens;
 	case _Move::PieceType::King:
-		return (int)BBIndex::Kings;
+		return BBIndex::Kings;
 	default:
-		return -1;
+		return BBIndex::Empty;
 	}
 }
 
+BitBoard ChessBoard::GetKnightAttackBB(Team t)
+{
+	auto knights = pieceBBs[BBIndex::Knights] & pieceBBs[t];
+	auto knightSquares = BitBoardToSquares(knights);
+	BitBoard result = Empty;
+	for (const auto sq : knightSquares)
+	{
+		result |= KnightAttacks[sq];
+	}
+	return result;
+}
 BitBoard ChessBoard::CalculateKingDangerSquares(Team t)
 {
 	auto occupied = pieceBBs[(int)BBIndex::Occupied]; 
@@ -803,7 +824,7 @@ BitBoard ChessBoard::CalculateKingDangerSquares(Team t)
 	BitBoard dangers = BBTwiddler::GetRookAttackBB(occupied, rooks, RayAttacks);
 	dangers |= BBTwiddler::GetBishopAttackBB(occupied, bishops, RayAttacks);
 	dangers |= BBTwiddler::GetQueenAttackBB(occupied, queens, RayAttacks);
-	dangers |= BBTwiddler::GetKnightAttackBB(knights, KnightAttacks);
+	dangers |= GetKnightAttackBB(Team(1 - (int)t));
 	if (t == Team::WHITE)
 		dangers |= BBTwiddler::BlackPawnAttacks(pawns);
 	else
@@ -920,7 +941,7 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 
 	auto c = CellAt(loc);
 	ClearHighlights();
-	if(pieceBBs[(int)t] & pos )
+	if(pieceBBs[t] & pos )
 	{
 		c->Highlight(Cell::HighlightType::BLUE);
 		squarePreviouslyHighlighted = sq;
