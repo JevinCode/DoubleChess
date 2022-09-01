@@ -8,6 +8,7 @@
 #include <stack>
 #include "Bencher.h"
 #include "EnumArray.h"
+#include <unordered_map>
 
 class ChessAI;
 class ChessBoard
@@ -44,7 +45,6 @@ public:
 	void ApplyMove(_Move m, Team t);
 	void Draw(Graphics& gfx) const;
 	static int LinearizeCoords(const Vei2& loc);
-	static Vei2 Dimensify(int loc);
 	Vei2 GetOffset() const;
 	EnumArray<BBIndex, BitBoard> GetPieceBBs() const;
 	void OnClick(const Vei2& loc, Team t);
@@ -63,6 +63,7 @@ public:
 	static BitBoard SquareToBitBoard(const Square sq);
 	static BitBoard SquaresToBitBoard(const std::vector<Square> squares);
 	static std::vector<Square> BitBoardToSquares(BitBoard bb);
+	static Square BitBoardToSquare(BitBoard bb); //returns lsb of bb as square
 	static Vei2 SquareToCoords(const Square sq);
 	static std::vector<Vei2> SquaresToCoords(const std::vector<Square>& squares);
 	Vei2 GetScreenCoords(const Square sq) const;
@@ -70,7 +71,9 @@ public:
 	_Move::PieceType ParseCapture(Square sq) const;
 	const std::vector<std::vector<BitBoard>> GetRayAttacks() const;
 	BitBoard GetKingDangerSquares(Team t) const;
-
+	bool IsInCheck(Team t) const;
+	std::unordered_map<Square, BitBoard> GetCorridors() const;
+	BitBoard GetPins() const;
 
 private:
 	//member functions
@@ -83,16 +86,16 @@ private:
 	void ClearHighlights();
 	std::vector<_Move> GetPossibleMoves(const Square sq) const;
 	_Move Move(_Move mv);
-	bool IsWhiteInCheck() const;
-	bool IsBlackInCheck() const;
-	void IsInCheck(Team t);
+	//bool IsWhiteInCheck() const;
+	//bool IsBlackInCheck() const;
 	std::vector<_Move> GetValidMoves(const Vei2& loc);
-	bool IsUnderAttack(Team t, const Vei2& loc) const;
+	//bool IsUnderAttack(Team t, const Vei2& loc) const;
 	void IsCheckmate(Team t);
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
 	BBIndex PieceTypeMatcher(_Move::PieceType p) const;
 	BitBoard CalculateKingDangerSquares(Team t);
+	BitBoard CalculatePins(Team t);
 	BitBoard GetKnightAttackBB(Team t);
 	//member dataclass
 
@@ -114,14 +117,13 @@ private:
 
 	std::vector<std::vector<BitBoard>> RayAttacks;
 	//static BitBoard RookAttacks[64];
-	EnumArray<Square, BitBoard> KnightAttacks;
 	BitBoard BishopAttacks[64];
 	BitBoard QueenAttacks[64];
-	EnumArray<Square, BitBoard> KingAttacks;
 	//0 = White, 1 = Black
 	BitBoard KingDangerSquares[2] = { 0,0 };
+	BitBoard pins = 0;
 
-
+	std::unordered_map<Square, BitBoard> pinCorridors;
 	std::stack<_Move> plies;
 	bool turnSwap = false;
 	Square squarePreviouslyHighlighted = Square::a1;
@@ -145,6 +147,8 @@ private:
 	friend class PseudoLegalMoveGenerator;
 
 public:
+	EnumArray<Square, BitBoard> KnightAttacks;
+	EnumArray<Square, BitBoard> KingAttacks;
 	static constexpr int cellSize = 30;
 	static constexpr int boardSize = 8 * cellSize;
 	//constants

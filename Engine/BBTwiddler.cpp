@@ -33,6 +33,11 @@ int BBTwiddler::bitScanReverse(BitBoard bb)
 	bb |= bb >> 32;
 	return rIndex64[(bb * debruijn64) >> 58];
 }
+bool BBTwiddler::SingleElement(BitBoard bb)
+{
+	return bb != 0 && (bb & (bb - 1)) == 0;
+}
+
 BitBoard BBTwiddler::NorthOne(BitBoard bb)
 {
 	return bb << 8;

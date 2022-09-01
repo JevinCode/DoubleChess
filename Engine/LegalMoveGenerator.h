@@ -12,8 +12,6 @@ public:
 	static BitBoard KingAttacks(BitBoard kingSet);
 
 private:
-	static BitBoard GetPositiveRayAttack(BitBoard occupied, Direction dir, ChessBoard::Square square, const ChessBoard& brd);
-	static BitBoard GetNegativeRayAttack(BitBoard occupied, Direction dir, ChessBoard::Square square, const ChessBoard& brd);
 	static BitBoard SinglePushTargetsWhite(const ChessBoard& brd);
 	static BitBoard DoublePushTargetsWhite(const ChessBoard& brd);
 	static BitBoard SinglePushTargetsBlack(const ChessBoard& brd);

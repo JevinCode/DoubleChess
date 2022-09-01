@@ -125,6 +125,11 @@ std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(BitBoard bb)
 	return squares;
 }
 
+ChessBoard::Square ChessBoard::BitBoardToSquare(BitBoard bb)
+{
+	return (Square)BBTwiddler::bitScanForward(bb);
+}
+
 Vei2 ChessBoard::SquareToCoords(const Square sq)
 {
 	int rank = (int)sq / 8;
@@ -237,11 +242,6 @@ int ChessBoard::LinearizeCoords(const Vei2& loc)
 	return loc.x + 8 * loc.y;
 }
 
-Vei2 ChessBoard::Dimensify(int loc)
-{
-	return { loc % 8, loc / 8 };
-}
-
 ChessBoard::Square ChessBoard::CoordsToSquare(const Vei2& coords)
 {
 	return (Square)(8 * coords.y + coords.x);
@@ -280,11 +280,7 @@ _Move::PieceType ChessBoard::ParseCapture(Square sq) const
 
 void ChessBoard::GenerateMoves(Team t)
 {
-	b.Start();
-	userPossibleMoves = PseudoLegalMoveGenerator::GenerateMoves(t, *this);
-	auto kingMoves = LegalMoveGenerator::GenerateKingMoves(t, *this);
-	userPossibleMoves.insert(userPossibleMoves.end(), kingMoves.begin(), kingMoves.end());
-	b.End();
+	userPossibleMoves = LegalMoveGenerator::GenerateMoves(t, *this);
 }
 
 Vei2 ChessBoard::GetOffset() const
@@ -629,9 +625,14 @@ std::vector<_Move> ChessBoard::GetPossibleMoves(const Square square) const
 //	//if no moves can be made after looping through each cell, then we must be in a checkmate state.
 //	isCheckmate = true;
 //}
+
 bool ChessBoard::IsCheckmate() const
 {
-	return isCheckmate;
+	return userPossibleMoves.size() == 0;
+}
+bool ChessBoard::IsInCheck(Team t) const
+{
+	return pieceBBs[BBIndex::Kings] & KingDangerSquares[(int)t];
 }
 Team ChessBoard::GetPassantTeam() const
 {
@@ -772,9 +773,9 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	}
 	plies.push(m);
 
-	//finally, need to update other team's king danger squares
+	//finally, need to update pins and other team's king danger squares
 	KingDangerSquares[1 - (int)t] = CalculateKingDangerSquares((Team)(1 - (int)t));
-
+	pins = CalculatePins((Team)(1 - (int)(t)));
 }
 
 ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
@@ -835,6 +836,148 @@ BitBoard ChessBoard::CalculateKingDangerSquares(Team t)
 
 }
 
+BitBoard ChessBoard::CalculatePins(Team t)
+{
+	BitBoard pin = 0;
+	Team other = (Team)(1 - (int)t);
+	BitBoard friendlies = pieceBBs[t];
+	BitBoard rq = (pieceBBs[BBIndex::Rooks] | pieceBBs[BBIndex::Queens]) & pieceBBs[other];
+	BitBoard bq = (pieceBBs[BBIndex::Bishops] | pieceBBs[BBIndex::Queens]) & pieceBBs[other];
+	BitBoard occ = pieceBBs[BBIndex::Occupied];
+	BitBoard opponentPieces = pieceBBs[other];
+	Square kingLoc = BitBoardToSquare(pieceBBs[BBIndex::Kings] & pieceBBs[t]);
+
+	BitBoard northCorridor = RayAttacks[(int)kingLoc][(int)Direction::North] & opponentPieces;
+	BitBoard first = northCorridor & -northCorridor;
+
+	//if first opposing piece along this ray is a rook or queen, we proceed with the check -- otherwise there cannot be a pin
+	if (first & rq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard northCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::North] & RayAttacks[(int)firstSquare][(int)Direction::South] & friendlies;
+		if (BBTwiddler::SingleElement(northCorridorFriendly))
+		{
+			northCorridor = (RayAttacks[(int)kingLoc][(int)Direction::North] & RayAttacks[(int)firstSquare][(int)Direction::South]) | first;
+			pinCorridors[BitBoardToSquare(northCorridorFriendly)] = northCorridor;
+			pin |= northCorridorFriendly;
+		}
+	}
+
+	BitBoard eastCorridor = RayAttacks[(int)kingLoc][(int)Direction::East] & opponentPieces;
+	first = eastCorridor & -eastCorridor;
+
+	if (first & rq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard eastCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::East] & RayAttacks[(int)firstSquare][(int)Direction::West] & friendlies;
+		if (BBTwiddler::SingleElement(eastCorridorFriendly))
+		{
+			eastCorridor = (RayAttacks[(int)kingLoc][(int)Direction::East] & RayAttacks[(int)firstSquare][(int)Direction::West]) | first;
+			pinCorridors[BitBoardToSquare(eastCorridorFriendly)] = eastCorridor;
+			pin |= eastCorridorFriendly;
+		}
+	}
+
+	BitBoard southCorridor = RayAttacks[(int)kingLoc][(int)Direction::South] & opponentPieces;
+	first = southCorridor & -southCorridor;
+
+	if (first & rq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard southCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::South] & RayAttacks[(int)firstSquare][(int)Direction::North] & friendlies;
+		if (BBTwiddler::SingleElement(southCorridorFriendly))
+		{
+			southCorridor = (RayAttacks[(int)kingLoc][(int)Direction::South] & RayAttacks[(int)firstSquare][(int)Direction::North]) | first;
+			pinCorridors[BitBoardToSquare(southCorridorFriendly)] = southCorridor;
+			pin |= southCorridorFriendly;
+		}
+	}
+
+	BitBoard westCorridor = RayAttacks[(int)kingLoc][(int)Direction::West] & opponentPieces;
+	first = westCorridor & -westCorridor;
+
+	if (first & rq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard westCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::West] & RayAttacks[(int)firstSquare][(int)Direction::East] & friendlies;
+		if (BBTwiddler::SingleElement(westCorridorFriendly))
+		{
+			westCorridor = (RayAttacks[(int)kingLoc][(int)Direction::West] & RayAttacks[(int)firstSquare][(int)Direction::East]) | first;
+			pinCorridors[BitBoardToSquare(westCorridorFriendly)] = westCorridor;
+			pin |= westCorridorFriendly;
+		}
+	}
+
+	BitBoard neCorridor = RayAttacks[(int)kingLoc][(int)Direction::Northeast] & opponentPieces;
+	first = neCorridor & -neCorridor;
+
+	if (first & bq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard neCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::Northeast] & RayAttacks[(int)firstSquare][(int)Direction::Southwest] & friendlies;
+		if (BBTwiddler::SingleElement(neCorridorFriendly))
+		{
+			neCorridor = (RayAttacks[(int)kingLoc][(int)Direction::Northeast] & RayAttacks[(int)firstSquare][(int)Direction::Southwest]) | first;
+			pinCorridors[BitBoardToSquare(neCorridorFriendly)] = neCorridor;
+			pin |= neCorridorFriendly;
+		}
+	}
+
+	BitBoard seCorridor = RayAttacks[(int)kingLoc][(int)Direction::Southeast] & opponentPieces;
+	first = seCorridor & -seCorridor;
+
+	if (first & bq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard seCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::Southeast] & RayAttacks[(int)firstSquare][(int)Direction::Northwest] & friendlies;
+		if (BBTwiddler::SingleElement(seCorridorFriendly))
+		{
+			seCorridor = (RayAttacks[(int)kingLoc][(int)Direction::Southeast] & RayAttacks[(int)firstSquare][(int)Direction::Northwest]) | first;
+			pinCorridors[BitBoardToSquare(seCorridorFriendly)] = seCorridor;
+			pin |= seCorridorFriendly;
+		}
+	}
+
+	BitBoard swCorridor = RayAttacks[(int)kingLoc][(int)Direction::Southwest] & opponentPieces;
+	first = swCorridor & -swCorridor;
+
+	if (first & bq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard swCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::Southwest] & RayAttacks[(int)firstSquare][(int)Direction::Northeast] & friendlies;
+		if (BBTwiddler::SingleElement(swCorridorFriendly))
+		{
+			swCorridor = (RayAttacks[(int)kingLoc][(int)Direction::Southwest] & RayAttacks[(int)firstSquare][(int)Direction::Northeast]) | first;
+			pinCorridors[BitBoardToSquare(swCorridorFriendly)] = swCorridor;
+			pin |= swCorridorFriendly;
+		}
+	}
+
+	BitBoard nwCorridor = RayAttacks[(int)kingLoc][(int)Direction::Northwest] & opponentPieces;
+	first = nwCorridor & -nwCorridor;
+
+	if (first & bq)
+	{
+		Square firstSquare = BitBoardToSquare(first);
+		BitBoard nwCorridorFriendly = RayAttacks[(int)kingLoc][(int)Direction::Northwest] & RayAttacks[(int)firstSquare][(int)Direction::Southeast] & friendlies;
+		if (BBTwiddler::SingleElement(nwCorridorFriendly))
+		{
+			nwCorridor = (RayAttacks[(int)kingLoc][(int)Direction::Northwest] & RayAttacks[(int)firstSquare][(int)Direction::Southeast]) | first;
+			pinCorridors[BitBoardToSquare(nwCorridorFriendly)] = nwCorridor;
+			pin |= nwCorridorFriendly;
+		}
+	}
+	return pin;
+}
+
+std::unordered_map<ChessBoard::Square, BitBoard> ChessBoard::GetCorridors() const
+{
+	return pinCorridors;
+}
+BitBoard ChessBoard::GetPins() const
+{
+	return pins;
+}
 void ChessBoard::OnClick(const Vei2& loc, Team t)
 {
 	Square sq = CoordsToSquare(loc);

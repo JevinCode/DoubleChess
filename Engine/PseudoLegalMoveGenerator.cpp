@@ -6,311 +6,193 @@
 
 std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBoard& brd)
 {
+	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
+	auto pinCorridors = brd.GetCorridors();
+	auto pins = brd.GetPins();
 	std::vector<_Move> knightMoves;
-	if (t == Team::BLACK)
+
+	//handle pins first
+	const auto pinnedKnights = pieceBBs[ChessBoard::BBIndex::Knights] & pieceBBs[t] & pins;
+	const auto pinnedSquares = ChessBoard::BitBoardToSquares(pinnedKnights);
+	for (const auto& square : pinnedSquares)
 	{
-		const auto blackKnightsBB = pieceBBs[(int)ChessBoard::BBIndex::Black] & pieceBBs[(int)ChessBoard::BBIndex::Knights];
-		const auto blackKnightSquares = brd.BitBoardToSquares(blackKnightsBB);
-		for (const auto& square : blackKnightSquares)
+		auto attacks = brd.KnightAttacks[square] & pinCorridors[square];
+		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto captures = attacks & pieceBBs[other];
+
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+		for (const auto& sq : quietSquares)
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
+		for(const auto& sq : captureSquares)
 		{
-			//first we will compute quiet moves
-			BitBoard attacks = brd.KnightAttacks[square];
-			BitBoard quiets = attacks & brd.pieceBBs[ChessBoard::BBIndex::Empty];
-			BitBoard captures = attacks & pieceBBs[ChessBoard::BBIndex::White];
-
-			std::vector<ChessBoard::Square> quietSquares = brd.BitBoardToSquares(quiets);
-			std::vector<ChessBoard::Square> captureSquares = brd.BitBoardToSquares(captures);
-			for (const auto& sq : quietSquares)
-				knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
-
-			for (const auto& sq : captureSquares)
-			{
-				auto capturePT = brd.ParseCapture(sq);
-				knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
-			}
+			auto capturePT = brd.ParseCapture(sq);
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
 		}
-		return knightMoves;
 	}
 
-	const auto whiteKnightsBB = pieceBBs[ChessBoard::BBIndex::White] & pieceBBs[ChessBoard::BBIndex::Knights];
-	const auto whiteKnightSquares = brd.BitBoardToSquares(whiteKnightsBB);
-	for (const auto& square : whiteKnightSquares)
+	//handle non-pinned knights
+	const auto freeKnights = pieceBBs[ChessBoard::BBIndex::Knights] & pieceBBs[t] & (ChessBoard::Universe ^ pins);
+	const auto freeSquares = ChessBoard::BitBoardToSquares(freeKnights);
+	for (const auto& square : freeSquares)
 	{
-		//first we will compute quiet moves
-		BitBoard attacks = brd.KnightAttacks[square];
-		BitBoard quiets = attacks & brd.pieceBBs[ChessBoard::BBIndex::Empty];
-		BitBoard captures = attacks & pieceBBs[ChessBoard::BBIndex::Black];
+		auto attacks = brd.KnightAttacks[square];
+		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto captures = attacks & pieceBBs[other];
 
-		std::vector<ChessBoard::Square> quietSquares = brd.BitBoardToSquares(quiets);
-		std::vector<ChessBoard::Square> captureSquares = brd.BitBoardToSquares(captures);
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (uint)_Move::Flag::None, (uint)square, (uint)sq, _Move::PieceType::Knight });
-
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
 		for (const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)sq, _Move::PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
 		}
 	}
 	return knightMoves;
 }
-std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
+//std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
+//{
+//	std::vector<_Move> rookMoves;
+//	Team other = (Team)(1 - (int)t);
+//	auto pieceBBs = brd.GetPieceBBs();
+//	auto RayAttacks = brd.GetRayAttacks();
+//	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
+//	auto rookSquares = ChessBoard::BitBoardToSquares(rooks);
+//	for (const auto square : rookSquares)
+//	{
+//		BitBoard attacks =
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::North, (int)square, RayAttacks) |
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::East, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::South, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::West, (int)square, RayAttacks);
+//		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+//		BitBoard captures = attacks & pieceBBs[other];
+//
+//		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+//		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+//
+//		for (const auto target : quietSquares)
+//			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Rook });
+//		for (const auto target : captureSquares)
+//		{
+//			auto capturePT = brd.ParseCapture(target);
+//			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Rook, capturePT });
+//		}
+//	}
+//	return rookMoves;
+//}
+//std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
+//{
+//	std::vector<_Move> bishopMoves;
+//	Team other = (Team)(1 - (int)t);
+//	auto pieceBBs = brd.GetPieceBBs();
+//	auto RayAttacks = brd.GetRayAttacks();
+//	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
+//	auto bishopSquares = ChessBoard::BitBoardToSquares(bishops);
+//	for (const auto square : bishopSquares)
+//	{
+//		BitBoard attacks =
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northeast, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southeast, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southwest, (int)square, RayAttacks) |
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northwest, (int)square, RayAttacks);
+//		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+//		BitBoard captures = attacks & pieceBBs[other];
+//
+//		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+//		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+//
+//		for (const auto target : quietSquares)
+//			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Bishop });
+//		for (const auto target : captureSquares)
+//		{
+//			auto capturePT = brd.ParseCapture(target);
+//			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Bishop, capturePT });
+//		}
+//	}
+//	return bishopMoves;
+//}
+//std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
+//{
+//	std::vector<_Move> queenMoves;
+//	Team other = (Team)(1 - (int)t);
+//	auto pieceBBs = brd.GetPieceBBs();
+//	auto RayAttacks = brd.GetRayAttacks();
+//	auto queens = pieceBBs[(int)t] & pieceBBs[(int)ChessBoard::BBIndex::Queens];
+//	auto queenSquares = ChessBoard::BitBoardToSquares(queens);
+//	for (const auto square : queenSquares)
+//	{
+//		BitBoard attacks =
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::North, (int)square, RayAttacks) |
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::East, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::South, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::West, (int)square, RayAttacks) |
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northeast, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southeast, (int)square, RayAttacks) |
+//			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southwest, (int)square, RayAttacks) |
+//			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northwest, (int)square, RayAttacks);
+//		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+//		BitBoard captures = attacks & pieceBBs[other];
+//
+//		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+//		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+//
+//		for (const auto target : quietSquares)
+//			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Queen });
+//		for (const auto target : captureSquares)
+//		{
+//			auto capturePT = brd.ParseCapture(target);
+//			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Queen, capturePT });
+//		}
+//	}
+//	return queenMoves;
+//}
+//std::vector<_Move> PseudoLegalMoveGenerator::GenerateSlidingMoves(Team t, const ChessBoard& brd)
+//{
+//	std::vector<_Move> slidingMoves = GenerateRookMoves(t, brd);
+//	std::vector<_Move> moreMoves = GenerateBishopMoves(t, brd);
+//	slidingMoves.insert(slidingMoves.end(), moreMoves.begin(), moreMoves.end());
+//	moreMoves = GenerateQueenMoves(t, brd);
+//	slidingMoves.insert(slidingMoves.end(), moreMoves.begin(), moreMoves.end());
+//
+//	return slidingMoves;
+//}
+//std::vector<_Move> PseudoLegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& brd)
+//{
+//	auto moves = GenerateKnightMoves(t, brd);
+//	auto moreMoves = GenerateSlidingMoves(t, brd);
+//	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+//	moreMoves = GeneratePawnMoves(t, brd);
+//	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+//	//moreMoves = GenerateKingMoves(t, brd);
+//	//moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+//	return moves;
+//}
+BitBoard PseudoLegalMoveGenerator::SinglePushTargetsWhite(BitBoard wPawns, BitBoard empty)
 {
-	std::vector<_Move> rookMoves;
-	Team other = (Team)(1 - (int)t);
-	auto pieceBBs = brd.GetPieceBBs();
-	auto RayAttacks = brd.GetRayAttacks();
-	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
-	auto rookSquares = ChessBoard::BitBoardToSquares(rooks);
-	for (const auto square : rookSquares)
-	{
-		BitBoard attacks =
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::North, (int)square, RayAttacks) |
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::East, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::South, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::West, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
-		BitBoard captures = attacks & pieceBBs[other];
-
-		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
-		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
-
-		for (const auto target : quietSquares)
-			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Rook });
-		for (const auto target : captureSquares)
-		{
-			auto capturePT = brd.ParseCapture(target);
-			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Rook, capturePT });
-		}
-	}
-	return rookMoves;
-}
-std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
-{
-	std::vector<_Move> bishopMoves;
-	Team other = (Team)(1 - (int)t);
-	auto pieceBBs = brd.GetPieceBBs();
-	auto RayAttacks = brd.GetRayAttacks();
-	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
-	auto bishopSquares = ChessBoard::BitBoardToSquares(bishops);
-	for (const auto square : bishopSquares)
-	{
-		BitBoard attacks =
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northeast, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southeast, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southwest, (int)square, RayAttacks) |
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northwest, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
-		BitBoard captures = attacks & pieceBBs[other];
-
-		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
-		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
-
-		for (const auto target : quietSquares)
-			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Bishop });
-		for (const auto target : captureSquares)
-		{
-			auto capturePT = brd.ParseCapture(target);
-			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Bishop, capturePT });
-		}
-	}
-	return bishopMoves;
-}
-std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
-{
-	std::vector<_Move> queenMoves;
-	Team other = (Team)(1 - (int)t);
-	auto pieceBBs = brd.GetPieceBBs();
-	auto RayAttacks = brd.GetRayAttacks();
-	auto queens = pieceBBs[(int)t] & pieceBBs[(int)ChessBoard::BBIndex::Queens];
-	auto queenSquares = ChessBoard::BitBoardToSquares(queens);
-	for (const auto square : queenSquares)
-	{
-		BitBoard attacks =
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::North, (int)square, RayAttacks) |
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::East, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::South, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::West, (int)square, RayAttacks) |
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northeast, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southeast, (int)square, RayAttacks) |
-			BBTwiddler::GetNegativeRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Southwest, (int)square, RayAttacks) |
-			BBTwiddler::GetPositiveRayAttack(pieceBBs[ChessBoard::BBIndex::Occupied], Direction::Northwest, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
-		BitBoard captures = attacks & pieceBBs[other];
-
-		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
-		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
-
-		for (const auto target : quietSquares)
-			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Queen });
-		for (const auto target : captureSquares)
-		{
-			auto capturePT = brd.ParseCapture(target);
-			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Queen, capturePT });
-		}
-	}
-	return queenMoves;
-}
-std::vector<_Move> PseudoLegalMoveGenerator::GenerateSlidingMoves(Team t, const ChessBoard& brd)
-{
-	std::vector<_Move> slidingMoves = GenerateRookMoves(t, brd);
-	std::vector<_Move> moreMoves = GenerateBishopMoves(t, brd);
-	slidingMoves.insert(slidingMoves.end(), moreMoves.begin(), moreMoves.end());
-	moreMoves = GenerateQueenMoves(t, brd);
-	slidingMoves.insert(slidingMoves.end(), moreMoves.begin(), moreMoves.end());
-
-	return slidingMoves;
-}
-std::vector<_Move> PseudoLegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& brd)
-{
-	auto moves = GenerateKnightMoves(t, brd);
-	auto moreMoves = GenerateSlidingMoves(t, brd);
-	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
-	moreMoves = GeneratePawnMoves(t, brd);
-	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
-	//moreMoves = GenerateKingMoves(t, brd);
-	//moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
-	return moves;
-}
-BitBoard PseudoLegalMoveGenerator::SinglePushTargetsWhite(const ChessBoard& brd)
-{
-	auto whitePawns = brd.pieceBBs[ChessBoard::BBIndex::White] & brd.pieceBBs[ChessBoard::BBIndex::Pawns];
-	return BBTwiddler::NorthOne(whitePawns) & brd.pieceBBs[ChessBoard::BBIndex::Empty];
-}
-
-BitBoard PseudoLegalMoveGenerator::DoublePushTargetsWhite(const ChessBoard& brd)
-{
-	auto singlePushTargets = SinglePushTargetsWhite(brd);
-	return BBTwiddler::NorthOne(singlePushTargets) & brd.pieceBBs[ChessBoard::BBIndex::Empty] & ChessBoard::Rank4;
+	return BBTwiddler::NorthOne(wPawns) & empty;
 }
 
-BitBoard PseudoLegalMoveGenerator::SinglePushTargetsBlack(const ChessBoard& brd)
+BitBoard PseudoLegalMoveGenerator::DoublePushTargetsWhite(BitBoard wPawns, BitBoard empty)
 {
-	auto blackPawns = brd.pieceBBs[ChessBoard::BBIndex::Black] & brd.pieceBBs[ChessBoard::BBIndex::Pawns];
-	return BBTwiddler::SouthOne(blackPawns) & brd.pieceBBs[ChessBoard::BBIndex::Empty];
+	auto singlePushTargets = SinglePushTargetsWhite(wPawns, empty);
+	return BBTwiddler::NorthOne(singlePushTargets) & empty & ChessBoard::Rank4;
 }
 
-BitBoard PseudoLegalMoveGenerator::DoublePushTargetsBlack(const ChessBoard& brd)
+BitBoard PseudoLegalMoveGenerator::SinglePushTargetsBlack(BitBoard bPawns, BitBoard empty)
 {
-	auto singlePushTargets = SinglePushTargetsBlack(brd);
-	return BBTwiddler::SouthOne(singlePushTargets) & brd.pieceBBs[ChessBoard::BBIndex::Empty] & ChessBoard::Rank5;
+	return BBTwiddler::SouthOne(bPawns) & empty;
 }
 
-std::vector<_Move> PseudoLegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoard& brd)
+BitBoard PseudoLegalMoveGenerator::DoublePushTargetsBlack(BitBoard bPawns, BitBoard empty)
 {
-	std::vector<_Move> moves;
-	if (t == Team::WHITE)
-	{
-		BitBoard singlePushTargets = SinglePushTargetsWhite(brd);
-		BitBoard singlePushPromotions = singlePushTargets & ChessBoard::Rank8;
-		BitBoard singlePushQuiets = singlePushTargets ^ singlePushPromotions;
-		BitBoard doublePushTargets = DoublePushTargetsWhite(brd); 
-		BitBoard wPawns = brd.pieceBBs[ChessBoard::BBIndex::Pawns] & brd.pieceBBs[ChessBoard::BBIndex::White];
-		BitBoard wPawnEastAttacks = BBTwiddler::WhitePawnEastAttacks(wPawns) & brd.pieceBBs[ChessBoard::BBIndex::Black];
-		BitBoard wPawnEastPromotions = wPawnEastAttacks & ChessBoard::Rank8;
-		wPawnEastAttacks ^= wPawnEastPromotions;
-		BitBoard wPawnWestAttacks = BBTwiddler::WhitePawnWestAttacks(wPawns) & brd.pieceBBs[ChessBoard::BBIndex::Black];
-		BitBoard wPawnWestPromotions = wPawnWestAttacks & ChessBoard::Rank8;
-		wPawnWestAttacks ^= wPawnWestPromotions;
-
-		auto singlePushPromotionSquares = ChessBoard::BitBoardToSquares(singlePushPromotions);
-		auto singlePushQuietSquares = ChessBoard::BitBoardToSquares(singlePushQuiets);
-		auto doublePushSquares = ChessBoard::BitBoardToSquares(doublePushTargets);
-		auto attackSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastAttacks);
-		auto promotionSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastPromotions);
-		auto attackSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestAttacks);
-		auto promotionSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestPromotions);
-
-		for (const auto square : singlePushPromotionSquares)
-		{
-			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
-		}		
-		for (const auto square : singlePushQuietSquares)
-		{
-			moves.push_back({ (uint)_Move::Flag::None, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
-		}
-		for(const auto square : doublePushSquares)
-			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square - 16, (uint)square, _Move::PieceType::Pawn });
-		for (const auto square : attackSquaresEast)
-		{
-			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-		}
-		for (const auto square : promotionSquaresEast)
-		{
-			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-		}
-		for (const auto square : attackSquaresWest)
-		{
-			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-		}
-		for (const auto square : promotionSquaresWest)
-		{
-			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-		}
-		return moves;
-	}
-
-	BitBoard singlePushTargets = SinglePushTargetsBlack(brd);
-	BitBoard singlePushPromotions = singlePushTargets & ChessBoard::Rank1;
-	BitBoard singlePushQuiets = singlePushTargets ^ singlePushPromotions;
-	BitBoard doublePushTargets = DoublePushTargetsBlack(brd);
-	BitBoard bPawns = brd.pieceBBs[ChessBoard::BBIndex::Pawns] & brd.pieceBBs[ChessBoard::BBIndex::Black];
-	BitBoard bPawnEastAttacks = BBTwiddler::BlackPawnEastAttacks(bPawns) & brd.pieceBBs[ChessBoard::BBIndex::White];
-	BitBoard bPawnEastPromotions = bPawnEastAttacks & ChessBoard::Rank1;
-	bPawnEastAttacks ^= bPawnEastPromotions;
-	BitBoard bPawnWestAttacks = BBTwiddler::BlackPawnWestAttacks(bPawns) & brd.pieceBBs[ChessBoard::BBIndex::White];
-	BitBoard bPawnWestPromotions = bPawnWestAttacks & ChessBoard::Rank1;
-	bPawnWestAttacks ^= bPawnWestPromotions;
-
-	auto singlePushPromotionSquares = ChessBoard::BitBoardToSquares(singlePushPromotions);
-	auto singlePushQuietSquares = ChessBoard::BitBoardToSquares(singlePushQuiets);
-	auto doublePushSquares = ChessBoard::BitBoardToSquares(doublePushTargets);
-	auto attackSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastAttacks);
-	auto promotionSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastPromotions);
-	auto attackSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestAttacks);
-	auto promotionSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestPromotions);
-
-	for (const auto square : singlePushPromotionSquares)
-	{
-		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
-	}
-	for (const auto square : singlePushQuietSquares)
-		moves.push_back({ (uint)_Move::Flag::None, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
-	for (const auto square : doublePushSquares)
-		moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square + 16, (uint)square, _Move::PieceType::Pawn });
-	for (const auto square : attackSquaresEast)
-	{
-		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-	}		
-	for (const auto square : promotionSquaresEast)
-	{
-		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-	}
-	for (const auto square : attackSquaresWest)
-	{
-		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-	}
-	for (const auto square : promotionSquaresWest)
-	{
-		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-	}
-	return moves;
+	auto singlePushTargets = SinglePushTargetsBlack(bPawns, empty);
+	return BBTwiddler::SouthOne(singlePushTargets) & empty & ChessBoard::Rank5;
 }
+
 
 //std::vector<_Move> PseudoLegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoard& brd)
 //{

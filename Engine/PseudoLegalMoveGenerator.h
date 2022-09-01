@@ -11,11 +11,10 @@ public:
 	static std::vector<_Move> GeneratePawnMoves(Team t, const ChessBoard& brd);
 	//static std::vector<_Move> GenerateKingMoves(Team t, const ChessBoard& brd);
 
-private:
-	static BitBoard SinglePushTargetsWhite(const ChessBoard& brd);
-	static BitBoard DoublePushTargetsWhite(const ChessBoard& brd);
-	static BitBoard SinglePushTargetsBlack(const ChessBoard& brd);
-	static BitBoard DoublePushTargetsBlack(const ChessBoard& brd); 
+	static BitBoard SinglePushTargetsWhite(BitBoard wPawns, BitBoard empty);
+	static BitBoard DoublePushTargetsWhite(BitBoard wPawns, BitBoard empty);
+	static BitBoard SinglePushTargetsBlack(BitBoard bPawns, BitBoard empty);
+	static BitBoard DoublePushTargetsBlack(BitBoard bPawns, BitBoard empty); 
 
 
 };
