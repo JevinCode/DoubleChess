@@ -568,6 +568,7 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 	auto pins = brd.GetPins();
 	auto corridors = brd.GetCorridors();
 	auto empty = brd.GetEmptyBB();
+	auto enPassantAttackers = brd.GetEnPassantAttackers();
 	if (t == Team::WHITE)
 	{
 
@@ -595,6 +596,9 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		wPawnWestAttacksNonPinned ^= wPawnWestPromotionsNonPinned;
 		wPawnWestAttacksPinned ^= wPawnWestPromotionsPinned;
 
+		auto pinnedPassantAttackers = enPassantAttackers & pins;
+		auto freePassantAttackers = enPassantAttackers ^ pinnedPassantAttackers;
+
 		auto singlePushPromotionSquares = ChessBoard::BitBoardToSquares(singlePushPromotionsNonPinned);
 		auto singlePushQuietSquares = ChessBoard::BitBoardToSquares(singlePushTargetsNonPinned);
 		auto doublePushSquares = ChessBoard::BitBoardToSquares(doublePushNonPinned);
@@ -602,6 +606,8 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		auto promotionSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastPromotionsNonPinned);
 		auto attackSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestAttacksNonPinned);
 		auto promotionSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestPromotionsNonPinned);
+		auto passantSquaresPinned = ChessBoard::BitBoardToSquares(pinnedPassantAttackers);
+		auto passantSquaresFree = ChessBoard::BitBoardToSquares(freePassantAttackers);
 
 		//handle pinned pawns
 		auto pinnedPawnSquares = ChessBoard::BitBoardToSquares(pinnedPawns);
@@ -655,7 +661,21 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT, t });
 			}
 		}
-
+		for (const auto square : passantSquaresPinned)
+		{
+			auto pinCorridor = corridors[square];
+			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+			auto passantAttack = enPassantSquareBB & pinCorridor;
+			if (passantAttack)
+			{
+				moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
+			}
+		}
+		for (const auto square : passantSquaresFree)
+		{
+			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+			moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t});
+		}
 		for (const auto square : singlePushPromotionSquares)
 		{
 			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, PieceType::Pawn, t });
@@ -696,6 +716,8 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 	BitBoard bPawns = pieceBBs[ChessBoard::BBIndex::Pawns] & pieceBBs[ChessBoard::BBIndex::Black];
 	auto pinnedPawns = pins & bPawns;
 	auto freePawns = bPawns ^ pinnedPawns;
+	auto pinnedPassantAttackers = enPassantAttackers & pins;
+	auto freePassantAttackers = enPassantAttackers ^ pinnedPassantAttackers;
 	BitBoard singlePushTargetsPinned = PseudoLegalMoveGenerator::SinglePushTargetsBlack(pinnedPawns, empty);
 	BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsBlack(freePawns, empty);
 	BitBoard singlePushPromotionsPinned = singlePushTargetsPinned & ChessBoard::Rank1;
@@ -724,6 +746,8 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 	auto promotionSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastPromotionsNonPinned);
 	auto attackSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestAttacksNonPinned);
 	auto promotionSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestPromotionsNonPinned);
+	auto passantSquaresPinned = ChessBoard::BitBoardToSquares(pinnedPassantAttackers);
+	auto passantSquaresFree = ChessBoard::BitBoardToSquares(freePassantAttackers);
 
 	//handle pinned pawns
 	auto pinnedPawnSquares = ChessBoard::BitBoardToSquares(pinnedPawns);
@@ -778,6 +802,21 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		}
 	}
 
+	for (const auto square : passantSquaresPinned)
+	{
+		auto pinCorridor = corridors[square];
+		auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+		auto passantAttack = enPassantSquareBB & pinCorridor;
+		if (passantAttack)
+		{
+			moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
+		}
+	}
+	for (const auto square : passantSquaresFree)
+	{
+		auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+		moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
+	}
 	for (const auto square : singlePushPromotionSquares)
 	{
 		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, PieceType::Pawn, t });

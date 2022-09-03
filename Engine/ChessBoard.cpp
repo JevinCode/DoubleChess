@@ -330,7 +330,7 @@ std::vector<_Move> ChessBoard::GetPossibleMoves(const Square square) const
 
 bool ChessBoard::IsCheckmate() const
 {
-	return userPossibleMoves.size() == 0;
+	return userPossibleMoves.size() == 0 && (IsInCheck(Team::BLACK) || IsInCheck(Team::WHITE));
 }
 bool ChessBoard::IsInCheck(Team t) const
 {
@@ -341,21 +341,13 @@ bool ChessBoard::IsDoubleCheck(Team t) const
 	assert(IsInCheck(t));
 	return !BBTwiddler::SingleElement(kingAttackers);
 }
-Team ChessBoard::GetPassantTeam() const
-{
-	return passantTeam;
-}
 bool ChessBoard::IsEnPassantable() const
 {
 	return isEnPassantable;
 }
-Vei2 ChessBoard::GetEnPassantSquare() const
+BitBoard ChessBoard::GetEnPassantSquareBB() const
 {
-	return enPassantSquare;
-}
-Vei2 ChessBoard::GetEnPassantPawnLoc() const
-{
-	return enPassantPawnLoc;
+	return enPassantSquareBB;
 }
 bool ChessBoard::CanCastleKingside(Team t) const
 {
@@ -405,6 +397,35 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 
 	switch (flag)
 	{
+	case _Move::Flag::EnPassant:
+	{
+		if (t == Team::WHITE)
+		{
+			auto capturedPieceBB = BBTwiddler::SouthOne(destBB);
+			pieceBBs[BBIndex::Occupied] |= destBB;
+			pieceBBs[BBIndex::Occupied] ^= capturedPieceBB;
+
+			pieceBBs[BBIndex::Pawns] |= destBB;
+			pieceBBs[BBIndex::Pawns] ^= capturedPieceBB;
+
+			pieceBBs[BBIndex::White] |= destBB;
+			pieceBBs[BBIndex::Black] ^= capturedPieceBB;
+		}
+		else
+		{
+			auto capturedPieceBB = BBTwiddler::NorthOne(destBB);
+			pieceBBs[BBIndex::Occupied] |= destBB;
+			pieceBBs[BBIndex::Occupied] ^= capturedPieceBB;
+
+			pieceBBs[BBIndex::Pawns] |= destBB;
+			pieceBBs[BBIndex::Pawns] ^= capturedPieceBB;
+
+			pieceBBs[BBIndex::Black] |= destBB;
+			pieceBBs[BBIndex::White] ^= capturedPieceBB;
+		}
+		isEnPassantable = false;
+		break;
+	}
 	case _Move::Flag::KingsideCastle:
 	{
 		if (t == Team::WHITE)
@@ -442,6 +463,7 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[BBIndex::Kings] |= destBB;
 			hasCastledBlack = true;
 		}
+		isEnPassantable = false;
 		break;
 	}
 	case _Move::Flag::QueensideCastle:
@@ -480,6 +502,7 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[BBIndex::Kings] |= destBB;
 			hasCastledBlack = true;
 		}
+		isEnPassantable = false;
 		break; 
 	}
 	case _Move::Flag::KnightPromotionCapture:
@@ -501,6 +524,8 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
 		pieceBBs[BBIndex::Knights] |= destBB;
+
+		isEnPassantable = false;
 		break;
 	case _Move::Flag::QueenPromotionCapture:
 		if (t == Team::WHITE)
@@ -521,6 +546,7 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
 		pieceBBs[BBIndex::Queens] |= destBB;
+		isEnPassantable = false;
 		break;
 	case _Move::Flag::KnightPromotion:
 		pieceBBs[BBIndex::Occupied] |= destBB;
@@ -530,6 +556,8 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[BBIndex::White] |= destBB;
 		else
 			pieceBBs[BBIndex::Black] |= destBB;
+
+		isEnPassantable = false;
 		break;
 	case _Move::Flag::QueenPromotion:
 		pieceBBs[BBIndex::Occupied] |= destBB;
@@ -539,6 +567,8 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[BBIndex::White] |= destBB;
 		else
 			pieceBBs[BBIndex::Black] |= destBB;
+
+		isEnPassantable = false;
 		break;
 	case _Move::Flag::Capture:
 		if (t == Team::WHITE)
@@ -559,16 +589,35 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		}
 		pieceBBs[PieceTypeMatcher(captured)] ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
+
+		isEnPassantable = false;
 		break;
 	case _Move::Flag::PawnDoublePush:
 		isEnPassantable = true;
 		//TODO - figure out enpassant square
 		pieceBBs[BBIndex::Occupied] |= destBB;
 		pieceBBs[BBIndex::Pawns] |= destBB;
+		enPassantAttackers = (BBTwiddler::EastOne(destBB) | BBTwiddler::WestOne(destBB)) & pieceBBs[BBIndex::Pawns];
 		if (t == Team::WHITE)
+		{
 			pieceBBs[BBIndex::White] |= destBB;
+			enPassantAttackers &= pieceBBs[BBIndex::Black];
+			if (enPassantAttackers)
+			{
+				isEnPassantable = true;
+				enPassantSquareBB = BBTwiddler::SouthOne(destBB);
+			}
+		}
 		else
+		{
 			pieceBBs[BBIndex::Black] |= destBB;
+			enPassantAttackers &= pieceBBs[BBIndex::White];
+			if (enPassantAttackers)
+			{
+				isEnPassantable = true;
+				enPassantSquareBB = BBTwiddler::NorthOne(destBB);
+			}
+		}
 		break;
 	case _Move::Flag::None:
 		pieceBBs[BBIndex::Occupied] |= destBB;
@@ -578,6 +627,8 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 			pieceBBs[BBIndex::White] |= destBB;
 		else
 			pieceBBs[BBIndex::Black] |= destBB;
+
+		isEnPassantable = false;
 		break;
 	}
 	plies.push(m);
@@ -818,6 +869,10 @@ void ChessBoard::RevertMove()
 BitBoard ChessBoard::GetCheckCorridor() const
 {
 	return checkCorridor;
+}
+BitBoard ChessBoard::GetEnPassantAttackers() const
+{
+	return enPassantAttackers;
 }
 ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(PieceType p) const
 {
@@ -1173,6 +1228,8 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 
 bool ChessBoard::IsStalemate() const
 {
+	if (userPossibleMoves.size() == 0)
+		return true;
 	int numPieces = BBTwiddler::PopCount(pieceBBs[BBIndex::Occupied]);
 	switch (numPieces)
 	{

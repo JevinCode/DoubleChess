@@ -51,9 +51,7 @@ public:
 	std::shared_ptr<Cell> CellAt(const Square sq) const;
 	static bool IsValidLoc(const Vei2& loc);
 	bool IsEnPassantable() const;
-	Vei2 GetEnPassantSquare() const;
-	Vei2 GetEnPassantPawnLoc() const;
-	Team GetPassantTeam() const;
+	BitBoard GetEnPassantSquareBB() const;
 	bool IsCheckmate() const;
 	bool CanCastleKingside(Team t) const;
 	bool CanCastleQueenside(Team t) const;
@@ -76,6 +74,7 @@ public:
 	bool IsDoubleCheck(Team t) const;
 	BitBoard GetCheckCorridor() const;
 	BitBoard GetEmptyBB() const;
+	BitBoard GetEnPassantAttackers() const;
 	bool IsStalemate() const;
 private:
 	//member functions
@@ -124,6 +123,7 @@ private:
 	BitBoard pins = 0;
 	BitBoard kingAttackers = 0; //we update this only when the king gets put in check
 	BitBoard checkCorridor = 0;
+	BitBoard enPassantAttackers = 0;
 
 	std::unordered_map<Square, BitBoard> pinCorridors;
 	std::stack<_Move> plies;
@@ -148,9 +148,7 @@ private:
 	//bool whiteInCheck = false;
 	//bool blackInCheck = false;
 	bool isCheckmate = false;
-	Vei2 enPassantSquare = { 0,0 };
-	Vei2 enPassantPawnLoc = { 0,0 };
-	Team passantTeam = Team::WHITE;
+	BitBoard enPassantSquareBB = 0;
 	std::vector<_Move> userPossibleMoves;
 	friend class Game;
 	friend class ChessAI;
