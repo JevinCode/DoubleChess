@@ -80,7 +80,6 @@ BitBoard ChessBoard::GetEmptyBB() const
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
 	topLeft(topLeft),
-	b("Results.txt"),
 	pieceBBs({ 
 		Rank1 | Rank2, //White pieces
 		Rank7 | Rank8, //Black pieces
@@ -283,7 +282,9 @@ PieceType ChessBoard::ParseCapture(Square sq) const
 
 void ChessBoard::GenerateMoves(Team t)
 {
+	b.Start();
 	userPossibleMoves = LegalMoveGenerator::GenerateMoves(t, *this);
+	b.End();
 }
 
 Vei2 ChessBoard::GetOffset() const

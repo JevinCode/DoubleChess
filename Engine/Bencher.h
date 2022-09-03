@@ -9,6 +9,10 @@
 class Bencher
 {
 public:
+	Bencher()
+		:
+		outFile("Results.txt")
+	{}
 	Bencher(std::string outFile)
 		:
 		outFile(outFile)
@@ -28,9 +32,14 @@ public:
 			<< "Max: " << prevMax * 1000.0f << "ms" << std::endl;
 		output.close();
 	}
+	float Get() const
+	{
+		return cur;
+	}
 	bool End()
 	{
 		const float dt = ft.Mark();
+		cur = dt;
 		min = std::min( dt,min );
 		max = std::max( dt,max );
 		mean += dt / nSamples;
@@ -60,6 +69,7 @@ private:
 	float min = std::numeric_limits<float>::max();
 	float max = 0.0f;
 	float mean = 0.0f;
+	float cur = 0.0f;
 	float prevMin = std::numeric_limits<float>::signaling_NaN();
 	float prevMax = std::numeric_limits<float>::signaling_NaN();
 	float prevMean = std::numeric_limits<float>::signaling_NaN();

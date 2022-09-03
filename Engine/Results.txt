@@ -1,5 +1,5 @@
 Generate Moves Benchmark Set Results:
 Sample size: 5
-Mean: 0.01802ms
-Min: 0.0147ms
-Max: 0.0194ms
+Mean: 0.20688ms
+Min: 0.183ms
+Max: 0.2312ms

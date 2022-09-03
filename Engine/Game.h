@@ -27,7 +27,7 @@
 #include "ChessBoard.h"
 #include "ChessAI.h"
 #include "Font.h"
-
+#include "Bencher.h"
 class Game
 {
 public:
@@ -67,6 +67,7 @@ private:
 	RectI knightPromotionArea = { {599, 400}, {629, 430} };
 	MoveType promotionPiece = MoveType::Normal;
 
+	float benchTime = 0.0f;
 	bool gameIsOver = false;
 
 	/********************************/

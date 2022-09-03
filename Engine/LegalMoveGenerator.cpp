@@ -24,7 +24,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoar
 	if (brd.CanCastleQueenside(t))
 	{
 		if (t == Team::WHITE)
-			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::c1, PieceType::King });
+			moves.push_back({ (uint)_Move::Flag::QueensideCastle, (uint)kingSquare, (uint)ChessBoard::Square::c1, PieceType::King });
 		else
 			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::c8, PieceType::King });
 	}

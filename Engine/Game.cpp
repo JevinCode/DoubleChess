@@ -74,6 +74,8 @@ void Game::UpdateModel()
 				brd1.GenerateMoves(playerTurn);
 				brd2.GenerateMoves(playerTurn);
 				brd1.turnSwap = false;
+				benchTime += brd1.b.Get();
+				benchTime += brd2.b.Get();
 			}
 			else if (brd2.turnSwap)
 			{
@@ -83,6 +85,8 @@ void Game::UpdateModel()
 				brd1.GenerateMoves(playerTurn);
 				brd2.GenerateMoves(playerTurn);
 				brd2.turnSwap = false;
+				benchTime += brd1.b.Get();
+				benchTime += brd2.b.Get();
 			}
 		}
 	}
@@ -171,10 +175,8 @@ void Game::ComposeFrame()
 		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
 		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
 	}*/
-	if (brd1.IsInCheck(playerTurn) || brd2.IsInCheck(playerTurn))
-	{
-		font.DrawText("Player is in check!", { 50, 500 }, Colors::Green, gfx);
-	}
+	font.DrawText("Move generation has taken " + std::to_string(benchTime) + " seconds.", {50, 500}, Colors::Green, gfx);
+
 	if (brd1.isPromoting || brd2.isPromoting)
 	{
 		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);
