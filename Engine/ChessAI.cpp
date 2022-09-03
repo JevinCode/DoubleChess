@@ -40,7 +40,7 @@ std::string ChessAI::GetBookName() const
 }
 void ChessAI::Move()
 {
-//	auto b1moves = GenerateMoves(brd1);
+	auto b1moves = GenerateMoves(brd1);
 //	auto b2moves = GenerateMoves(brd2);
 //	if (brd1.blackInCheck)
 //	{
@@ -82,8 +82,7 @@ void ChessAI::Move()
 
 std::vector<_Move> ChessAI::GenerateMoves(ChessBoard& brd)
 {
-	std::vector<_Move> AImoves;
-	return AImoves;
+	return {};
 }
 
 int ChessAI::Score(const ChessBoard& brd) const

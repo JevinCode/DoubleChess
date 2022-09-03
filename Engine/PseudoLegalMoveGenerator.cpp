@@ -24,11 +24,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight, t });
 		for(const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT, t });
 		}
 	}
 
@@ -44,11 +44,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight, t });
 		for (const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT, t });
 		}
 	}
 	return knightMoves;

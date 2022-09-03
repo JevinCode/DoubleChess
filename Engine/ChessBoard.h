@@ -42,6 +42,7 @@ public:
 	Bencher b;
 	ChessBoard(const Vei2& topLeft);
 	void ApplyMove(_Move m, Team t);
+	void RevertMove();
 	void Draw(Graphics& gfx) const;
 	static int LinearizeCoords(const Vei2& loc);
 	Vei2 GetOffset() const;
@@ -87,11 +88,7 @@ private:
 	void DrawPieces(Graphics& gfx) const;
 	void ClearHighlights();
 	std::vector<_Move> GetPossibleMoves(const Square sq) const;
-	_Move Move(_Move mv);
-	//bool IsWhiteInCheck() const;
-	//bool IsBlackInCheck() const;
 	std::vector<_Move> GetValidMoves(const Vei2& loc);
-	//bool IsUnderAttack(Team t, const Vei2& loc) const;
 	void IsCheckmate(Team t);
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
@@ -124,13 +121,14 @@ private:
 	//BitBoard BishopAttacks[64];
 	//BitBoard QueenAttacks[64];
 	//0 = White, 1 = Black
-	BitBoard kingDangerSquares[2] = {0,0};
+	std::vector<BitBoard> kingDangerSquares = {0,0};
 	BitBoard pins = 0;
 	BitBoard kingAttackers = 0; //we update this only when the king gets put in check
 	BitBoard checkCorridor = 0;
 
 	std::unordered_map<Square, BitBoard> pinCorridors;
 	std::stack<_Move> plies;
+	std::stack<std::vector<BitBoard>> kingDangerStack;
 	bool turnSwap = false;
 	Square squarePreviouslyHighlighted = Square::a1;
 	Surface sPieces = std::string("Images\\chess_pieces.bmp");
@@ -144,13 +142,16 @@ private:
 	bool canCastleQueensideBlack = true;
 	bool isPromoting = false;
 	bool isEnPassantable = false;
+	int kingsideWhitePlies = 0;
+	int queensideWhitePlies = 0;
+	int kingsideBlackPlies = 0;
+	int queensideBlackPlies = 0;
 	//bool whiteInCheck = false;
 	//bool blackInCheck = false;
 	bool isCheckmate = false;
 	Vei2 enPassantSquare = { 0,0 };
 	Vei2 enPassantPawnLoc = { 0,0 };
 	Team passantTeam = Team::WHITE;
-	_Move moveMade;
 	std::vector<_Move> userPossibleMoves;
 	friend class Game;
 	friend class ChessAI;

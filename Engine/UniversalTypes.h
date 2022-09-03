@@ -56,21 +56,21 @@ struct _Move
 		EnPassant
 	};
 	_Move() = default;
-	_Move(uint flags, uint source, uint target, uint srcPiece, uint capturedPiece)
+	_Move(uint flags, uint source, uint target, uint srcPiece, uint capturedPiece, Team t)
 	{
-		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | capturedPiece << 10;
+		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | capturedPiece << 10 | (uint)t << 9;
 	}
-	_Move(uint flags, uint source, uint target, uint srcPiece)
+	_Move(uint flags, uint source, uint target, uint srcPiece, Team t)
 	{
-		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | (uint)PieceType::Empty << 10;
+		move = (flags << 28) | source << 22 | target << 16 | srcPiece << 13 | (uint)PieceType::Empty << 10 | (uint)t << 9;
 	}
-	_Move(uint flags, uint source, uint target, PieceType srcPiece, PieceType capturedPiece)
+	_Move(uint flags, uint source, uint target, PieceType srcPiece, PieceType capturedPiece, Team t)
 	{
-		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)capturedPiece << 10;
+		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)capturedPiece << 10 | (uint)t << 9;
 	}
-	_Move(uint flags, uint source, uint target, PieceType srcPiece)
+	_Move(uint flags, uint source, uint target, PieceType srcPiece, Team t)
 	{
-		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)PieceType::Empty << 10;
+		move = (flags << 28) | source << 22 | target << 16 | (uint)srcPiece << 13 | (uint)PieceType::Empty << 10 | (uint)t << 9;
 	}
 	_Move(const _Move& other)
 	{
@@ -113,7 +113,10 @@ struct _Move
 	{
 		return (PieceType)((move & capturedMask) >> 10);
 	}
-
+	Team GetTeam() const
+	{
+		return (Team)((move & teamMask) >> 9);
+	}
 	//move data is stored in a packed short. 4 most significant bits store flag data, next 6 store source square, next 6 store target square, next 3 store source piece type, last 3 store captured piece type
 protected:
 	uint move;
@@ -122,4 +125,5 @@ protected:
 	static constexpr uint targetMask = 0x003F0000;
 	static constexpr uint pieceMask = 0x0000E000;
 	static constexpr uint capturedMask = 0x00001C00;
+	static constexpr uint teamMask = 0x00000200;
 };

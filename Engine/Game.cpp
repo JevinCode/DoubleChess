@@ -70,6 +70,8 @@ void Game::UpdateModel()
 			{
 				TestForCheckmate();
 				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+				if(!UndoArea.Contains(loc))
+					movesSelected.push(BoardSelection::Board1);
 				brd2.isEnPassantable = false;
 				brd1.GenerateMoves(playerTurn);
 				brd2.GenerateMoves(playerTurn);
@@ -81,6 +83,8 @@ void Game::UpdateModel()
 			{
 				TestForCheckmate();
 				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+				if (!UndoArea.Contains(loc))
+					movesSelected.push(BoardSelection::Board2);
 				brd1.isEnPassantable = false;
 				brd1.GenerateMoves(playerTurn);
 				brd2.GenerateMoves(playerTurn);
@@ -124,20 +128,49 @@ Vei2 Game::MapToCell(const Vei2& loc)
 
 void Game::OnClick(const Vei2& loc)
 {
+	if (UndoArea.Contains(loc))
+	{
+		if (movesSelected.empty())
+			return;
+		auto lastMoveMade = movesSelected.top();
+		movesSelected.pop();
+		if (lastMoveMade == BoardSelection::Board1)
+		{
+			brd1.RevertMove();
+		}
+		else if (lastMoveMade == BoardSelection::Board2)
+		{
+			brd2.RevertMove();
+		}
+		brd1.ClearHighlights();
+		brd2.ClearHighlights();
+		return;
+	}
 	if (brd1.isPromoting)
 	{
 		if (queenPromotionArea.Contains(loc))
+		{
 			brd1.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
+		}
 		else if (knightPromotionArea.Contains(loc))
+		{
 			brd1.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+			movesSelected.push(BoardSelection::Board1);
+		}
 		return;
 	}
 	else if (brd2.isPromoting)
 	{
 		if (queenPromotionArea.Contains(loc))
+		{
 			brd2.HandlePromotionClick(playerTurn, MoveType::QueenPromotion);
+			movesSelected.push(BoardSelection::Board2);
+		}
 		else if (knightPromotionArea.Contains(loc))
+		{
 			brd2.HandlePromotionClick(playerTurn, MoveType::KnightPromotion);
+			movesSelected.push(BoardSelection::Board2);
+		}
 		return;
 	}
 	auto gridPos = MapToCell(loc);
@@ -175,6 +208,7 @@ void Game::ComposeFrame()
 		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
 		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
 	}*/
+	gfx.DrawSprite(600, 550, { 0,25,0,24 }, undoredo, SpriteEffect::Chroma(Colors::White));
 	font.DrawText("Move generation has taken " + std::to_string(benchTime) + " seconds.", {50, 500}, Colors::Green, gfx);
 
 	if (brd1.isPromoting || brd2.isPromoting)

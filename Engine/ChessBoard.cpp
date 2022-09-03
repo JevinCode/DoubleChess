@@ -590,34 +590,233 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	}
 
 	//check if we move a (rook) out of it's starting place
-	switch (src)
+	else if (srcPiece == PieceType::Rook)
 	{
-	case Square::a1:
-		canCastleQueensideWhite = false;
-		break;
-	case Square::h1:
-		canCastleKingsideWhite = false;
-		break;
-	case Square::a8:
-		canCastleQueensideBlack = false;
-		break;
-	case Square::h8:
-		canCastleKingsideBlack = false;
-		break;
+		switch (src)
+		{
+		case Square::a1:
+			if (canCastleQueensideWhite)
+			{
+				canCastleQueensideWhite = false;
+				queensideWhitePlies = plies.size();
+			}
+			break;
+		case Square::h1:
+			if (canCastleKingsideWhite)
+			{
+				canCastleKingsideWhite = false;
+				kingsideWhitePlies = plies.size();
+			}
+			break;
+		case Square::a8:
+			if (canCastleQueensideBlack)
+			{
+				canCastleQueensideBlack = false;
+				queensideBlackPlies = plies.size();
+			}
+			break;
+		case Square::h8:
+			if (canCastleKingsideBlack)
+			{
+				canCastleKingsideBlack = false;
+				kingsideBlackPlies = plies.size();
+			}
+			break;
+		}
 	}
 
 	//finally, need to update pins and other team's king danger squares
 	Team other = (Team)(1 - (int)t);
 	kingDangerSquares[(int)other] = CalculateKingDangerSquares(other);
 	kingDangerSquares[(int)t] = CalculateKingDangerSquares(t);
+	kingDangerStack.push(kingDangerSquares);
 	pins = CalculatePins(other);
 	if (IsInCheck(other))
 	{
 		kingAttackers = GetKingAttackers(other);
 		checkCorridor = GetCheckCorridor(other, dest, srcPiece);
 	}
+	turnSwap = true;
 }
+void ChessBoard::RevertMove()
+{
+	_Move m = plies.top();
+	plies.pop();
+	Team t = m.GetTeam();
+	Team other = (Team)(1 - (int)t);
 
+		auto flag = m.GetFlag();
+		PieceType srcPiece = m.GetSourcePiece();
+		PieceType captured = m.GetCapturedPiece();
+		Square src = (Square)m.GetSource();
+		Square dest = (Square)m.GetTarget();
+		auto srcBB = SquareToBitBoard(src);
+		auto destBB = SquareToBitBoard(dest);
+		//no matter what kind of move it is, we always clear out the source square. So we will update the bitboards accordingly.
+		pieceBBs[BBIndex::Occupied] |= srcBB;
+		pieceBBs[t] |= srcBB;
+		pieceBBs[t] ^= destBB;
+		pieceBBs[PieceTypeMatcher(srcPiece)] |= srcBB;
+
+		switch (flag)
+		{
+		case _Move::Flag::KingsideCastle:
+		{
+			pieceBBs[BBIndex::Kings] ^= destBB;
+			if (t == Team::WHITE)
+			{
+				//remove rook on h1 from bitboards
+				BitBoard h1 = SquareToBitBoard(Square::h1);
+				BitBoard e1 = SquareToBitBoard(Square::e1);
+				BitBoard f1 = SquareToBitBoard(Square::f1);
+				pieceBBs[BBIndex::Occupied] ^= (f1 | destBB);
+				pieceBBs[BBIndex::White] ^= f1;
+				pieceBBs[BBIndex::Rooks] ^= f1;
+
+
+				//add the pieces in new positions
+				pieceBBs[BBIndex::Occupied] |= h1;
+				pieceBBs[BBIndex::White] |= h1;
+				pieceBBs[BBIndex::Rooks] |= h1;
+				hasCastledWhite = false;
+			}
+			else
+			{
+				//remove rook on h8 from bitboards
+				BitBoard h8 = SquareToBitBoard(Square::h8);
+				BitBoard e8 = SquareToBitBoard(Square::e8);
+				BitBoard f8 = SquareToBitBoard(Square::f8);
+				pieceBBs[BBIndex::Occupied] ^= (f8 | destBB);
+				pieceBBs[BBIndex::Black] ^= f8;
+				pieceBBs[BBIndex::Rooks] ^= f8;
+
+				//add the pieces in new positions
+				pieceBBs[BBIndex::Occupied] |= h8;
+				pieceBBs[BBIndex::Black] |= h8;
+				pieceBBs[BBIndex::Rooks] |= h8;
+				hasCastledBlack = false;
+			}
+			break;
+		}
+		case _Move::Flag::QueensideCastle:
+		{
+			pieceBBs[BBIndex::Kings] ^= destBB;
+			if (t == Team::WHITE)
+			{
+				//remove rook on h1 from bitboards
+				BitBoard a1 = SquareToBitBoard(Square::a1);
+				BitBoard e1 = SquareToBitBoard(Square::e1);
+				BitBoard d1 = SquareToBitBoard(Square::d1);
+				pieceBBs[BBIndex::Occupied] ^= (d1 | destBB);
+				pieceBBs[BBIndex::White] ^= d1;
+				pieceBBs[BBIndex::Rooks] ^= d1;
+
+
+				//add the pieces in new positions
+				pieceBBs[BBIndex::Occupied] |= a1;
+				pieceBBs[BBIndex::White] |= a1;
+				pieceBBs[BBIndex::Rooks] |= a1;
+				hasCastledWhite = false;
+			}
+			else
+			{
+				//remove rook on h8 from bitboards
+				BitBoard a8 = SquareToBitBoard(Square::a8);
+				BitBoard e8 = SquareToBitBoard(Square::e8);
+				BitBoard d8 = SquareToBitBoard(Square::d8);
+				pieceBBs[BBIndex::Occupied] ^= (d8 | destBB);
+				pieceBBs[BBIndex::Black] ^= d8;
+				pieceBBs[BBIndex::Rooks] ^= d8;
+
+				//add the pieces in new positions
+				pieceBBs[BBIndex::Occupied] |= a8;
+				pieceBBs[BBIndex::Black] |= a8;
+				pieceBBs[BBIndex::Rooks] |= a8;
+				hasCastledBlack = false;
+			}
+			break;
+		}
+		case _Move::Flag::KnightPromotionCapture:
+			pieceBBs[PieceTypeMatcher(captured)] |= destBB;
+			pieceBBs[other] |= destBB;
+			pieceBBs[BBIndex::Occupied] |= destBB;
+			pieceBBs[BBIndex::Knights] ^= destBB;
+			break;
+		case _Move::Flag::QueenPromotionCapture:
+
+			pieceBBs[PieceTypeMatcher(captured)] |= destBB;
+			pieceBBs[other] |= destBB;
+			pieceBBs[BBIndex::Occupied] |= destBB;
+			pieceBBs[BBIndex::Queens] ^= destBB;
+			break;
+		case _Move::Flag::KnightPromotion:
+			pieceBBs[BBIndex::Knights] ^= destBB;
+			break;
+		case _Move::Flag::QueenPromotion:
+			pieceBBs[BBIndex::Queens] ^= destBB;
+			break;
+		case _Move::Flag::Capture:
+
+			pieceBBs[PieceTypeMatcher(srcPiece)] ^= destBB;
+			pieceBBs[PieceTypeMatcher(captured)] |= destBB;
+			pieceBBs[other] |= destBB;
+			pieceBBs[BBIndex::Occupied] |= destBB;
+			break;
+		case _Move::Flag::PawnDoublePush:
+			isEnPassantable = false;
+			pieceBBs[BBIndex::Pawns] ^= destBB;
+			pieceBBs[BBIndex::Occupied] ^= destBB;
+			break;
+		case _Move::Flag::None:
+			pieceBBs[PieceTypeMatcher(srcPiece)] ^= destBB;
+			pieceBBs[BBIndex::Occupied] ^= destBB;
+			break;
+		}
+
+
+	if (srcPiece == PieceType::Rook)
+	{
+		switch (src)
+		{
+		case Square::a1:
+			if (plies.size() < queensideWhitePlies)
+			{
+				canCastleQueensideWhite = true;
+			}
+			break;
+		case Square::h1:
+			if (plies.size() < kingsideWhitePlies)
+			{
+				canCastleKingsideWhite = true;
+			}
+			break;
+		case Square::a8:
+			if (plies.size() < queensideBlackPlies)
+			{
+				canCastleQueensideBlack = true;
+			}
+			break;
+		case Square::h8:
+			if (plies.size() < kingsideBlackPlies)
+			{
+				canCastleKingsideBlack = true;
+			}
+			break;
+		}
+	}
+
+		//need to save a history of these in a stack along with the plies in the future
+		//will save computation time when the AI is reverting moves
+	kingDangerSquares = kingDangerStack.top();
+	kingDangerStack.pop();
+		pins = CalculatePins(other);
+		if (IsInCheck(other))
+		{
+			kingAttackers = GetKingAttackers(other);
+			checkCorridor = GetCheckCorridor(other, dest, srcPiece);
+		}
+		turnSwap = true;
+}
 BitBoard ChessBoard::GetCheckCorridor() const
 {
 	return checkCorridor;
@@ -895,45 +1094,33 @@ void ChessBoard::HandlePromotionClick(Team t, MoveType type)
 	{
 		if (CellAt(squarePreviouslyHighlighted)->GetHighlight() == Cell::HighlightType::RED)
 		{
-			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			auto moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
 			ApplyMove(moveMade, t);
 		}
 		else
 		{
-			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			auto moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::QueenPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
 			ApplyMove(moveMade, t);
 		}
-		turnSwap = true;
 		isPromoting = false;
-		//IsInCheck(t);
 	}
 
 	else if (type == MoveType::KnightPromotion)
 	{
 		if (CellAt(squarePreviouslyHighlighted)->GetHighlight() == Cell::HighlightType::RED)
 		{
-			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			auto moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotionCapture && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
 			ApplyMove(moveMade, t);
 		}
 		else
 		{
-			moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
+			auto moveMade = *std::find_if(userPossibleMoves.begin(), userPossibleMoves.end(), [this](_Move m) {return m.GetFlag() == _Move::Flag::KnightPromotion && (Square)m.GetTarget() == squarePreviouslyHighlighted; });
 			ApplyMove(moveMade, t);
 		}
-		turnSwap = true;
 		isPromoting = false;
-		//IsInCheck(t);
 	}
 	ClearHighlights();
 
-	//if (t == Team::WHITE)
-	//{
-	//	whiteInCheck = false;
-	//}
-	//else
-	//{
-	//	blackInCheck = false;
-	//}
 }
 
 void ChessBoard::HandleMoveClick(const Square sq, Team t)
@@ -944,7 +1131,6 @@ void ChessBoard::HandleMoveClick(const Square sq, Team t)
 		if ((Square)move.GetTarget() == sq && (Square)move.GetSource() == squarePreviouslyHighlighted)
 		{
 			selectedMove = move;
-			moveMade = selectedMove;
 			break;
 		}
 	}
@@ -958,19 +1144,6 @@ void ChessBoard::HandleMoveClick(const Square sq, Team t)
 	if (!isPromoting)
 	{
 		ApplyMove(selectedMove, t);
-		//as we are not promoting a piece, we now test to see if we have put the other player in check.
-		turnSwap = true;
-		//if white successfully makes a move, then white necessarily cannot be in check.
-		//if (t == Team::WHITE)
-		//{
-		//	whiteInCheck = false;
-		//}
-		////similarly for black.
-		//else
-		//{
-		//	blackInCheck = false;
-		//}
-		//IsInCheck(t);
 		ClearHighlights();
 	}
 }

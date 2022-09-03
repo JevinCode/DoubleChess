@@ -61,12 +61,14 @@ private:
 	Team playerTurn = Team::WHITE;
 	BoardSelection curSelection = BoardSelection::NIL;
 	BoardSelection prevSelection = BoardSelection::NIL;
+	std::stack<BoardSelection> movesSelected;
 	ChessAI mrAI;
 
 	RectI queenPromotionArea = { {551, 400}, {581, 431} };
 	RectI knightPromotionArea = { {599, 400}, {629, 430} };
+	RectI UndoArea = { {599, 549}, {625,580} };
 	MoveType promotionPiece = MoveType::Normal;
-
+	Surface undoredo = std::string("Images\\undoredo.bmp");
 	float benchTime = 0.0f;
 	bool gameIsOver = false;
 
