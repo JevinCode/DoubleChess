@@ -25,4 +25,7 @@ private:
 	static BitBoard WhitePawnAttacks(BitBoard wpawns);
 	static BitBoard BlackPawnAttacks(BitBoard bPawns);
 
+	static std::vector<_Move> GenerateKnightMovesCheck(Team t, const ChessBoard& brd);
+	static std::vector<_Move> GenerateSlidingMovesCheck(Team t, const ChessBoard& brd);
+
 };

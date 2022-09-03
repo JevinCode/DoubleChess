@@ -145,19 +145,19 @@ void Game::OnClick(const Vei2& loc)
 	prevSelection = curSelection;
 	if(curSelection == BoardSelection::Board1)
 	{
-		if (brd2.whiteInCheck)
+		if (brd2.IsInCheck(playerTurn))
 			return;
 
-		else if (ChessBoard::IsValidLoc(gridPos))
+		if (ChessBoard::IsValidLoc(gridPos))
 			brd1.OnClick(gridPos, playerTurn);
 
 	}
 	else
 	{
-		if (brd1.whiteInCheck)
+		if (brd1.IsInCheck(playerTurn))
 			return;
 
-		else if (ChessBoard::IsValidLoc(gridPos))
+		if (ChessBoard::IsValidLoc(gridPos))
 			brd2.OnClick(gridPos, playerTurn);
 	}
 }
@@ -171,6 +171,10 @@ void Game::ComposeFrame()
 		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
 		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
 	}*/
+	if (brd1.IsInCheck(playerTurn) || brd2.IsInCheck(playerTurn))
+	{
+		font.DrawText("Player is in check!", { 50, 500 }, Colors::Green, gfx);
+	}
 	if (brd1.isPromoting || brd2.isPromoting)
 	{
 		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);

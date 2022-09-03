@@ -264,18 +264,18 @@ BitBoard ChessBoard::SquaresToBitBoard(const std::vector<Square> squares)
 	return result;
 }
 
-_Move::PieceType ChessBoard::ParseCapture(Square sq) const
+PieceType ChessBoard::ParseCapture(Square sq) const
 {
 	auto bb = SquareToBitBoard(sq);
 	if (pieceBBs[BBIndex::Pawns] & bb)
-		return _Move::PieceType::Pawn;
+		return PieceType::Pawn;
 	if (pieceBBs[BBIndex::Rooks] & bb)
-		return _Move::PieceType::Rook;
+		return PieceType::Rook;
 	if (pieceBBs[BBIndex::Knights] & bb)
-		return _Move::PieceType::Knight;
+		return PieceType::Knight;
 	if (pieceBBs[BBIndex::Bishops] & bb)
-		return _Move::PieceType::Bishop;
-	return _Move::PieceType::Queen;
+		return PieceType::Bishop;
+	return PieceType::Queen;
 }
 
 void ChessBoard::GenerateMoves(Team t)
@@ -632,7 +632,12 @@ bool ChessBoard::IsCheckmate() const
 }
 bool ChessBoard::IsInCheck(Team t) const
 {
-	return pieceBBs[BBIndex::Kings] & KingDangerSquares[(int)t];
+	return pieceBBs[BBIndex::Kings] & pieceBBs[(BBIndex)t] & KingDangerSquares[(int)t];
+}
+bool ChessBoard::IsDoubleCheck(Team t) const
+{
+	assert(IsInCheck(t));
+	return !BBTwiddler::SingleElement(kingAttackers);
 }
 Team ChessBoard::GetPassantTeam() const
 {
@@ -654,8 +659,8 @@ Vei2 ChessBoard::GetEnPassantPawnLoc() const
 void ChessBoard::ApplyMove(_Move m, Team t)
 {
 	auto flag = m.GetFlag();
-	_Move::PieceType srcPiece = m.GetSourcePiece();
-	_Move::PieceType captured = m.GetCapturedPiece();
+	PieceType srcPiece = m.GetSourcePiece();
+	PieceType captured = m.GetCapturedPiece();
 	Square src = (Square)m.GetSource();
 	Square dest = (Square)m.GetTarget();
 	auto srcBB = SquareToBitBoard(src);
@@ -774,25 +779,35 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	plies.push(m);
 
 	//finally, need to update pins and other team's king danger squares
-	KingDangerSquares[1 - (int)t] = CalculateKingDangerSquares((Team)(1 - (int)t));
-	pins = CalculatePins((Team)(1 - (int)(t)));
+	Team other = (Team)(1 - (int)t);
+	KingDangerSquares[(int)other] = CalculateKingDangerSquares(other);
+	pins = CalculatePins(other);
+	if (IsInCheck(other))
+	{
+		kingAttackers = GetKingAttackers(other);
+		checkCorridor = GetCheckCorridor(other, dest, srcPiece);
+	}
 }
 
-ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(_Move::PieceType p) const
+BitBoard ChessBoard::GetCheckCorridor() const
+{
+	return checkCorridor;
+}
+ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(PieceType p) const
 {
 	switch (p)
 	{
-	case _Move::PieceType::Pawn:
+	case PieceType::Pawn:
 		return BBIndex::Pawns;
-	case _Move::PieceType::Rook:
+	case PieceType::Rook:
 		return BBIndex::Rooks;
-	case _Move::PieceType::Knight:
+	case PieceType::Knight:
 		return BBIndex::Knights;
-	case _Move::PieceType::Bishop:
+	case PieceType::Bishop:
 		return BBIndex::Bishops;
-	case _Move::PieceType::Queen:
+	case PieceType::Queen:
 		return BBIndex::Queens;
-	case _Move::PieceType::King:
+	case PieceType::King:
 		return BBIndex::Kings;
 	default:
 		return BBIndex::Empty;
@@ -970,6 +985,60 @@ BitBoard ChessBoard::CalculatePins(Team t)
 	return pin;
 }
 
+BitBoard ChessBoard::GetKingAttackers(Team t)
+{
+	assert(IsInCheck(t));
+	BitBoard kingBB = pieceBBs[BBIndex::Kings] & pieceBBs[t];
+	BitBoard occupied = pieceBBs[BBIndex::Occupied];
+	Square kingLoc = BitBoardToSquare(kingBB);
+
+	Team other = (Team)(1 - (int)t);
+	BitBoard rq = (pieceBBs[BBIndex::Rooks] | pieceBBs[BBIndex::Queens]) & pieceBBs[other];
+	BitBoard bq = (pieceBBs[BBIndex::Bishops] | pieceBBs[BBIndex::Queens]) & pieceBBs[other];
+	BitBoard attackers = KnightAttacks[kingLoc] & pieceBBs[BBIndex::Knights] & pieceBBs[other];
+
+	if (t == Team::WHITE)
+	{
+		BitBoard pawnAttackerBB = BBTwiddler::NortheastOne(kingBB) | BBTwiddler::NorthwestOne(kingBB);
+		attackers |= pawnAttackerBB & pieceBBs[BBIndex::Pawns] & pieceBBs[BBIndex::Black];
+	}
+	else
+	{
+		BitBoard pawnAttackerBB = BBTwiddler::SoutheastOne(kingBB) | BBTwiddler::SouthwestOne(kingBB);
+		attackers |= pawnAttackerBB & pieceBBs[BBIndex::Pawns] & pieceBBs[BBIndex::White];
+	}
+
+	attackers |= BBTwiddler::GetRookAttackBBSingle(occupied, (int)kingLoc, RayAttacks) & rq;
+	attackers |= BBTwiddler::GetBishopAttackBBSingle(occupied, (int)kingLoc, RayAttacks) & bq;
+	return attackers;
+}
+BitBoard ChessBoard::GetCheckCorridor(Team t, Square sq, PieceType p)
+{
+	BitBoard corridor = SquareToBitBoard(sq);
+	if (p == PieceType::Knight || p == PieceType::Pawn)
+		return corridor;
+	auto kingLoc = BitBoardToSquare(pieceBBs[BBIndex::Kings] & pieceBBs[t]);
+	BitBoard occupied = pieceBBs[BBIndex::Occupied];
+	Vei2 kingCoords = SquareToCoords(kingLoc);
+	Vei2 pieceCoords = SquareToCoords(sq);
+	Vei2 delta = kingCoords - pieceCoords;
+	if (delta.x < 0 && delta.y < 0)
+		return BBTwiddler::GetPositiveRayAttack(occupied, Direction::Northeast, (int)kingLoc, RayAttacks);
+	if (delta.x < 0 && delta.y > 0)
+		return BBTwiddler::GetNegativeRayAttack(occupied, Direction::Southeast, (int)kingLoc, RayAttacks);
+	if (delta.x < 0)
+		return BBTwiddler::GetPositiveRayAttack(occupied, Direction::East, (int)kingLoc, RayAttacks);
+	if(delta.x > 0 && delta.y < 0)
+		return BBTwiddler::GetPositiveRayAttack(occupied, Direction::Northwest, (int)kingLoc, RayAttacks);
+	if(delta.x > 0 && delta.y > 0)
+		return BBTwiddler::GetNegativeRayAttack(occupied, Direction::Southwest, (int)kingLoc, RayAttacks);
+	if(delta.x > 0)
+		return BBTwiddler::GetNegativeRayAttack(occupied, Direction::West, (int)kingLoc, RayAttacks);
+	if(delta.y < 0)
+		return BBTwiddler::GetPositiveRayAttack(occupied, Direction::North, (int)kingLoc, RayAttacks);
+
+	return BBTwiddler::GetNegativeRayAttack(occupied, Direction::South, (int)kingLoc, RayAttacks);
+}
 std::unordered_map<ChessBoard::Square, BitBoard> ChessBoard::GetCorridors() const
 {
 	return pinCorridors;

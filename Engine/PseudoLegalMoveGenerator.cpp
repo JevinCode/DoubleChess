@@ -24,11 +24,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
 		for(const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
 		}
 	}
 
@@ -44,11 +44,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
 		for (const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
 		}
 	}
 	return knightMoves;
@@ -75,11 +75,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 //		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 //
 //		for (const auto target : quietSquares)
-//			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Rook });
+//			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Rook });
 //		for (const auto target : captureSquares)
 //		{
 //			auto capturePT = brd.ParseCapture(target);
-//			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Rook, capturePT });
+//			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Rook, capturePT });
 //		}
 //	}
 //	return rookMoves;
@@ -106,11 +106,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 //		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 //
 //		for (const auto target : quietSquares)
-//			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Bishop });
+//			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Bishop });
 //		for (const auto target : captureSquares)
 //		{
 //			auto capturePT = brd.ParseCapture(target);
-//			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Bishop, capturePT });
+//			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Bishop, capturePT });
 //		}
 //	}
 //	return bishopMoves;
@@ -141,11 +141,11 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 //		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 //
 //		for (const auto target : quietSquares)
-//			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Queen });
+//			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Queen });
 //		for (const auto target : captureSquares)
 //		{
 //			auto capturePT = brd.ParseCapture(target);
-//			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Queen, capturePT });
+//			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Queen, capturePT });
 //		}
 //	}
 //	return queenMoves;
@@ -205,11 +205,11 @@ BitBoard PseudoLegalMoveGenerator::DoublePushTargetsBlack(BitBoard bPawns, BitBo
 //	for (const auto square : attackSquares)
 //	{
 //		auto capturePT = brd.ParseCapture(square);
-//		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, _Move::PieceType::King, capturePT });
+//		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, PieceType::King, capturePT });
 //	}
 //	for (const auto square : quietSquares)
 //	{
-//		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, _Move::PieceType::King });
+//		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, PieceType::King });
 //	}
 //	return moves;
 //}

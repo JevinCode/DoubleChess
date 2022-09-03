@@ -18,11 +18,11 @@ std::vector<_Move> LegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoar
 	for (const auto square : attackSquares)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, _Move::PieceType::King, capturePT });
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, PieceType::King, capturePT });
 	}
 	for (const auto square : quietSquares)
 	{
-		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, _Move::PieceType::King });
+		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, PieceType::King });
 	}
 	return moves;
 }
@@ -47,11 +47,11 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBo
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
 		for (const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
 		}
 	}
 
@@ -67,14 +67,281 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBo
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 		for (const auto& sq : quietSquares)
-			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, _Move::PieceType::Knight });
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
 		for (const auto& sq : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(sq);
-			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, _Move::PieceType::Knight, capturePT });
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
 		}
 	}
 	return knightMoves;
+}
+
+std::vector<_Move> LegalMoveGenerator::GenerateKnightMovesCheck(Team t, const ChessBoard& brd)
+{
+	Team other = (Team)(1 - (int)t);
+	auto pieceBBs = brd.GetPieceBBs();
+	auto pinCorridors = brd.GetCorridors();
+	auto pins = brd.GetPins();
+	auto checkCorridor = brd.GetCheckCorridor();
+
+	std::vector<_Move> knightMoves;
+	const auto freeKnights = pieceBBs[ChessBoard::BBIndex::Knights] & pieceBBs[t] & (ChessBoard::Universe ^ pins);
+	const auto freeSquares = ChessBoard::BitBoardToSquares(freeKnights);
+	for (const auto& square : freeSquares)
+	{
+		auto attacks = brd.KnightAttacks[square] & checkCorridor;
+		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto captures = attacks & pieceBBs[other];
+
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+		for (const auto& sq : quietSquares)
+			knightMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)sq, PieceType::Knight });
+		for (const auto& sq : captureSquares)
+		{
+			auto capturePT = brd.ParseCapture(sq);
+			knightMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)sq, PieceType::Knight, capturePT });
+		}
+	}
+	return knightMoves;
+}
+
+std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> rookMoves;
+	Team other = (Team)(1 - (int)t);
+	auto pieceBBs = brd.GetPieceBBs();
+	auto RayAttacks = brd.GetRayAttacks();
+	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
+	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
+	auto pins = brd.GetPins();
+	auto checkCorridor = brd.GetCheckCorridor();
+
+	//handle non-pinned rooks
+	auto freeRooks = rooks ^ (pins & rooks);
+	auto freeRookSquares = ChessBoard::BitBoardToSquares(freeRooks);
+	for (const auto square : freeRookSquares)
+	{
+		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard captures = attacks & pieceBBs[other];
+
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+
+		for (const auto target : quietSquares)
+			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Rook });
+		for (const auto target : captureSquares)
+		{
+			auto capturePT = brd.ParseCapture(target);
+			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Rook, capturePT });
+		}
+	}
+	return rookMoves;
+}
+
+std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> bishopMoves;
+	Team other = (Team)(1 - (int)t);
+	auto pieceBBs = brd.GetPieceBBs();
+	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
+	auto RayAttacks = brd.GetRayAttacks();
+	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
+	auto pins = brd.GetPins();
+	auto checkCorridor = brd.GetCheckCorridor();
+
+	//handle non-pinned bishops
+	auto freeBishops = bishops ^ (bishops & pins);
+	auto freeBishopSquares = ChessBoard::BitBoardToSquares(freeBishops);
+	for (const auto square : freeBishopSquares)
+	{
+		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard captures = attacks & pieceBBs[other];
+
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+
+		for (const auto target : quietSquares)
+			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Bishop });
+		for (const auto target : captureSquares)
+		{
+			auto capturePT = brd.ParseCapture(target);
+			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Bishop, capturePT });
+		}
+	}
+	return bishopMoves;
+}
+
+std::vector<_Move> GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> queenMoves;
+	Team other = (Team)(1 - (int)t);
+	auto pieceBBs = brd.GetPieceBBs();
+	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
+	auto RayAttacks = brd.GetRayAttacks();
+	auto queens = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Queens];
+	auto pins = brd.GetPins();
+	auto checkCorridor = brd.GetCheckCorridor();
+
+	//handle non-pinned queens
+	auto freeQueens = queens ^ (queens & pins);
+	auto freeQueenSquares = ChessBoard::BitBoardToSquares(freeQueens);
+	for (const auto square : freeQueenSquares)
+	{
+		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard captures = attacks & pieceBBs[other];
+
+		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
+		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
+
+		for (const auto target : quietSquares)
+			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Queen });
+		for (const auto target : captureSquares)
+		{
+			auto capturePT = brd.ParseCapture(target);
+			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Queen, capturePT });
+		}
+	}
+	return queenMoves;
+}
+
+std::vector<_Move> LegalMoveGenerator::GenerateSlidingMovesCheck(Team t, const ChessBoard& brd)
+{
+	auto moves = GenerateRookMovesCheck(t, brd);
+	auto moreMoves = GenerateBishopMovesCheck(t, brd);
+	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+	moreMoves = GenerateQueenMovesCheck(t, brd);
+	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+	return moves;
+}
+
+std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> moves;
+	auto pieceBBs = brd.GetPieceBBs();
+	auto pins = brd.GetPins();
+	auto empty = pieceBBs[ChessBoard::BBIndex::Empty];
+	auto checkCorridor = brd.GetCheckCorridor();
+	if (t == Team::WHITE)
+	{
+
+		BitBoard wPawns = pieceBBs[ChessBoard::BBIndex::Pawns] & pieceBBs[ChessBoard::BBIndex::White];
+		auto freePawns = wPawns ^ (wPawns & pins);
+		BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsWhite(freePawns, empty) & checkCorridor;
+		BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank8 & checkCorridor;
+		BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsWhite(freePawns, empty) & checkCorridor;
+		BitBoard wPawnEastAttacksNonPinned = BBTwiddler::WhitePawnEastAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::Black] & checkCorridor;
+		BitBoard wPawnEastPromotionsNonPinned = wPawnEastAttacksNonPinned & ChessBoard::Rank8 & checkCorridor;
+		wPawnEastAttacksNonPinned ^= wPawnEastPromotionsNonPinned;
+		BitBoard wPawnWestAttacksNonPinned = BBTwiddler::WhitePawnWestAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::Black] & checkCorridor;
+		BitBoard wPawnWestPromotionsNonPinned = wPawnWestAttacksNonPinned & ChessBoard::Rank8 & checkCorridor;
+		wPawnWestAttacksNonPinned ^= wPawnWestPromotionsNonPinned;
+
+		auto singlePushPromotionSquares = ChessBoard::BitBoardToSquares(singlePushPromotionsNonPinned);
+		auto singlePushQuietSquares = ChessBoard::BitBoardToSquares(singlePushTargetsNonPinned);
+		auto doublePushSquares = ChessBoard::BitBoardToSquares(doublePushNonPinned);
+		auto attackSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastAttacksNonPinned);
+		auto promotionSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastPromotionsNonPinned);
+		auto attackSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestAttacksNonPinned);
+		auto promotionSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestPromotionsNonPinned);
+
+
+		for (const auto square : singlePushPromotionSquares)
+		{
+			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square - 8, (uint)square, PieceType::Pawn });
+		}
+		for (const auto square : singlePushQuietSquares)
+		{
+			moves.push_back({ (uint)_Move::Flag::None, (uint)square - 8, (uint)square, PieceType::Pawn });
+		}
+		for (const auto square : doublePushSquares)
+			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square - 16, (uint)square, PieceType::Pawn });
+		for (const auto square : attackSquaresEast)
+		{
+			auto capturePT = brd.ParseCapture(square);
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
+		}
+		for (const auto square : promotionSquaresEast)
+		{
+			auto capturePT = brd.ParseCapture(square);
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
+		}
+		for (const auto square : attackSquaresWest)
+		{
+			auto capturePT = brd.ParseCapture(square);
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
+		}
+		for (const auto square : promotionSquaresWest)
+		{
+			auto capturePT = brd.ParseCapture(square);
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
+		}
+		return moves;
+	}
+
+
+	BitBoard bPawns = pieceBBs[ChessBoard::BBIndex::Pawns] & pieceBBs[ChessBoard::BBIndex::Black];
+	auto freePawns = bPawns ^ (bPawns & pins);
+	BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsBlack(freePawns, empty) & checkCorridor;
+	BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank1 & checkCorridor;
+	BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsBlack(freePawns, empty) & checkCorridor;
+	BitBoard bPawnEastAttacksNonPinned = BBTwiddler::BlackPawnEastAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::White] & checkCorridor;
+	BitBoard bPawnEastPromotionsNonPinned = bPawnEastAttacksNonPinned & ChessBoard::Rank1 & checkCorridor;
+	bPawnEastAttacksNonPinned ^= bPawnEastPromotionsNonPinned;
+	BitBoard bPawnWestAttacksNonPinned = BBTwiddler::BlackPawnWestAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::White] & checkCorridor;
+	BitBoard bPawnWestPromotionsNonPinned = bPawnWestAttacksNonPinned & ChessBoard::Rank1 & checkCorridor;
+	bPawnWestAttacksNonPinned ^= bPawnWestPromotionsNonPinned;
+
+	auto singlePushPromotionSquares = ChessBoard::BitBoardToSquares(singlePushPromotionsNonPinned);
+	auto singlePushQuietSquares = ChessBoard::BitBoardToSquares(singlePushTargetsNonPinned);
+	auto doublePushSquares = ChessBoard::BitBoardToSquares(doublePushNonPinned);
+	auto attackSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastAttacksNonPinned);
+	auto promotionSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastPromotionsNonPinned);
+	auto attackSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestAttacksNonPinned);
+	auto promotionSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestPromotionsNonPinned);
+
+
+	for (const auto square : singlePushPromotionSquares)
+	{
+		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, PieceType::Pawn });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square + 8, (uint)square, PieceType::Pawn });
+	}
+	for (const auto square : singlePushQuietSquares)
+	{
+		moves.push_back({ (uint)_Move::Flag::None, (uint)square + 8, (uint)square, PieceType::Pawn });
+	}
+	for (const auto square : doublePushSquares)
+		moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square + 16, (uint)square, PieceType::Pawn });
+	for (const auto square : attackSquaresEast)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
+	}
+	for (const auto square : promotionSquaresEast)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
+	}
+	for (const auto square : attackSquaresWest)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
+	}
+	for (const auto square : promotionSquaresWest)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
+	}
+	return moves;
 }
 
 std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
@@ -101,11 +368,11 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Rook });
+			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Rook });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Rook, capturePT });
+			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Rook, capturePT });
 		}
 	}
 
@@ -122,11 +389,11 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Rook });
+			rookMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Rook });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Rook, capturePT });
+			rookMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Rook, capturePT });
 		}
 	}
 	return rookMoves;
@@ -156,11 +423,11 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Bishop });
+			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Bishop });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Bishop, capturePT });
+			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Bishop, capturePT });
 		}
 	}
 
@@ -177,11 +444,11 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Bishop });
+			bishopMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Bishop });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Bishop, capturePT });
+			bishopMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Bishop, capturePT });
 		}
 	}
 	return bishopMoves;
@@ -211,11 +478,11 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Queen });
+			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Queen });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Queen, capturePT });
+			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Queen, capturePT });
 		}
 	}
 
@@ -232,11 +499,11 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 		auto captureSquares = ChessBoard::BitBoardToSquares(captures);
 
 		for (const auto target : quietSquares)
-			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, _Move::PieceType::Queen });
+			queenMoves.push_back({ (ushort)_Move::Flag::None, (ushort)square, (ushort)target, PieceType::Queen });
 		for (const auto target : captureSquares)
 		{
 			auto capturePT = brd.ParseCapture(target);
-			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, _Move::PieceType::Queen, capturePT });
+			queenMoves.push_back({ (ushort)_Move::Flag::Capture, (ushort)square, (ushort)target, PieceType::Queen, capturePT });
 		}
 	}
 	return queenMoves;
@@ -302,14 +569,14 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 			if (singlePush)
 			{
 				ChessBoard::Square singleTarget = ChessBoard::BitBoardToSquare(singlePush);
-				moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)singleTarget, _Move::PieceType::Pawn });
+				moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)singleTarget, PieceType::Pawn });
 
 				//cant double push if we can't single push
 				auto doublePush = doublePushTargets & corridors[square];
 				if (doublePush)
 				{
 					ChessBoard::Square doubleTarget = ChessBoard::BitBoardToSquare(doublePush);
-					moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)doubleTarget, _Move::PieceType::Pawn });
+					moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)doubleTarget, PieceType::Pawn });
 				}
 			}
 
@@ -319,13 +586,13 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 			{
 				ChessBoard::Square eastTarget = ChessBoard::BitBoardToSquare(eastAttack);
 				auto capturePT = brd.ParseCapture(eastTarget);
-				moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
 			}
 			else if (westAttack)
 			{
 				ChessBoard::Square westTarget = ChessBoard::BitBoardToSquare(westAttack);
 				auto capturePT = brd.ParseCapture(westTarget);
-				moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
 			}
 
 			auto eastPromotion = wPawnEastPromotionsPinned & pinCorridor & pieceBBs[ChessBoard::BBIndex::Black];
@@ -334,50 +601,50 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 			{
 				ChessBoard::Square eastTarget = ChessBoard::BitBoardToSquare(eastPromotion);
 				auto capturePT = brd.ParseCapture(eastTarget);
-				moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
-				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
 			}
 			else if (westPromotion)
 			{
 				ChessBoard::Square westTarget = ChessBoard::BitBoardToSquare(westPromotion);
 				auto capturePT = brd.ParseCapture(westTarget);
-				moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
-				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
+				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
 			}
 		}
 
 		for (const auto square : singlePushPromotionSquares)
 		{
-			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square - 8, (uint)square, PieceType::Pawn });
 		}
 		for (const auto square : singlePushQuietSquares)
 		{
-			moves.push_back({ (uint)_Move::Flag::None, (uint)square - 8, (uint)square, _Move::PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::None, (uint)square - 8, (uint)square, PieceType::Pawn });
 		}
 		for (const auto square : doublePushSquares)
-			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square - 16, (uint)square, _Move::PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square - 16, (uint)square, PieceType::Pawn });
 		for (const auto square : attackSquaresEast)
 		{
 			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
 		}
 		for (const auto square : promotionSquaresEast)
 		{
 			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 9, (uint)square, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 9, (uint)square, PieceType::Pawn, capturePT });
 		}
 		for (const auto square : attackSquaresWest)
 		{
 			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
 		}
 		for (const auto square : promotionSquaresWest)
 		{
 			auto capturePT = brd.ParseCapture(square);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 7, (uint)square, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square - 7, (uint)square, PieceType::Pawn, capturePT });
 		}
 		return moves;
 	}
@@ -422,14 +689,14 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		if (singlePush)
 		{
 			ChessBoard::Square singleTarget = ChessBoard::BitBoardToSquare(singlePush);
-			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)singleTarget, _Move::PieceType::Pawn });
+			moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)singleTarget, PieceType::Pawn });
 
 			//cant double push if we can't single push
 			auto doublePush = doublePushTargets & corridors[square];
 			if (doublePush)
 			{
 				ChessBoard::Square doubleTarget = ChessBoard::BitBoardToSquare(doublePush);
-				moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)doubleTarget, _Move::PieceType::Pawn });
+				moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square, (uint)doubleTarget, PieceType::Pawn });
 			}
 		}
 
@@ -439,13 +706,13 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		{
 			ChessBoard::Square eastTarget = ChessBoard::BitBoardToSquare(eastAttack);
 			auto capturePT = brd.ParseCapture(eastTarget);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
 		}
 		else if (westAttack)
 		{
 			ChessBoard::Square westTarget = ChessBoard::BitBoardToSquare(westAttack);
 			auto capturePT = brd.ParseCapture(westTarget);
-			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::Capture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
 		}
 
 		auto eastPromotion = bPawnEastPromotionsPinned & pinCorridor & pieceBBs[ChessBoard::BBIndex::White];
@@ -454,62 +721,77 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		{
 			ChessBoard::Square eastTarget = ChessBoard::BitBoardToSquare(eastPromotion);
 			auto capturePT = brd.ParseCapture(eastTarget);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)eastTarget, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)eastTarget, PieceType::Pawn, capturePT });
 		}
 		else if (westPromotion)
 		{
 			ChessBoard::Square westTarget = ChessBoard::BitBoardToSquare(westPromotion);
 			auto capturePT = brd.ParseCapture(westTarget);
-			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
-			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, _Move::PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
+			moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT });
 		}
 	}
 
 	for (const auto square : singlePushPromotionSquares)
 	{
-		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
+		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, PieceType::Pawn });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotion, (uint)square + 8, (uint)square, PieceType::Pawn });
 	}
 	for (const auto square : singlePushQuietSquares)
 	{
-		moves.push_back({ (uint)_Move::Flag::None, (uint)square + 8, (uint)square, _Move::PieceType::Pawn });
+		moves.push_back({ (uint)_Move::Flag::None, (uint)square + 8, (uint)square, PieceType::Pawn });
 	}
 	for (const auto square : doublePushSquares)
-		moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square + 16, (uint)square, _Move::PieceType::Pawn });
+		moves.push_back({ (uint)_Move::Flag::PawnDoublePush, (uint)square + 16, (uint)square, PieceType::Pawn });
 	for (const auto square : attackSquaresEast)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
 	}
 	for (const auto square : promotionSquaresEast)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 7, (uint)square, _Move::PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 7, (uint)square, PieceType::Pawn, capturePT });
 	}
 	for (const auto square : attackSquaresWest)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
 	}
 	for (const auto square : promotionSquaresWest)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
-		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 9, (uint)square, _Move::PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::KnightPromotionCapture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
+		moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square + 9, (uint)square, PieceType::Pawn, capturePT });
 	}
 	return moves;
 }
 
 std::vector<_Move> LegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& brd)
 {
-	auto moves = GenerateKnightMoves(t, brd);
-	auto moreMoves = GenerateSlidingMoves(t, brd);
+	auto moves = GenerateKingMoves(t, brd);
+	if (brd.IsInCheck(t))
+	{
+		if (brd.IsDoubleCheck(t))
+		{
+			return moves;
+		}
+
+		auto knightMoves = GenerateKnightMovesCheck(t, brd);
+		moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
+		auto slidingMoves = GenerateSlidingMovesCheck(t, brd);
+		moves.insert(moves.end(), slidingMoves.begin(), slidingMoves.end());
+		auto pawnMoves = GeneratePawnMovesCheck(t, brd);
+		moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
+		return moves;
+	}
+	auto moreMoves = GenerateKnightMoves(t, brd);
+	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
+	moreMoves = GenerateSlidingMoves(t, brd);
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	moreMoves = GeneratePawnMoves(t, brd);
-	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
-	moreMoves = GenerateKingMoves(t, brd);
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	return moves;
 }

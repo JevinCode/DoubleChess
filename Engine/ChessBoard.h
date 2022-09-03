@@ -68,12 +68,14 @@ public:
 	static std::vector<Vei2> SquaresToCoords(const std::vector<Square>& squares);
 	Vei2 GetScreenCoords(const Square sq) const;
 	std::vector<Vei2> GetScreenCoords(const std::vector<Square>& squares) const;
-	_Move::PieceType ParseCapture(Square sq) const;
+	PieceType ParseCapture(Square sq) const;
 	const std::vector<std::vector<BitBoard>> GetRayAttacks() const;
 	BitBoard GetKingDangerSquares(Team t) const;
 	bool IsInCheck(Team t) const;
 	std::unordered_map<Square, BitBoard> GetCorridors() const;
 	BitBoard GetPins() const;
+	bool IsDoubleCheck(Team t) const;
+	BitBoard GetCheckCorridor() const;
 
 private:
 	//member functions
@@ -93,10 +95,12 @@ private:
 	void IsCheckmate(Team t);
 	void HandleMoveClick(const Square sq, Team t);
 	void HandleSelectionClick(const Vei2& loc, Team t);
-	BBIndex PieceTypeMatcher(_Move::PieceType p) const;
+	BBIndex PieceTypeMatcher(PieceType p) const;
 	BitBoard CalculateKingDangerSquares(Team t);
 	BitBoard CalculatePins(Team t);
 	BitBoard GetKnightAttackBB(Team t);
+	BitBoard GetKingAttackers(Team t);
+	BitBoard GetCheckCorridor(Team t, Square sq, PieceType p);
 	//member dataclass
 
 	enum class DirectionOffsets
@@ -114,14 +118,15 @@ private:
 	EnumArray<BBIndex, BitBoard> pieceBBs;
 
 	//second index is used as follows: 0 = North, 1 = East, 2 = South, 3 = West, 4 = Northeast, 5 = Southeast, 6 = Southwest, 7 = Northeast
-
 	std::vector<std::vector<BitBoard>> RayAttacks;
 	//static BitBoard RookAttacks[64];
-	BitBoard BishopAttacks[64];
-	BitBoard QueenAttacks[64];
+	//BitBoard BishopAttacks[64];
+	//BitBoard QueenAttacks[64];
 	//0 = White, 1 = Black
 	BitBoard KingDangerSquares[2] = { 0,0 };
 	BitBoard pins = 0;
+	BitBoard kingAttackers = 0; //we update this only when the king gets put in check
+	BitBoard checkCorridor = 0;
 
 	std::unordered_map<Square, BitBoard> pinCorridors;
 	std::stack<_Move> plies;

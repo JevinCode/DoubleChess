@@ -29,6 +29,17 @@ enum class MoveType
 	KnightPromotion
 };
 
+enum class PieceType
+{
+	Empty,
+	Pawn,
+	Rook,
+	Knight,
+	Bishop,
+	Queen,
+	King
+};
+
 struct _Move
 {
 	enum class Flag
@@ -43,16 +54,6 @@ struct _Move
 		QueensideCastle,
 		PawnDoublePush,
 		EnPassant
-	};
-	enum class PieceType
-	{
-		Empty,
-		Pawn,
-		Rook,
-		Knight,
-		Bishop,
-		Queen,
-		King
 	};
 	_Move() = default;
 	_Move(uint flags, uint source, uint target, uint srcPiece, uint capturedPiece)
