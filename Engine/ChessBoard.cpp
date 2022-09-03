@@ -71,7 +71,11 @@ const std::vector<std::vector<BitBoard>> ChessBoard::GetRayAttacks() const
 }
 BitBoard ChessBoard::GetKingDangerSquares(Team t) const
 {
-	return KingDangerSquares[(int)t];
+	return kingDangerSquares[(int)t];
+}
+BitBoard ChessBoard::GetEmptyBB() const
+{
+	return pieceBBs[BBIndex::Occupied] ^ Universe;
 }
 ChessBoard::ChessBoard(const Vei2& topLeft)
 	:
@@ -86,8 +90,7 @@ ChessBoard::ChessBoard(const Vei2& topLeft)
 		0x2400000000000024, //Bishops
 		0x0800000000000008, //Queens
 		0x1000000000000010, //Kings
-		0xFFFF00000000FFFF, //Occupied
-		0x0000FFFFFFFF0000 //Empty
+		0xFFFF00000000FFFF //Occupied
 		})
 {
 	for (int row = 0; row < 8; row++)
@@ -325,306 +328,6 @@ std::vector<_Move> ChessBoard::GetPossibleMoves(const Square square) const
 	return result;
 }
 
-//_Move ChessBoard::Move(_Move move)
-//{
-//	auto srcCell = CellAt(move.src);
-//	auto team = srcCell->GetPiece()->GetTeam();
-//	auto destCell = CellAt(move.dest);
-//	switch (move.type)
-//	{
-//	case MoveType::Normal:
-//	{
-//		destCell->GivePiece(srcCell->GetPiece());
-//		srcCell->Clear();
-//		break;
-//	}
-//	case MoveType::EnPassant:
-//	{
-//		destCell->GivePiece(srcCell->GetPiece());
-//		srcCell->Clear();
-//		CellAt(enPassantPawnLoc)->Clear();
-//		break;
-//	}
-//	case MoveType::QueenPromotion:
-//		destCell->GivePiece(std::make_shared<Queen>(team, move.dest));
-//		srcCell->Clear();
-//		break;
-//	case MoveType::KnightPromotion:
-//		destCell->GivePiece(std::make_shared<Knight>(team, move.dest));
-//		srcCell->Clear();
-//		break;
-//	case MoveType::KingsideCastle:
-//		if (team == Team::WHITE)
-//		{
-//			CellAt({ 6,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
-//			CellAt({ 6,0 })->GetPiece()->Update({ 6,0 });
-//			CellAt({ 4,0 })->Clear();
-//			CellAt({ 5,0 })->GivePiece(CellAt({ 7,0 })->GetPiece());
-//			CellAt({ 5,0 })->GetPiece()->Update({ 5,0 });
-//			CellAt({ 7,0 })->Clear();
-//			hasCastledWhite = true;
-//		}
-//		else
-//		{
-//			CellAt({ 6,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
-//			CellAt({ 6,7 })->GetPiece()->Update({ 6,7 });
-//			CellAt({ 4,7 })->Clear();
-//			CellAt({ 5,7 })->GivePiece(CellAt({ 7,7 })->GetPiece());
-//			CellAt({ 5,7 })->GetPiece()->Update({ 5,7 });
-//			CellAt({ 7,7 })->Clear();
-//			hasCastledBlack = true;
-//		}
-//		break;
-//	case MoveType::QueensideCastle:
-//		if (team == Team::WHITE)
-//		{
-//			CellAt({ 2,0 })->GivePiece(CellAt({ 4,0 })->GetPiece());
-//			CellAt({ 2,0 })->GetPiece()->Update({ 2,0 });
-//			CellAt({ 4,0 })->Clear();
-//			CellAt({ 3,0 })->GivePiece(CellAt({ 0,0 })->GetPiece());
-//			CellAt({ 3,0 })->GetPiece()->Update({ 3,0 });
-//			CellAt({ 0,0 })->Clear();
-//			hasCastledWhite = true;
-//		}
-//		else
-//		{
-//			CellAt({ 2,7 })->GivePiece(CellAt({ 4,7 })->GetPiece());
-//			CellAt({ 2,7 })->GetPiece()->Update({ 2,7 });
-//			CellAt({ 4,7 })->Clear();
-//			CellAt({ 3,7 })->GivePiece(CellAt({ 0,7 })->GetPiece());
-//			CellAt({ 3,7 })->GetPiece()->Update({ 3,7 });
-//			CellAt({ 0,7 })->Clear();
-//			hasCastledBlack = true;
-//		}
-//	}
-//
-//	if(move.type != MoveType::KingsideCastle && move.type != MoveType::QueensideCastle)
-//		PostMoveUpdate(CellAt(move.dest)->GetPiece(), move.dest);
-//	return move;
-//}
-
-//calling function's team is the team the player is on, so we check if the opponent has been put in check (which is why it may appear backward).
-//void ChessBoard::IsInCheck(Team t)
-//{
-//	if (t == Team::WHITE)
-//	{
-//		blackInCheck = IsBlackInCheck();
-//		if (blackInCheck)
-//		{
-//			IsCheckmate(Team::BLACK);
-//		}
-//
-//	}
-//	else
-//	{
-//		whiteInCheck = IsWhiteInCheck();
-//		if (whiteInCheck)
-//		{
-//			IsCheckmate(Team::WHITE);
-//		}
-//	}
-//}
-//
-//bool ChessBoard::IsWhiteInCheck() const
-//{
-//	for (const auto& cell : cells)
-//	{
-//		if (!cell->Empty())
-//		{
-//			auto p = cell->GetPiece();
-//			if (p->GetTeam() == Team::BLACK)
-//			{
-//				auto moves = p->GetPossibleAttackMoves(*this);
-//				for (const auto& move : moves)
-//				{
-//					auto c = CellAt(move.dest);
-//					if (!c->Empty() && c->GetPiece()->GetTeam() == Team::WHITE && typeid(*c->GetPiece()) == typeid(King))
-//						return true;
-//				}
-//			}
-//		}
-//	}
-//	return false;
-//}
-//bool ChessBoard::IsBlackInCheck() const
-//{
-//	for (const auto& cell : cells)
-//	{
-//		if (!cell->Empty())
-//		{
-//			auto p = cell->GetPiece();
-//			if (p->GetTeam() == Team::WHITE)
-//			{
-//				auto moves = p->GetPossibleAttackMoves(*this);
-//				for (const auto& move : moves)
-//				{
-//					auto c = CellAt(move.dest);
-//					if (!c->Empty() && c->GetPiece()->GetTeam() == Team::BLACK && typeid(*c->GetPiece()) == typeid(King))
-//						return true;
-//				}
-//			}
-//		}
-//	}
-//	return false;
-//}
-//bool ChessBoard::SimulateAndCheck(_Move move)
-//{
-//	if (move.type == MoveType::KingsideCastle || move.type == MoveType::QueensideCastle)
-//		return false;
-//	auto t = CellAt(move.src)->GetPiece()->GetTeam();
-//	auto srcCell = CellAt(move.src);
-//	auto destCell = CellAt(move.dest);
-//
-//	//make a copy of the piece at destCell
-//	auto destPiece = CellAt(move.dest)->GetPiece();
-//
-//	destCell->GivePiece(srcCell->GetPiece());
-//	srcCell->Clear();
-//
-//	std::shared_ptr<Piece> passant = nullptr;
-//	bool passantified = false;
-//
-//	if (move.type == MoveType::EnPassant)
-//	{
-//		passant = CellAt(enPassantPawnLoc)->GetPiece();
-//		CellAt(enPassantPawnLoc)->Clear();
-//		passantified = true;
-//	}
-//
-//	//test if this move causes king to be in check
-//	bool badMove = t == Team::WHITE ? IsWhiteInCheck() : IsBlackInCheck();
-//
-//	//restore pieces to their original position
-//	srcCell->GivePiece(destCell->GetPiece());
-//	destCell->GivePiece(destPiece);
-//	if (passantified)
-//		CellAt(enPassantPawnLoc)->GivePiece(passant);
-//
-//	return badMove;
-//}
-//std::vector<_Move> ChessBoard::GetValidMoves(const Vei2& loc)
-//{
-//	if (CellAt(loc)->Empty())
-//		return {};
-//	std::vector<_Move> ans;
-//	auto moves = CellAt(loc)->GetPiece()->GetPossibleMoves(*this);
-//	for (const auto& move : moves)
-//	{
-//		if (!SimulateAndCheck(move))
-//			ans.push_back(move);
-//	}
-//	return ans;
-//}
-//
-//bool ChessBoard::IsUnderAttack(Team t, const Vei2& loc) const
-//{
-//	for (const auto& cell : cells)
-//	{
-//		if (!cell->Empty())
-//		{
-//			auto piece = cell->GetPiece();
-//			if (piece->GetTeam() != t)
-//			{
-//				auto attackMoves = piece->GetPossibleAttackMoves(*this);
-//				for (const auto& l : attackMoves)
-//				{
-//					if (l.dest == loc)
-//						return true;
-//				}
-//			}
-//		}
-//	}
-//	return false;
-//}
-//
-//bool ChessBoard::CanCastleKingside(Team t) const
-//{
-//	if (t == Team::WHITE)
-//	{
-//		if (hasCastledWhite)
-//			return false;
-//		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 7,0 })->Empty())
-//		{
-//			auto k = CellAt({ 4,0 })->GetPiece();
-//			auto r = CellAt({ 7,0 })->GetPiece();
-//			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,0 })->Empty() && CellAt({ 6,0 })->Empty() && !IsUnderAttack(t, { 5,0 }) && !IsUnderAttack(t, { 6,0 }) && !IsWhiteInCheck())
-//				return true;
-//		}
-//	}
-//	else
-//	{
-//		if (hasCastledBlack)
-//			return false;
-//		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 7,7 })->Empty())
-//		{
-//			auto k = CellAt({ 4,7 })->GetPiece();
-//			auto r = CellAt({ 7,7 })->GetPiece();
-//			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 5,7 })->Empty() && CellAt({ 6,7 })->Empty() && !IsUnderAttack(t, { 5,7 }) && !IsUnderAttack(t, { 6,7 }) && !IsBlackInCheck())
-//				return true;
-//		}
-//	}
-//	return false;
-//}
-//bool ChessBoard::CanCastleQueenside(Team t) const
-//{
-//	if (t == Team::WHITE)
-//	{
-//		if (hasCastledWhite)
-//			return false;
-//		if (!CellAt({ 4,0 })->Empty() && !CellAt({ 0,0 })->Empty())
-//		{
-//			auto k = CellAt({ 4,0 })->GetPiece();
-//			auto r = CellAt({ 0,0 })->GetPiece();
-//			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,0 })->Empty() && CellAt({ 2,0 })->Empty() && CellAt({ 3,0 })->Empty() && !IsUnderAttack(t, { 2,0 }) && !IsUnderAttack(t, { 3,0 }))
-//				return true;
-//		}
-//	}
-//	else
-//	{
-//		if (hasCastledBlack)
-//			return false;
-//		if (!CellAt({ 4,7 })->Empty() && !CellAt({ 0,7 })->Empty())
-//		{
-//			auto k = CellAt({ 4,7 })->GetPiece();
-//			auto r = CellAt({ 0,7 })->GetPiece();
-//			if (typeid(*k) == typeid(King) && typeid(*r) == typeid(Rook) && !k->HasMoved() && !r->HasMoved() && CellAt({ 1,7 })->Empty() && CellAt({ 2,7 })->Empty() && CellAt({ 3,7 })->Empty() && !IsUnderAttack(t, { 2,7 }) && !IsUnderAttack(t, { 3,7 }))
-//				return true;
-//		}
-//	}
-//	return false;
-//}
-//void ChessBoard::PostMoveUpdate(const std::shared_ptr<Piece> p, const Vei2& loc)
-//{
-//	p->Update(loc);
-//	if (typeid(*p) == typeid(Pawn))
-//	{
-//		if (p->GetNumMoves() == 1 && (loc.y == 4 || loc.y == 3))
-//		{
-//			isEnPassantable = true;
-//			enPassantSquare = p->GetTeam() == Team::BLACK ? loc + Vei2{ 0, 1 } : loc + Vei2{ 0,-1 };
-//			enPassantPawnLoc = loc;
-//			passantTeam = p->GetTeam();
-//			return;
-//		}
-//		else if ((loc.y == 7 && p->GetTeam() == Team::WHITE) || (loc.y == 0 && p->GetTeam() == Team::BLACK))
-//			isPromoting = true;
-//	}
-//	isEnPassantable = false;
-//}
-//void ChessBoard::IsCheckmate(Team t)
-//{
-//	for (const auto& c : cells)
-//	{
-//		if (!c->Empty() && c->GetPiece()->GetTeam() == t)
-//		{
-//			std::vector<_Move> moves = GetValidMoves(c->GetLoc());
-//			if (moves.size() > 0)
-//				return;
-//		}
-//	}
-//	//if no moves can be made after looping through each cell, then we must be in a checkmate state.
-//	isCheckmate = true;
-//}
 
 bool ChessBoard::IsCheckmate() const
 {
@@ -632,7 +335,7 @@ bool ChessBoard::IsCheckmate() const
 }
 bool ChessBoard::IsInCheck(Team t) const
 {
-	return pieceBBs[BBIndex::Kings] & pieceBBs[(BBIndex)t] & KingDangerSquares[(int)t];
+	return pieceBBs[BBIndex::Kings] & pieceBBs[(BBIndex)t] & kingDangerSquares[(int)t];
 }
 bool ChessBoard::IsDoubleCheck(Team t) const
 {
@@ -655,7 +358,37 @@ Vei2 ChessBoard::GetEnPassantPawnLoc() const
 {
 	return enPassantPawnLoc;
 }
-
+bool ChessBoard::CanCastleKingside(Team t) const
+{
+	if (t == Team::WHITE)
+	{
+		if (hasCastledWhite || !canCastleKingsideWhite)
+			return false;
+		return pieceBBs[BBIndex::Rooks] & 0x80 && !(kingDangerSquares[(int)t] & 0x60) && GetEmptyBB() & 0x60;
+	}
+	if (hasCastledBlack || !canCastleKingsideBlack)
+		return false;
+	return pieceBBs[BBIndex::Rooks] & 0x8000000000000000 && !(kingDangerSquares[(int)t] & 0x6000000000000000) && GetEmptyBB() & 0x6000000000000000;
+}
+bool ChessBoard::CanCastleQueenside(Team t) const
+{
+	if (t == Team::WHITE)
+	{
+		if (hasCastledWhite || !canCastleQueensideWhite)
+			return false;
+		return pieceBBs[BBIndex::Rooks] & 0x1 && !(kingDangerSquares[(int)t] & 0xe) && GetEmptyBB() & 0xe;
+	}
+	if (hasCastledBlack || !canCastleKingsideBlack)
+		return false;
+	return pieceBBs[BBIndex::Rooks] & 0x0100000000000000 && !(kingDangerSquares[(int)t] & 0x0e00000000000000) && GetEmptyBB() & 0x0e00000000000000;
+}
+void ChessBoard::SetCastleFlag(Team t)
+{
+	if (t == Team::WHITE)
+		hasCastledWhite = true;
+	else
+		hasCastledBlack = true;
+}
 void ChessBoard::ApplyMove(_Move m, Team t)
 {
 	auto flag = m.GetFlag();
@@ -667,13 +400,89 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	auto destBB = SquareToBitBoard(dest);
 	//no matter what kind of move it is, we always clear out the source square. So we will update the bitboards accordingly.
 	pieceBBs[BBIndex::Occupied] ^= srcBB;
-	pieceBBs[BBIndex::Empty] |= srcBB;
 	pieceBBs[BBIndex::White] &= pieceBBs[BBIndex::Occupied];
 	pieceBBs[BBIndex::Black] &= pieceBBs[BBIndex::Occupied];
 	pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[BBIndex::Occupied];
 
 	switch (flag)
 	{
+	case _Move::Flag::KingsideCastle:
+	{
+		if (t == Team::WHITE)
+		{
+			//remove rook on h1 from bitboards
+			BitBoard h1 = SquareToBitBoard(Square::h1);
+			BitBoard e1 = SquareToBitBoard(Square::e1);
+			BitBoard f1 = SquareToBitBoard(Square::f1);
+			pieceBBs[BBIndex::Occupied] ^= h1;
+			pieceBBs[BBIndex::White] ^= h1;
+			pieceBBs[BBIndex::Rooks] ^= h1;
+
+
+			//add the pieces in new positions
+			pieceBBs[BBIndex::Occupied] |= f1 | destBB;
+			pieceBBs[BBIndex::White] |= f1 | destBB;
+			pieceBBs[BBIndex::Rooks] |= f1;
+			pieceBBs[BBIndex::Kings] |= destBB;
+			hasCastledWhite = true;
+		}
+		else
+		{
+			//remove rook on h8 from bitboards
+			BitBoard h8 = SquareToBitBoard(Square::h8);
+			BitBoard e8 = SquareToBitBoard(Square::e8);
+			BitBoard f8 = SquareToBitBoard(Square::f8);
+			pieceBBs[BBIndex::Occupied] ^= h8;
+			pieceBBs[BBIndex::Black] ^= h8;
+			pieceBBs[BBIndex::Rooks] ^= h8;
+
+			//add the pieces in new positions
+			pieceBBs[BBIndex::Occupied] |= f8 | destBB;
+			pieceBBs[BBIndex::Black] |= f8 | destBB;
+			pieceBBs[BBIndex::Rooks] |= f8;
+			pieceBBs[BBIndex::Kings] |= destBB;
+			hasCastledBlack = true;
+		}
+		break;
+	}
+	case _Move::Flag::QueensideCastle:
+	{		
+		if (t == Team::WHITE)
+		{
+			//remove rook on h1 from bitboards
+			BitBoard a1 = SquareToBitBoard(Square::a1);
+			BitBoard e1 = SquareToBitBoard(Square::e1);
+			BitBoard d1 = SquareToBitBoard(Square::d1);
+			pieceBBs[BBIndex::Occupied] ^= a1;
+			pieceBBs[BBIndex::White] ^= a1;
+			pieceBBs[BBIndex::Rooks] ^= a1;
+
+			//add the pieces in new positions
+			pieceBBs[BBIndex::Occupied] |= d1 | destBB;
+			pieceBBs[BBIndex::White] |= d1 | destBB;
+			pieceBBs[BBIndex::Rooks] |= d1;
+			pieceBBs[BBIndex::Kings] |= destBB;
+			hasCastledWhite = true;
+		}
+		else
+		{
+			//remove rook on a8 from bitboards
+			BitBoard a8 = SquareToBitBoard(Square::a8);
+			BitBoard e8 = SquareToBitBoard(Square::e8);
+			BitBoard d8 = SquareToBitBoard(Square::d8);
+			pieceBBs[BBIndex::Occupied] ^= a8;
+			pieceBBs[BBIndex::Black] ^= a8;
+			pieceBBs[BBIndex::Rooks] ^= a8;
+
+			//add the pieces in new positions
+			pieceBBs[BBIndex::Occupied] |= d8 | destBB;
+			pieceBBs[BBIndex::Black] |= d8 | destBB;
+			pieceBBs[BBIndex::Rooks] |= d8;
+			pieceBBs[BBIndex::Kings] |= destBB;
+			hasCastledBlack = true;
+		}
+		break; 
+	}
 	case _Move::Flag::KnightPromotionCapture:
 		if (t == Team::WHITE)
 		{
@@ -716,7 +525,6 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		break;
 	case _Move::Flag::KnightPromotion:
 		pieceBBs[BBIndex::Occupied] |= destBB;
-		pieceBBs[BBIndex::Empty] ^= destBB;
 		pieceBBs[BBIndex::Knights] |= destBB;
 		pieceBBs[BBIndex::Pawns] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
@@ -726,7 +534,6 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		break;
 	case _Move::Flag::QueenPromotion:
 		pieceBBs[BBIndex::Occupied] |= destBB;
-		pieceBBs[BBIndex::Empty] ^= destBB;
 		pieceBBs[BBIndex::Queens] |= destBB;
 		pieceBBs[BBIndex::Pawns] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
@@ -758,7 +565,6 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		isEnPassantable = true;
 		//TODO - figure out enpassant square
 		pieceBBs[BBIndex::Occupied] |= destBB;
-		pieceBBs[BBIndex::Empty] ^= destBB;
 		pieceBBs[BBIndex::Pawns] |= destBB;
 		if (t == Team::WHITE)
 			pieceBBs[BBIndex::White] |= destBB;
@@ -767,7 +573,6 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 		break;
 	case _Move::Flag::None:
 		pieceBBs[BBIndex::Occupied] |= destBB;
-		pieceBBs[BBIndex::Empty] ^= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] |= destBB;
 		pieceBBs[PieceTypeMatcher(srcPiece)] &= pieceBBs[BBIndex::Occupied];
 		if (t == Team::WHITE)
@@ -778,9 +583,32 @@ void ChessBoard::ApplyMove(_Move m, Team t)
 	}
 	plies.push(m);
 
+	if (srcPiece == PieceType::King)
+	{
+		SetCastleFlag(t);
+	}
+
+	//check if we move a (rook) out of it's starting place
+	switch (src)
+	{
+	case Square::a1:
+		canCastleQueensideWhite = false;
+		break;
+	case Square::h1:
+		canCastleKingsideWhite = false;
+		break;
+	case Square::a8:
+		canCastleQueensideBlack = false;
+		break;
+	case Square::h8:
+		canCastleKingsideBlack = false;
+		break;
+	}
+
 	//finally, need to update pins and other team's king danger squares
 	Team other = (Team)(1 - (int)t);
-	KingDangerSquares[(int)other] = CalculateKingDangerSquares(other);
+	kingDangerSquares[(int)other] = CalculateKingDangerSquares(other);
+	kingDangerSquares[(int)t] = CalculateKingDangerSquares(t);
 	pins = CalculatePins(other);
 	if (IsInCheck(other))
 	{
@@ -810,7 +638,7 @@ ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(PieceType p) const
 	case PieceType::King:
 		return BBIndex::Kings;
 	default:
-		return BBIndex::Empty;
+		return BBIndex::Kings;
 	}
 }
 

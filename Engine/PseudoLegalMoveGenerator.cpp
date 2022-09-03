@@ -18,7 +18,7 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 	for (const auto& square : pinnedSquares)
 	{
 		auto attacks = brd.KnightAttacks[square] & pinCorridors[square];
-		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto quiets = attacks & brd.GetEmptyBB();
 		auto captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -38,7 +38,7 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 	for (const auto& square : freeSquares)
 	{
 		auto attacks = brd.KnightAttacks[square];
-		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto quiets = attacks & brd.GetEmptyBB();
 		auto captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);

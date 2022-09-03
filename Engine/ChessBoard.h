@@ -37,8 +37,7 @@ public:
 		Queens,
 		Kings,
 		Occupied,
-		Empty,
-		kMaxValue = Empty
+		kMaxValue = Occupied
 	};
 	Bencher b;
 	ChessBoard(const Vei2& topLeft);
@@ -76,6 +75,7 @@ public:
 	BitBoard GetPins() const;
 	bool IsDoubleCheck(Team t) const;
 	BitBoard GetCheckCorridor() const;
+	BitBoard GetEmptyBB() const;
 
 private:
 	//member functions
@@ -101,6 +101,7 @@ private:
 	BitBoard GetKnightAttackBB(Team t);
 	BitBoard GetKingAttackers(Team t);
 	BitBoard GetCheckCorridor(Team t, Square sq, PieceType p);
+	void SetCastleFlag(Team t);
 	//member dataclass
 
 	enum class DirectionOffsets
@@ -123,7 +124,7 @@ private:
 	//BitBoard BishopAttacks[64];
 	//BitBoard QueenAttacks[64];
 	//0 = White, 1 = Black
-	BitBoard KingDangerSquares[2] = { 0,0 };
+	BitBoard kingDangerSquares[2] = {0,0};
 	BitBoard pins = 0;
 	BitBoard kingAttackers = 0; //we update this only when the king gets put in check
 	BitBoard checkCorridor = 0;
@@ -137,10 +138,14 @@ private:
 	std::shared_ptr<Cell> cells[64];
 	bool hasCastledWhite = false;
 	bool hasCastledBlack = false;
+	bool canCastleKingsideWhite = true;
+	bool canCastleQueensideWhite = true;
+	bool canCastleKingsideBlack = true;
+	bool canCastleQueensideBlack = true;
 	bool isPromoting = false;
 	bool isEnPassantable = false;
-	bool whiteInCheck = false;
-	bool blackInCheck = false;
+	//bool whiteInCheck = false;
+	//bool blackInCheck = false;
 	bool isCheckmate = false;
 	Vei2 enPassantSquare = { 0,0 };
 	Vei2 enPassantPawnLoc = { 0,0 };

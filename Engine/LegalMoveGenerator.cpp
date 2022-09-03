@@ -7,22 +7,61 @@ std::vector<_Move> LegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoar
 	auto kingPos = pieceBBs[(int)ChessBoard::BBIndex::Kings] & pieceBBs[(int)t];
 	auto attackBB = BBTwiddler::KingAttacks(kingPos);
 	auto dangers = brd.GetKingDangerSquares(t);
-	//for debugging purposes only
-	auto dangerSquares = ChessBoard::BitBoardToSquares(dangers);
-	//
 	auto safes = ChessBoard::Universe ^ dangers;
 	auto attackSquares = ChessBoard::BitBoardToSquares(attackBB & pieceBBs[1 - (int)t] & safes);
-	auto quietSquares = ChessBoard::BitBoardToSquares(attackBB & pieceBBs[(int)ChessBoard::BBIndex::Empty] & safes);
+	auto quietSquares = ChessBoard::BitBoardToSquares(attackBB & brd.GetEmptyBB() & safes);
 
-	auto kingSquare = ChessBoard::BitBoardToSquares(kingPos);
+	auto kingSquare = ChessBoard::BitBoardToSquare(kingPos);
+
+	//handle castling
+	if (brd.CanCastleKingside(t))
+	{
+		if (t == Team::WHITE)
+			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::g1, PieceType::King });
+		else
+			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::g8, PieceType::King });
+	}
+	if (brd.CanCastleQueenside(t))
+	{
+		if (t == Team::WHITE)
+			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::c1, PieceType::King });
+		else
+			moves.push_back({ (uint)_Move::Flag::KingsideCastle, (uint)kingSquare, (uint)ChessBoard::Square::c8, PieceType::King });
+	}
+
+	//handle normal moves
 	for (const auto square : attackSquares)
 	{
 		auto capturePT = brd.ParseCapture(square);
-		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare[0], (uint)square, PieceType::King, capturePT });
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare, (uint)square, PieceType::King, capturePT });
 	}
 	for (const auto square : quietSquares)
 	{
-		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare[0], (uint)square, PieceType::King });
+		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare, (uint)square, PieceType::King });
+	}
+	return moves;
+}
+
+std::vector<_Move> GenerateKingMovesCheck(Team t, const ChessBoard& brd)
+{
+	std::vector<_Move> moves;
+	auto pieceBBs = brd.GetPieceBBs();
+	auto kingPos = pieceBBs[(int)ChessBoard::BBIndex::Kings] & pieceBBs[(int)t];
+	auto attackBB = BBTwiddler::KingAttacks(kingPos);
+	auto dangers = brd.GetKingDangerSquares(t);
+	auto safes = ChessBoard::Universe ^ dangers;
+	auto attackSquares = ChessBoard::BitBoardToSquares(attackBB & pieceBBs[1 - (int)t] & safes);
+	auto quietSquares = ChessBoard::BitBoardToSquares(attackBB & brd.GetEmptyBB() & safes);
+	auto kingSquare = ChessBoard::BitBoardToSquare(kingPos);
+
+	for (const auto square : attackSquares)
+	{
+		auto capturePT = brd.ParseCapture(square);
+		moves.push_back({ (uint)_Move::Flag::Capture, (uint)kingSquare, (uint)square, PieceType::King, capturePT });
+	}
+	for (const auto square : quietSquares)
+	{
+		moves.push_back({ (uint)_Move::Flag::None, (uint)kingSquare, (uint)square, PieceType::King });
 	}
 	return moves;
 }
@@ -41,7 +80,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBo
 	for (const auto& square : pinnedSquares)
 	{
 		auto attacks = brd.KnightAttacks[square] & pinCorridors[square];
-		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto quiets = attacks & brd.GetEmptyBB();
 		auto captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -61,7 +100,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBo
 	for (const auto& square : freeSquares)
 	{
 		auto attacks = brd.KnightAttacks[square];
-		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto quiets = attacks & brd.GetEmptyBB();
 		auto captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -91,7 +130,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMovesCheck(Team t, const Ch
 	for (const auto& square : freeSquares)
 	{
 		auto attacks = brd.KnightAttacks[square] & checkCorridor;
-		auto quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		auto quiets = attacks & brd.GetEmptyBB();
 		auto captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -124,7 +163,7 @@ std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
 	for (const auto square : freeRookSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -158,7 +197,7 @@ std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
 	for (const auto square : freeBishopSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -192,7 +231,7 @@ std::vector<_Move> GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
 	for (const auto square : freeQueenSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -224,7 +263,7 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 	std::vector<_Move> moves;
 	auto pieceBBs = brd.GetPieceBBs();
 	auto pins = brd.GetPins();
-	auto empty = pieceBBs[ChessBoard::BBIndex::Empty];
+	auto empty = brd.GetEmptyBB();
 	auto checkCorridor = brd.GetCheckCorridor();
 	if (t == Team::WHITE)
 	{
@@ -361,7 +400,7 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	for (const auto square : pinnedRookSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -382,7 +421,7 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	for (const auto square : freeRookSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -416,7 +455,7 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	for (const auto square : pinnedBishopSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -437,7 +476,7 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	for (const auto square : freeBishopSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -471,7 +510,7 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 	for (const auto square : pinnedQueenSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -492,7 +531,7 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 	for (const auto square : freeQueenSquares)
 	{
 		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks);
-		BitBoard quiets = attacks & pieceBBs[ChessBoard::BBIndex::Empty];
+		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
 		auto quietSquares = ChessBoard::BitBoardToSquares(quiets);
@@ -526,7 +565,7 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 	auto pieceBBs = brd.GetPieceBBs();
 	auto pins = brd.GetPins();
 	auto corridors = brd.GetCorridors();
-	auto empty = pieceBBs[ChessBoard::BBIndex::Empty];
+	auto empty = brd.GetEmptyBB();
 	if (t == Team::WHITE)
 	{
 
@@ -771,14 +810,14 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 
 std::vector<_Move> LegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& brd)
 {
-	auto moves = GenerateKingMoves(t, brd);
 	if (brd.IsInCheck(t))
 	{
 		if (brd.IsDoubleCheck(t))
 		{
-			return moves;
+			return GenerateKingMovesCheck(t, brd);
 		}
 
+		auto moves = GenerateKingMovesCheck(t, brd);
 		auto knightMoves = GenerateKnightMovesCheck(t, brd);
 		moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
 		auto slidingMoves = GenerateSlidingMovesCheck(t, brd);
@@ -787,6 +826,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& b
 		moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
 		return moves;
 	}
+	auto moves = GenerateKingMoves(t, brd);
 	auto moreMoves = GenerateKnightMoves(t, brd);
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	moreMoves = GenerateSlidingMoves(t, brd);
