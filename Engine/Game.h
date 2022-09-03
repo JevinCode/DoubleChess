@@ -62,7 +62,8 @@ private:
 	BoardSelection curSelection = BoardSelection::NIL;
 	BoardSelection prevSelection = BoardSelection::NIL;
 	std::stack<BoardSelection> movesSelected;
-	ChessAI mrAI;
+	ChessAI mrAIWhite;
+	ChessAI mrAIBlack;
 
 	RectI queenPromotionArea = { {551, 400}, {581, 431} };
 	RectI knightPromotionArea = { {599, 400}, {629, 430} };
@@ -71,6 +72,7 @@ private:
 	Surface undoredo = std::string("Images\\undoredo.bmp");
 	float benchTime = 0.0f;
 	bool gameIsOver = false;
+	bool stalemate = false;
 
 	/********************************/
 };

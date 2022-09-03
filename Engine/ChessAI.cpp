@@ -11,22 +11,8 @@ ChessAI::ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2)
 }
 
 void ChessAI::HandleMoveEvent(bool isBrd1)
-{/*
-	if (midGame)
-	{
-		Move();
-	}
-	else
-	{
-		if (isBrd1)
-		{
-			Move({ isBrd1, brd1.moveMade });
-		}
-		else
-		{
-			Move({ isBrd1, brd2.moveMade });
-		}
-	}*/
+{
+	Move();
 }
 
 bool ChessAI::MidGame() const
@@ -40,50 +26,49 @@ std::string ChessAI::GetBookName() const
 }
 void ChessAI::Move()
 {
-	auto b1moves = GenerateMoves(brd1);
-//	auto b2moves = GenerateMoves(brd2);
-//	if (brd1.blackInCheck)
-//	{
-//		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
-//		auto move = b1moves[num(rng)];
-//		brd1.Move(move);
-//		//handle promotion if applicable
-//		brd1.whiteInCheck = brd1.IsWhiteInCheck();
-//	}
-//	else if (brd2.blackInCheck)
-//	{
-//		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
-//		auto move = b2moves[num(rng)];
-//		brd2.Move(move);
-//		//handle promotion if applicable
-//		brd2.whiteInCheck = brd2.IsWhiteInCheck();
-//	}
-//	else
-//	{
-//		int choice = rand() % 2;
-//		if (choice)
-//		{
-//			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
-//			auto move = b1moves[num(rng)];
-//			brd1.Move(move);
-//			//handle promotion if applicable
-//			brd1.whiteInCheck = brd1.IsWhiteInCheck();
-//		}
-//		else
-//		{
-//			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
-//			auto move = b2moves[num(rng)];
-//			brd2.Move(move);
-//			//handle promotion if applicable
-//			brd2.whiteInCheck = brd2.IsWhiteInCheck();
-//		}
-//	}
+	auto b1moves = brd1.userPossibleMoves;
+	auto b2moves = brd2.userPossibleMoves;
+	if (brd1.IsInCheck(team))
+	{
+		assert(b1moves.size() > 0);
+		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
+		auto move = b1moves[num(rng)];
+		brd1.ApplyMove(move, team);
+		//handle promotion if applicable
+	}
+	else if (brd2.IsInCheck(team))
+	{
+		assert(b2moves.size() > 0);
+		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
+		auto move = b2moves[num(rng)];
+		brd2.ApplyMove(move, team);
+		//handle promotion if applicable
+	}
+	else
+	{
+		int choice = rand() % 2;
+		if (choice)
+		{
+			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
+			auto move = b1moves[num(rng)];
+			brd1.ApplyMove(move, team);
+			//handle promotion if applicable
+		}
+		else
+		{
+			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
+			auto move = b2moves[num(rng)];
+			brd2.ApplyMove(move, team);
+			//handle promotion if applicable
+		}
+	}
 }
 
-std::vector<_Move> ChessAI::GenerateMoves(ChessBoard& brd)
+Team ChessAI::GetTeam() const
 {
-	return {};
+	return team;
 }
+
 
 int ChessAI::Score(const ChessBoard& brd) const
 {

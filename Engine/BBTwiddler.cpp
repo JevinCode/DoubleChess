@@ -38,6 +38,10 @@ bool BBTwiddler::SingleElement(BitBoard bb)
 	return bb != 0 && (bb & (bb - 1)) == 0;
 }
 
+int BBTwiddler::PopCount(BitBoard bb)
+{
+	return _mm_popcnt_u64(bb);
+}
 BitBoard BBTwiddler::NorthOne(BitBoard bb)
 {
 	return bb << 8;

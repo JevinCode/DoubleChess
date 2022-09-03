@@ -39,7 +39,6 @@ public:
 		Occupied,
 		kMaxValue = Occupied
 	};
-	Bencher b;
 	ChessBoard(const Vei2& topLeft);
 	void ApplyMove(_Move m, Team t);
 	void RevertMove();
@@ -77,7 +76,7 @@ public:
 	bool IsDoubleCheck(Team t) const;
 	BitBoard GetCheckCorridor() const;
 	BitBoard GetEmptyBB() const;
-
+	bool IsStalemate() const;
 private:
 	//member functions
 
@@ -182,4 +181,6 @@ public:
 	static constexpr BitBoard Rank5 = 0x000000FF00000000;
 	static constexpr BitBoard Rank7 = 0x00FF000000000000;
 	static constexpr BitBoard Rank8 = 0xFF00000000000000;
+	static constexpr BitBoard NotRank1 = Universe ^ Rank1;
+	static constexpr BitBoard NotRank8 = Universe ^ Rank8;
 };

@@ -29,7 +29,8 @@ Game::Game( MainWindow& wnd )
 	gfx( wnd ),
 	brd1({ 80,50 }),
 	brd2({ 480, 50 }),
-	mrAI(Team::BLACK, brd1, brd2),
+	mrAIWhite(Team::WHITE, brd1, brd2),
+	mrAIBlack(Team::BLACK, brd1, brd2),
 	font("Images\\Fixedsys16x28.bmp")
 {
 }
@@ -46,60 +47,63 @@ void Game::UpdateModel()
 {
 	if (gameIsOver)
 	{
-		if (playerTurn == Team::BLACK)
-			font.DrawText("White Wins!", { 375, 400 }, Colors::White, gfx);
-		else
-			font.DrawText("Black Wins!", { 375, 400 }, Colors::White, gfx);
 		return;
 	}
-	//if (playerTurn == Team::BLACK)
+	if (playerTurn == Team::BLACK)
+		mrAIBlack.HandleMoveEvent(false);
+	else
+		mrAIWhite.HandleMoveEvent(false);
+
+	playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+	brd1.GenerateMoves(playerTurn);
+	brd2.GenerateMoves(playerTurn);
+	brd1.turnSwap = false;
+	brd2.turnSwap = false;
+	TestForCheckmate();
+
+	
+	
+	//while (!wnd.mouse.IsEmpty())
 	//{
-	//	mrAI.HandleMoveEvent(curSelection == BoardSelection::Board1);
-	//	TestForCheckmate();
-	//	if(!gameIsOver)
-	//		playerTurn = Team::WHITE;
+	//	const auto e = wnd.mouse.Read();
+	//	if (e.GetType() == Mouse::Event::Type::LPress)
+	//	{
+	//		Vei2 loc = wnd.mouse.GetPos();
+	//		OnClick(loc);
+	//		if (brd1.turnSwap)
+	//		{
+	//			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+	//			if(!UndoArea.Contains(loc))
+	//				movesSelected.push(BoardSelection::Board1);
+	//			brd2.isEnPassantable = false;
+	//			brd1.GenerateMoves(playerTurn);
+	//			brd2.GenerateMoves(playerTurn);
+	//			brd1.turnSwap = false;
+	//		}
+	//		else if (brd2.turnSwap)
+	//		{
+	//			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+	//			if (!UndoArea.Contains(loc))
+	//				movesSelected.push(BoardSelection::Board2);
+	//			brd1.isEnPassantable = false;
+	//			brd1.GenerateMoves(playerTurn);
+	//			brd2.GenerateMoves(playerTurn);
+	//			brd2.turnSwap = false;
+	//		}
+	//		TestForCheckmate();
+	//	}
 	//}
-	while (!wnd.mouse.IsEmpty())
-	{
-		const auto e = wnd.mouse.Read();
-		if (e.GetType() == Mouse::Event::Type::LPress)
-		{
-			Vei2 loc = wnd.mouse.GetPos();
-			OnClick(loc);
-			if (brd1.turnSwap)
-			{
-				TestForCheckmate();
-				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-				if(!UndoArea.Contains(loc))
-					movesSelected.push(BoardSelection::Board1);
-				brd2.isEnPassantable = false;
-				brd1.GenerateMoves(playerTurn);
-				brd2.GenerateMoves(playerTurn);
-				brd1.turnSwap = false;
-				benchTime += brd1.b.Get();
-				benchTime += brd2.b.Get();
-			}
-			else if (brd2.turnSwap)
-			{
-				TestForCheckmate();
-				playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-				if (!UndoArea.Contains(loc))
-					movesSelected.push(BoardSelection::Board2);
-				brd1.isEnPassantable = false;
-				brd1.GenerateMoves(playerTurn);
-				brd2.GenerateMoves(playerTurn);
-				brd2.turnSwap = false;
-				benchTime += brd1.b.Get();
-				benchTime += brd2.b.Get();
-			}
-		}
-	}
 }
 
 void Game::TestForCheckmate()
 {
 	if (brd1.IsCheckmate() || brd2.IsCheckmate())
 	{
+		gameIsOver = true;
+	}
+	else if (brd1.IsStalemate() || brd2.IsStalemate())
+	{
+		stalemate = true;
 		gameIsOver = true;
 	}
 }
@@ -209,8 +213,17 @@ void Game::ComposeFrame()
 		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
 	}*/
 	gfx.DrawSprite(600, 550, { 0,25,0,24 }, undoredo, SpriteEffect::Chroma(Colors::White));
-	font.DrawText("Move generation has taken " + std::to_string(benchTime) + " seconds.", {50, 500}, Colors::Green, gfx);
 
+	if (gameIsOver)
+	{
+		if (stalemate)
+			font.DrawText("Stalemate!", { 375,400 }, Colors::White, gfx);
+
+		else if (playerTurn == Team::BLACK)
+			font.DrawText("White Wins!", { 375, 400 }, Colors::White, gfx);
+		else
+			font.DrawText("Black Wins!", { 375, 400 }, Colors::White, gfx);
+	}
 	if (brd1.isPromoting || brd2.isPromoting)
 	{
 		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);

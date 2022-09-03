@@ -282,9 +282,7 @@ PieceType ChessBoard::ParseCapture(Square sq) const
 
 void ChessBoard::GenerateMoves(Team t)
 {
-	b.Start();
 	userPossibleMoves = LegalMoveGenerator::GenerateMoves(t, *this);
-	b.End();
 }
 
 Vei2 ChessBoard::GetOffset() const
@@ -1173,3 +1171,17 @@ void ChessBoard::HandleSelectionClick(const Vei2& loc, Team t)
 	}
 }
 
+bool ChessBoard::IsStalemate() const
+{
+	int numPieces = BBTwiddler::PopCount(pieceBBs[BBIndex::Occupied]);
+	switch (numPieces)
+	{
+	case 2:
+		return true;
+	case 3:
+		if (pieceBBs[BBIndex::Bishops] || pieceBBs[BBIndex::Knights])
+			return true;
+	default:
+		return false;
+	}
+}

@@ -3,6 +3,7 @@
 #include "UniversalTypes.h"
 #include <vector>
 #include <cassert>
+#include <intrin.h>
 
 class BBTwiddler
 {
@@ -10,6 +11,7 @@ public:
 	static int bitScanForward(BitBoard bb);
 	static int bitScanReverse(BitBoard bb);
 	static bool SingleElement(BitBoard bb);
+	static int PopCount(BitBoard bb);
 	static BitBoard NorthOne(BitBoard bb);
 	static BitBoard EastOne(BitBoard bb);
 	static BitBoard SouthOne(BitBoard bb);

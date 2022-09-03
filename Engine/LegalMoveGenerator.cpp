@@ -272,6 +272,7 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 		auto freePawns = wPawns ^ (wPawns & pins);
 		BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsWhite(freePawns, empty) & checkCorridor;
 		BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank8 & checkCorridor;
+		singlePushTargetsNonPinned &= ChessBoard::NotRank8;
 		BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsWhite(freePawns, empty) & checkCorridor;
 		BitBoard wPawnEastAttacksNonPinned = BBTwiddler::WhitePawnEastAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::Black] & checkCorridor;
 		BitBoard wPawnEastPromotionsNonPinned = wPawnEastAttacksNonPinned & ChessBoard::Rank8 & checkCorridor;
@@ -330,6 +331,7 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 	auto freePawns = bPawns ^ (bPawns & pins);
 	BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsBlack(freePawns, empty) & checkCorridor;
 	BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank1 & checkCorridor;
+	singlePushTargetsNonPinned &= ChessBoard::NotRank1;
 	BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsBlack(freePawns, empty) & checkCorridor;
 	BitBoard bPawnEastAttacksNonPinned = BBTwiddler::BlackPawnEastAttacks(freePawns) & pieceBBs[ChessBoard::BBIndex::White] & checkCorridor;
 	BitBoard bPawnEastPromotionsNonPinned = bPawnEastAttacksNonPinned & ChessBoard::Rank1 & checkCorridor;
@@ -576,6 +578,8 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsWhite(freePawns, empty);
 		BitBoard singlePushPromotionsPinned = singlePushTargetsPinned & ChessBoard::Rank8;
 		BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank8;
+		singlePushTargetsNonPinned &= ChessBoard::NotRank8;
+		singlePushTargetsNonPinned &= ChessBoard::NotRank8;
 		BitBoard doublePushTargets = PseudoLegalMoveGenerator::DoublePushTargetsWhite(wPawns, empty);
 		BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsWhite(freePawns, empty);
 		BitBoard wPawnEastAttacksPinned = BBTwiddler::WhitePawnEastAttacks(pinnedPawns) & pieceBBs[ChessBoard::BBIndex::Black];
@@ -696,6 +700,8 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 	BitBoard singlePushTargetsNonPinned = PseudoLegalMoveGenerator::SinglePushTargetsBlack(freePawns, empty);
 	BitBoard singlePushPromotionsPinned = singlePushTargetsPinned & ChessBoard::Rank1;
 	BitBoard singlePushPromotionsNonPinned = singlePushTargetsNonPinned & ChessBoard::Rank1;
+	singlePushTargetsNonPinned &= ChessBoard::NotRank1;
+	singlePushTargetsNonPinned &= ChessBoard::NotRank1;
 	BitBoard doublePushTargets = PseudoLegalMoveGenerator::DoublePushTargetsBlack(bPawns, empty);
 	BitBoard doublePushNonPinned = PseudoLegalMoveGenerator::DoublePushTargetsBlack(freePawns, empty);
 	BitBoard bPawnEastAttacksPinned = BBTwiddler::BlackPawnEastAttacks(pinnedPawns) & pieceBBs[ChessBoard::BBIndex::White];
