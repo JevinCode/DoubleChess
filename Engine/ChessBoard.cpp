@@ -364,11 +364,11 @@ bool ChessBoard::CanCastleKingside(Team t) const
 	{
 		if (hasCastledWhite || !canCastleKingsideWhite)
 			return false;
-		return pieceBBs[BBIndex::Rooks] & 0x80 && !(kingDangerSquares[(int)t] & 0x60) && GetEmptyBB() & 0x60;
+		return pieceBBs[BBIndex::Rooks] & 0x80 && !(kingDangerSquares[(int)t] & 0x60) && ((GetEmptyBB() & 0x60) == 0x60);
 	}
 	if (hasCastledBlack || !canCastleKingsideBlack)
 		return false;
-	return pieceBBs[BBIndex::Rooks] & 0x8000000000000000 && !(kingDangerSquares[(int)t] & 0x6000000000000000) && GetEmptyBB() & 0x6000000000000000;
+	return pieceBBs[BBIndex::Rooks] & 0x8000000000000000 && !(kingDangerSquares[(int)t] & 0x6000000000000000) && ((GetEmptyBB() & 0x6000000000000000) == 0x6000000000000000);
 }
 bool ChessBoard::CanCastleQueenside(Team t) const
 {
@@ -376,11 +376,11 @@ bool ChessBoard::CanCastleQueenside(Team t) const
 	{
 		if (hasCastledWhite || !canCastleQueensideWhite)
 			return false;
-		return pieceBBs[BBIndex::Rooks] & 0x1 && !(kingDangerSquares[(int)t] & 0xe) && GetEmptyBB() & 0xe;
+		return pieceBBs[BBIndex::Rooks] & 0x1 && !(kingDangerSquares[(int)t] & 0xe) && ((GetEmptyBB() & 0xe) == 0xe);
 	}
 	if (hasCastledBlack || !canCastleKingsideBlack)
 		return false;
-	return pieceBBs[BBIndex::Rooks] & 0x0100000000000000 && !(kingDangerSquares[(int)t] & 0x0e00000000000000) && GetEmptyBB() & 0x0e00000000000000;
+	return pieceBBs[BBIndex::Rooks] & 0x0100000000000000 && !(kingDangerSquares[(int)t] & 0x0e00000000000000) && ((GetEmptyBB() & 0x0e00000000000000) == 0x0e00000000000000);
 }
 void ChessBoard::SetCastleFlag(Team t)
 {
