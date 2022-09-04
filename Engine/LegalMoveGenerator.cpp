@@ -263,8 +263,10 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 	std::vector<_Move> moves;
 	auto pieceBBs = brd.GetPieceBBs();
 	auto pins = brd.GetPins();
+	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto empty = brd.GetEmptyBB();
 	auto checkCorridor = brd.GetCheckCorridor();
+	auto enPassantAttackersNonPinned = brd.GetEnPassantAttackers() & (occupied ^ pins);
 	if (t == Team::WHITE)
 	{
 
@@ -288,8 +290,17 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 		auto promotionSquaresEast = ChessBoard::BitBoardToSquares(wPawnEastPromotionsNonPinned);
 		auto attackSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestAttacksNonPinned);
 		auto promotionSquaresWest = ChessBoard::BitBoardToSquares(wPawnWestPromotionsNonPinned);
+		auto passantSquares = ChessBoard::BitBoardToSquares(enPassantAttackersNonPinned);
 
 
+		if (brd.IsEnPassantable())
+		{
+			ChessBoard::Square enPassantSquare = ChessBoard::BitBoardToSquare(brd.GetEnPassantSquareBB());
+			for (const auto& square : passantSquares)
+			{
+				moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)enPassantSquare, PieceType::Pawn, PieceType::Pawn, t });
+			}
+		}
 		for (const auto square : singlePushPromotionSquares)
 		{
 			moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square - 8, (uint)square, PieceType::Pawn, t });
@@ -347,8 +358,16 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 	auto promotionSquaresEast = ChessBoard::BitBoardToSquares(bPawnEastPromotionsNonPinned);
 	auto attackSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestAttacksNonPinned);
 	auto promotionSquaresWest = ChessBoard::BitBoardToSquares(bPawnWestPromotionsNonPinned);
+	auto passantSquares = ChessBoard::BitBoardToSquares(enPassantAttackersNonPinned);
 
-
+	if (brd.IsEnPassantable())
+	{
+		ChessBoard::Square enPassantSquare = ChessBoard::BitBoardToSquare(brd.GetEnPassantSquareBB());
+		for (const auto& square : passantSquares)
+		{
+			moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)enPassantSquare, PieceType::Pawn, PieceType::Pawn, t });
+		}
+	}
 	for (const auto square : singlePushPromotionSquares)
 	{
 		moves.push_back({ (uint)_Move::Flag::KnightPromotion, (uint)square + 8, (uint)square, PieceType::Pawn, t });
