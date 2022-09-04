@@ -661,20 +661,23 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 				moves.push_back({ (uint)_Move::Flag::QueenPromotionCapture, (uint)square, (uint)westTarget, PieceType::Pawn, capturePT, t });
 			}
 		}
-		for (const auto square : passantSquaresPinned)
+		if(brd.IsEnPassantable())
 		{
-			auto pinCorridor = corridors[square];
-			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
-			auto passantAttack = enPassantSquareBB & pinCorridor;
-			if (passantAttack)
+			for (const auto square : passantSquaresPinned)
 			{
+				auto pinCorridor = corridors[square];
+				auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+				auto passantAttack = enPassantSquareBB & pinCorridor;
+				if (passantAttack)
+				{
+					moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
+				}
+			}
+			for (const auto square : passantSquaresFree)
+			{
+				auto enPassantSquareBB = brd.GetEnPassantSquareBB();
 				moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
 			}
-		}
-		for (const auto square : passantSquaresFree)
-		{
-			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
-			moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t});
 		}
 		for (const auto square : singlePushPromotionSquares)
 		{
@@ -802,20 +805,23 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 		}
 	}
 
-	for (const auto square : passantSquaresPinned)
+	if(brd.IsEnPassantable())
 	{
-		auto pinCorridor = corridors[square];
-		auto enPassantSquareBB = brd.GetEnPassantSquareBB();
-		auto passantAttack = enPassantSquareBB & pinCorridor;
-		if (passantAttack)
+		for (const auto square : passantSquaresPinned)
 		{
+			auto pinCorridor = corridors[square];
+			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
+			auto passantAttack = enPassantSquareBB & pinCorridor;
+			if (passantAttack)
+			{
+				moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
+			}
+		}
+		for (const auto square : passantSquaresFree)
+		{
+			auto enPassantSquareBB = brd.GetEnPassantSquareBB();
 			moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
 		}
-	}
-	for (const auto square : passantSquaresFree)
-	{
-		auto enPassantSquareBB = brd.GetEnPassantSquareBB();
-		moves.push_back({ (uint)_Move::Flag::EnPassant, (uint)square, (uint)ChessBoard::BitBoardToSquare(enPassantSquareBB), PieceType::Pawn, PieceType::Pawn, t });
 	}
 	for (const auto square : singlePushPromotionSquares)
 	{
