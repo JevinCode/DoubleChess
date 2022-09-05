@@ -21,6 +21,16 @@ public:
 	static BitBoard SoutheastOne(BitBoard bb);
 	static BitBoard SouthwestOne(BitBoard bb);
 
+	//used for generating knight attacks
+	static BitBoard NneOne(BitBoard bb);
+	static BitBoard NnwOne(BitBoard bb);
+	static BitBoard NeeOne(BitBoard bb);
+	static BitBoard NwwOne(BitBoard bb);
+	static BitBoard SseOne(BitBoard bb);
+	static BitBoard SswOne(BitBoard bb);
+	static BitBoard SeeOne(BitBoard bb);
+	static BitBoard SwwOne(BitBoard bb);
+
 	static BitBoard KingAttacks(BitBoard kingSet);
 	static BitBoard WhitePawnEastAttacks(BitBoard wpawns);
 	static BitBoard WhitePawnWestAttacks(BitBoard wpawns);

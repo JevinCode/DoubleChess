@@ -76,6 +76,39 @@ BitBoard BBTwiddler::SouthwestOne(BitBoard bb)
 	return (bb & ChessBoard::NotAFile) >> 9;
 }
 
+BitBoard BBTwiddler::NneOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotHFile) << 17;
+}
+BitBoard BBTwiddler::NnwOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotAFile) << 15;
+}
+BitBoard BBTwiddler::NeeOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotGHFile) << 10;
+}
+BitBoard BBTwiddler::NwwOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotABFile) << 6;
+}
+BitBoard BBTwiddler::SseOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotHFile) >> 15;
+}
+BitBoard BBTwiddler::SswOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotAFile) >> 17;
+}
+BitBoard BBTwiddler::SeeOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotGHFile) >> 6;
+}
+BitBoard BBTwiddler::SwwOne(BitBoard bb)
+{
+	return (bb & ChessBoard::NotABFile) >> 10;
+}
+
 BitBoard BBTwiddler::WhitePawnEastAttacks(BitBoard wPawns)
 {
 	return BBTwiddler::NortheastOne(wPawns);

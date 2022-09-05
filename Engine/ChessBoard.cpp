@@ -89,7 +89,7 @@ std::vector<ChessBoard::Square> ChessBoard::BitBoardToSquares(BitBoard bb)
 	{
 		int idx = BBTwiddler::bitScanForward(bb);
 		squares.push_back((Square)idx);
-		bb ^= (BitBoard)0x1 << idx;
+		bb &= (bb - 1);
 	}
 	return squares;
 }
@@ -887,13 +887,8 @@ ChessBoard::BBIndex ChessBoard::PieceTypeMatcher(PieceType p) const
 BitBoard ChessBoard::GetKnightAttackBB(Team t)
 {
 	auto knights = pieceBBs[BBIndex::Knights] & pieceBBs[t];
-	auto knightSquares = BitBoardToSquares(knights);
-	BitBoard result = Empty;
-	for (const auto sq : knightSquares)
-	{
-		result |= KnightAttacks[sq];
-	}
-	return result;
+	return BBTwiddler::NeeOne(knights) | BBTwiddler::NneOne(knights) | BBTwiddler::NwwOne(knights) | BBTwiddler::NnwOne(knights) | 
+		   BBTwiddler::SeeOne(knights) | BBTwiddler::SseOne(knights) | BBTwiddler::SswOne(knights) | BBTwiddler::SwwOne(knights);
 }
 BitBoard ChessBoard::CalculateKingDangerSquares(Team t)
 {
