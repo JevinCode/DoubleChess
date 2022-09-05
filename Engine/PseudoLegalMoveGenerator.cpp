@@ -9,7 +9,7 @@ std::vector<_Move> PseudoLegalMoveGenerator::GenerateKnightMoves(Team t, const C
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto pinCorridors = brd.GetCorridors();
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	std::vector<_Move> knightMoves;
 
 	//handle pins first

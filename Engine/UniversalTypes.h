@@ -117,7 +117,7 @@ struct _Move
 	{
 		return (Team)((move & teamMask) >> 9);
 	}
-	//move data is stored in a packed short. 4 most significant bits store flag data, next 6 store source square, next 6 store target square, next 3 store source piece type, last 3 store captured piece type
+	//move data is stored in a packed short. 4 most significant bits store flag data, next 6 store source square, next 6 store target square, next 3 store source piece type, next 3 store captured piece type, last 1 stores team
 protected:
 	uint move;
 	static constexpr uint flagMask = 0xF0000000;

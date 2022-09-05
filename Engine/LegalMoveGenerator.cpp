@@ -71,7 +71,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMoves(Team t, const ChessBo
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto pinCorridors = brd.GetCorridors();
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	std::vector<_Move> knightMoves;
 
 	//handle pins first
@@ -120,8 +120,7 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMovesCheck(Team t, const Ch
 {
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
-	auto pinCorridors = brd.GetCorridors();
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
 
 	std::vector<_Move> knightMoves;
@@ -154,7 +153,7 @@ std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
 	auto RayAttacks = brd.GetRayAttacks();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
 
 	//handle non-pinned rooks
@@ -188,7 +187,7 @@ std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto RayAttacks = brd.GetRayAttacks();
 	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
 
 	//handle non-pinned bishops
@@ -222,7 +221,7 @@ std::vector<_Move> GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto RayAttacks = brd.GetRayAttacks();
 	auto queens = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Queens];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
 
 	//handle non-pinned queens
@@ -262,7 +261,7 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> moves;
 	auto pieceBBs = brd.GetPieceBBs();
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto empty = brd.GetEmptyBB();
 	auto checkCorridor = brd.GetCheckCorridor();
@@ -412,7 +411,7 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	auto RayAttacks = brd.GetRayAttacks();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
 
 	//handle pins first
@@ -467,7 +466,7 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto RayAttacks = brd.GetRayAttacks();
 	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
 
 
@@ -522,7 +521,7 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto RayAttacks = brd.GetRayAttacks();
 	auto queens = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Queens];
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
 
 
@@ -584,7 +583,7 @@ std::vector<_Move> LegalMoveGenerator::GeneratePawnMoves(Team t, const ChessBoar
 {
 	std::vector<_Move> moves;
 	auto pieceBBs = brd.GetPieceBBs();
-	auto pins = brd.GetPins();
+	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
 	auto empty = brd.GetEmptyBB();
 	auto enPassantAttackers = brd.GetEnPassantAttackers();

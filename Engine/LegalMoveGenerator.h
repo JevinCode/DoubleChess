@@ -7,6 +7,7 @@ public:
 	static std::vector<_Move> GenerateMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateKnightMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateSlidingMoves(Team t, const ChessBoard& brd);
+	//TODO - check edge case K p p   R/Q for en passant
 	static std::vector<_Move> GeneratePawnMoves(Team t, const ChessBoard& brd);
 	static std::vector<_Move> GenerateKingMoves(Team t, const ChessBoard& brd);
 	static BitBoard KingAttacks(BitBoard kingSet);

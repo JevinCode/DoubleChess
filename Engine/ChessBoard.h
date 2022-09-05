@@ -43,12 +43,10 @@ public:
 	void ApplyMove(_Move m, Team t);
 	void RevertMove();
 	void Draw(Graphics& gfx) const;
-	static int LinearizeCoords(const Vei2& loc);
 	Vei2 GetOffset() const;
 	EnumArray<BBIndex, BitBoard> GetPieceBBs() const;
 	void OnClick(const Vei2& loc, Team t);
-	std::shared_ptr<Cell> CellAt(const Vei2& loc) const;
-	std::shared_ptr<Cell> CellAt(const Square sq) const;
+	Cell& CellAt(const Square sq);
 	static bool IsValidLoc(const Vei2& loc);
 	bool IsEnPassantable() const;
 	BitBoard GetEnPassantSquareBB() const;
@@ -70,7 +68,7 @@ public:
 	BitBoard GetKingDangerSquares(Team t) const;
 	bool IsInCheck(Team t) const;
 	std::unordered_map<Square, BitBoard> GetCorridors() const;
-	BitBoard GetPins() const;
+	BitBoard GetPins(Team t) const;
 	bool IsDoubleCheck(Team t) const;
 	BitBoard GetCheckCorridor() const;
 	BitBoard GetEmptyBB() const;
@@ -120,7 +118,7 @@ private:
 	//BitBoard QueenAttacks[64];
 	//0 = White, 1 = Black
 	std::vector<BitBoard> kingDangerSquares = {0,0};
-	BitBoard pins = 0;
+	std::vector<BitBoard> pins = { 0,0 };
 	BitBoard kingAttackers = 0; //we update this only when the king gets put in check
 	BitBoard checkCorridor = 0;
 	BitBoard enPassantAttackers = 0;
@@ -181,4 +179,7 @@ public:
 	static constexpr BitBoard Rank8 = 0xFF00000000000000;
 	static constexpr BitBoard NotRank1 = Universe ^ Rank1;
 	static constexpr BitBoard NotRank8 = Universe ^ Rank8;
+
+	static constexpr BitBoard LightSquares = 0x55AA55AA55AA55AA;
+	static constexpr BitBoard DarkSquares = 0xAA55AA55AA55AA55;
 };
