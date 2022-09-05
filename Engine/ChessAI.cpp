@@ -33,7 +33,7 @@ void ChessAI::Move()
 		assert(b1moves.size() > 0);
 		std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 		auto move = b1moves[num(rng)];
-		brd1.ApplyMove(move, team);
+		brd1.ApplyMove(move);
 		//handle promotion if applicable
 	}
 	else if (brd2.IsInCheck(team))
@@ -41,7 +41,7 @@ void ChessAI::Move()
 		assert(b2moves.size() > 0);
 		std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 		auto move = b2moves[num(rng)];
-		brd2.ApplyMove(move, team);
+		brd2.ApplyMove(move);
 		//handle promotion if applicable
 	}
 	else
@@ -51,14 +51,14 @@ void ChessAI::Move()
 		{
 			std::uniform_int_distribution<int> num(0, b1moves.size() - 1);
 			auto move = b1moves[num(rng)];
-			brd1.ApplyMove(move, team);
+			brd1.ApplyMove(move);
 			//handle promotion if applicable
 		}
 		else
 		{
 			std::uniform_int_distribution<int> num(0, b2moves.size() - 1);
 			auto move = b2moves[num(rng)];
-			brd2.ApplyMove(move, team);
+			brd2.ApplyMove(move);
 			//handle promotion if applicable
 		}
 	}

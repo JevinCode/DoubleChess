@@ -40,7 +40,7 @@ public:
 		kMaxValue = Occupied
 	};
 	ChessBoard(const Vei2& topLeft);
-	void ApplyMove(_Move m, Team t);
+	void ApplyMove(_Move m);
 	void RevertMove();
 	void Draw(Graphics& gfx) const;
 	Vei2 GetOffset() const;
@@ -64,20 +64,20 @@ public:
 	Vei2 GetScreenCoords(const Square sq) const;
 	std::vector<Vei2> GetScreenCoords(const std::vector<Square>& squares) const;
 	PieceType ParseCapture(Square sq) const;
-	const std::vector<std::vector<BitBoard>> GetRayAttacks() const;
 	BitBoard GetKingDangerSquares(Team t) const;
 	bool IsInCheck(Team t) const;
-	std::unordered_map<Square, BitBoard> GetCorridors() const;
+	const std::unordered_map<Square, BitBoard>& GetCorridors() const;
 	BitBoard GetPins(Team t) const;
 	bool IsDoubleCheck(Team t) const;
 	BitBoard GetCheckCorridor() const;
 	BitBoard GetEmptyBB() const;
 	BitBoard GetEnPassantAttackers() const;
 	bool IsStalemate() const;
+
+	void SetPinCorridor(Square sq, BitBoard bb);
 private:
 	//member functions
 
-	void GenerateRayAttackBBs();
 	void GenerateKnightAttackBBs();
 	void GenerateKingAttackBBs();
 	void GenerateMoves(Team t);
@@ -90,7 +90,6 @@ private:
 	void HandleSelectionClick(const Vei2& loc, Team t);
 	BBIndex PieceTypeMatcher(PieceType p) const;
 	BitBoard CalculateKingDangerSquares(Team t);
-	BitBoard CalculatePins(Team t);
 	BitBoard GetKnightAttackBB(Team t);
 	BitBoard GetKingAttackers(Team t);
 	BitBoard GetCheckCorridor(Team t, Square sq, PieceType p);
@@ -111,8 +110,6 @@ private:
 
 	EnumArray<BBIndex, BitBoard> pieceBBs;
 
-	//second index is used as follows: 0 = North, 1 = East, 2 = South, 3 = West, 4 = Northeast, 5 = Southeast, 6 = Southwest, 7 = Northeast
-	std::vector<std::vector<BitBoard>> RayAttacks;
 	//static BitBoard RookAttacks[64];
 	//BitBoard BishopAttacks[64];
 	//BitBoard QueenAttacks[64];

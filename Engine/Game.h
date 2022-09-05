@@ -74,5 +74,10 @@ private:
 	bool gameIsOver = false;
 	bool stalemate = false;
 
+	//Debugging Tests
+	void MoveGenerationTest(int depth);
+	bool calculating = true;
+	int numPositions = 0;
+
 	/********************************/
 };

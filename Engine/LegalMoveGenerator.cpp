@@ -1,5 +1,99 @@
 #include "LegalMoveGenerator.h"
 #include "PseudoLegalMoveGenerator.h"
+
+
+BitBoard LegalMoveGenerator::GetPositiveRayAttack(const BitBoard occupied, Direction dir, ChessBoard::Square square)
+{
+	BitBoard attacks = rayAttacks[(int)square][(int)dir];
+	BitBoard blocker = attacks & occupied;
+	if (blocker)
+	{
+		square = (ChessBoard::Square)BBTwiddler::bitScanForward(blocker);
+		attacks ^= rayAttacks[(int)square][(int)dir];
+	}
+	return attacks;
+}
+BitBoard LegalMoveGenerator::GetNegativeRayAttack(const BitBoard occupied, Direction dir, ChessBoard::Square square)
+{
+	BitBoard attacks = rayAttacks[(int)square][(int)dir];
+	BitBoard blocker = attacks & occupied;
+	if (blocker)
+	{
+		square = (ChessBoard::Square)BBTwiddler::bitScanReverse(blocker);
+		attacks ^= rayAttacks[(int)square][(int)dir];
+	}
+	return attacks;
+}
+
+BitBoard LegalMoveGenerator::GetRookAttackBBSingle(const BitBoard occupied, ChessBoard::Square square)
+{
+	return
+		GetPositiveRayAttack(occupied, Direction::North, square) |
+		GetPositiveRayAttack(occupied, Direction::East, square) |
+		GetNegativeRayAttack(occupied, Direction::South, square) |
+		GetNegativeRayAttack(occupied, Direction::West, square);
+}
+
+BitBoard LegalMoveGenerator::GetRookAttackBB(const BitBoard occupied, BitBoard rooks)
+{
+	if (!rooks)
+		return 0;
+	//we assume there are at most two rooks
+	ChessBoard::Square squareIdx1 = (ChessBoard::Square)BBTwiddler::bitScanForward(rooks);
+	ChessBoard::Square squareIdx2 = (ChessBoard::Square)BBTwiddler::bitScanReverse(rooks);
+
+	BitBoard attacks1 = GetRookAttackBBSingle(occupied, squareIdx1);
+
+	if (squareIdx1 == squareIdx2)
+		return attacks1;
+
+	BitBoard attacks2 = GetRookAttackBBSingle(occupied, squareIdx2);
+
+	return attacks1 | attacks2;
+}
+
+BitBoard LegalMoveGenerator::GetBishopAttackBBSingle(const BitBoard occupied, ChessBoard::Square square)
+{
+	return
+		GetPositiveRayAttack(occupied, Direction::Northeast, square) |
+		GetPositiveRayAttack(occupied, Direction::Northwest, square) |
+		GetNegativeRayAttack(occupied, Direction::Southeast, square) |
+		GetNegativeRayAttack(occupied, Direction::Southwest, square);
+}
+
+BitBoard LegalMoveGenerator::GetBishopAttackBB(const BitBoard occupied, const BitBoard bishops)
+{
+	if (!bishops)
+		return 0;
+	//we assume there are at most two rooks
+	ChessBoard::Square squareIdx1 = (ChessBoard::Square)BBTwiddler::bitScanForward(bishops);
+	ChessBoard::Square squareIdx2 = (ChessBoard::Square)BBTwiddler::bitScanReverse(bishops);
+
+	BitBoard attacks1 = GetBishopAttackBBSingle(occupied, squareIdx1);
+
+	if (squareIdx1 == squareIdx2)
+		return attacks1;
+
+	BitBoard attacks2 = GetBishopAttackBBSingle(occupied, squareIdx2);
+
+	return attacks1 | attacks2;
+}
+
+BitBoard LegalMoveGenerator::GetQueenAttackBBSingle(const BitBoard occupied, ChessBoard::Square square)
+{
+	return GetRookAttackBBSingle(occupied, square) | GetBishopAttackBBSingle(occupied, square);
+}
+
+BitBoard LegalMoveGenerator::GetQueenAttackBB(const BitBoard occupied, const BitBoard queens)
+{
+	auto squares = ChessBoard::BitBoardToSquares(queens);
+	BitBoard result = 0;
+	for (auto square : squares)
+	{
+		result |= GetQueenAttackBBSingle(occupied, square);
+	}
+	return result;
+}
 std::vector<_Move> LegalMoveGenerator::GenerateKingMoves(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> moves;
@@ -145,12 +239,11 @@ std::vector<_Move> LegalMoveGenerator::GenerateKnightMovesCheck(Team t, const Ch
 	return knightMoves;
 }
 
-std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateRookMovesCheck(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> rookMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
-	auto RayAttacks = brd.GetRayAttacks();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
 	auto pins = brd.GetPins(t);
@@ -161,7 +254,7 @@ std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
 	auto freeRookSquares = ChessBoard::BitBoardToSquares(freeRooks);
 	for (const auto square : freeRookSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard attacks = GetRookAttackBBSingle(occupied, square) & checkCorridor;
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -179,13 +272,12 @@ std::vector<_Move> GenerateRookMovesCheck(Team t, const ChessBoard& brd)
 	return rookMoves;
 }
 
-std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> bishopMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
-	auto RayAttacks = brd.GetRayAttacks();
 	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
 	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
@@ -195,7 +287,7 @@ std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
 	auto freeBishopSquares = ChessBoard::BitBoardToSquares(freeBishops);
 	for (const auto square : freeBishopSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard attacks = GetBishopAttackBBSingle(occupied, square) & checkCorridor;
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -213,13 +305,12 @@ std::vector<_Move> GenerateBishopMovesCheck(Team t, const ChessBoard& brd)
 	return bishopMoves;
 }
 
-std::vector<_Move> GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> queenMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
-	auto RayAttacks = brd.GetRayAttacks();
 	auto queens = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Queens];
 	auto pins = brd.GetPins(t);
 	auto checkCorridor = brd.GetCheckCorridor();
@@ -229,7 +320,7 @@ std::vector<_Move> GenerateQueenMovesCheck(Team t, const ChessBoard& brd)
 	auto freeQueenSquares = ChessBoard::BitBoardToSquares(freeQueens);
 	for (const auto square : freeQueenSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks) & checkCorridor;
+		BitBoard attacks = GetQueenAttackBBSingle(occupied, square) & checkCorridor;
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -403,12 +494,11 @@ std::vector<_Move> GeneratePawnMovesCheck(Team t, const ChessBoard& brd)
 	return moves;
 }
 
-std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateRookMoves(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> rookMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
-	auto RayAttacks = brd.GetRayAttacks();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
 	auto rooks = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Rooks];
 	auto pins = brd.GetPins(t);
@@ -419,7 +509,7 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	auto pinnedRookSquares = ChessBoard::BitBoardToSquares(pinnedRooks);
 	for (const auto square : pinnedRookSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
+		BitBoard attacks = GetRookAttackBBSingle(occupied, square) & corridors[square];
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -440,7 +530,7 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	auto freeRookSquares = ChessBoard::BitBoardToSquares(freeRooks);
 	for (const auto square : freeRookSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetRookAttackBBSingle(occupied, (int)square, RayAttacks);
+		BitBoard attacks = GetRookAttackBBSingle(occupied, square);
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -458,13 +548,12 @@ std::vector<_Move> GenerateRookMoves(Team t, const ChessBoard& brd)
 	return rookMoves;
 }
 
-std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateBishopMoves(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> bishopMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
-	auto RayAttacks = brd.GetRayAttacks();
 	auto bishops = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Bishops];
 	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
@@ -474,7 +563,7 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	auto pinnedBishopSquares = ChessBoard::BitBoardToSquares(pinnedBishops);
 	for (const auto square : pinnedBishopSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
+		BitBoard attacks = GetBishopAttackBBSingle(occupied, square) & corridors[square];
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -495,7 +584,7 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	auto freeBishopSquares = ChessBoard::BitBoardToSquares(freeBishops);
 	for (const auto square : freeBishopSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetBishopAttackBBSingle(occupied, (int)square, RayAttacks);
+		BitBoard attacks = GetBishopAttackBBSingle(occupied, square);
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -513,13 +602,12 @@ std::vector<_Move> GenerateBishopMoves(Team t, const ChessBoard& brd)
 	return bishopMoves;
 }
 
-std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
+std::vector<_Move> LegalMoveGenerator::GenerateQueenMoves(Team t, const ChessBoard& brd)
 {
 	std::vector<_Move> queenMoves;
 	Team other = (Team)(1 - (int)t);
 	auto pieceBBs = brd.GetPieceBBs();
 	auto occupied = pieceBBs[ChessBoard::BBIndex::Occupied];
-	auto RayAttacks = brd.GetRayAttacks();
 	auto queens = pieceBBs[t] & pieceBBs[ChessBoard::BBIndex::Queens];
 	auto pins = brd.GetPins(t);
 	auto corridors = brd.GetCorridors();
@@ -529,7 +617,7 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 	auto pinnedQueenSquares = ChessBoard::BitBoardToSquares(pinnedQueens);
 	for (const auto square : pinnedQueenSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks) & corridors[square];
+		BitBoard attacks = GetQueenAttackBBSingle(occupied, square) & corridors[square];
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -550,7 +638,7 @@ std::vector<_Move> GenerateQueenMoves(Team t, const ChessBoard& brd)
 	auto freeQueenSquares = ChessBoard::BitBoardToSquares(freeQueens);
 	for (const auto square : freeQueenSquares)
 	{
-		BitBoard attacks = BBTwiddler::GetQueenAttackBBSingle(occupied, (int)square, RayAttacks);
+		BitBoard attacks = GetQueenAttackBBSingle(occupied, square);
 		BitBoard quiets = attacks & brd.GetEmptyBB();
 		BitBoard captures = attacks & pieceBBs[other];
 
@@ -903,4 +991,139 @@ std::vector<_Move> LegalMoveGenerator::GenerateMoves(Team t, const ChessBoard& b
 	moreMoves = GeneratePawnMoves(t, brd);
 	moves.insert(moves.end(), moreMoves.begin(), moreMoves.end());
 	return moves;
+}
+
+BitBoard LegalMoveGenerator::CalculatePins(ChessBoard& brd, Team t)
+{
+	BitBoard pin = 0;
+	Team other = (Team)(1 - (int)t);
+	auto pieceBBs = brd.GetPieceBBs();
+	BitBoard friendlies = pieceBBs[t];
+	BitBoard rq = (pieceBBs[ChessBoard::BBIndex::Rooks] | pieceBBs[ChessBoard::BBIndex::Queens]) & pieceBBs[other];
+	BitBoard bq = (pieceBBs[ChessBoard::BBIndex::Bishops] | pieceBBs[ChessBoard::BBIndex::Queens]) & pieceBBs[other];
+	BitBoard occ = pieceBBs[ChessBoard::BBIndex::Occupied];
+	BitBoard opponentPieces = pieceBBs[other];
+	ChessBoard::Square kingLoc = ChessBoard::BitBoardToSquare(pieceBBs[ChessBoard::BBIndex::Kings] & pieceBBs[t]);
+
+	BitBoard northCorridor = rayAttacks[(int)kingLoc][(int)Direction::North] & opponentPieces;
+	BitBoard first = northCorridor & -northCorridor;
+
+	//if first opposing piece along this ray is a rook or queen, we proceed with the check -- otherwise there cannot be a pin
+	if (first & rq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard northCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::North] & rayAttacks[(int)firstSquare][(int)Direction::South] & friendlies;
+		if (BBTwiddler::SingleElement(northCorridorFriendly))
+		{
+			northCorridor = (rayAttacks[(int)kingLoc][(int)Direction::North] & rayAttacks[(int)firstSquare][(int)Direction::South]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(northCorridorFriendly), northCorridor);
+			pin |= northCorridorFriendly;
+		}
+	}
+
+	BitBoard eastCorridor = rayAttacks[(int)kingLoc][(int)Direction::East] & opponentPieces;
+	first = eastCorridor & -eastCorridor;
+
+	if (first & rq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard eastCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::East] & rayAttacks[(int)firstSquare][(int)Direction::West] & friendlies;
+		if (BBTwiddler::SingleElement(eastCorridorFriendly))
+		{
+			eastCorridor = (rayAttacks[(int)kingLoc][(int)Direction::East] & rayAttacks[(int)firstSquare][(int)Direction::West]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(eastCorridorFriendly), eastCorridor);
+			pin |= eastCorridorFriendly;
+		}
+	}
+
+	BitBoard southCorridor = rayAttacks[(int)kingLoc][(int)Direction::South] & opponentPieces;
+	first = southCorridor & -southCorridor;
+
+	if (first & rq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard southCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::South] & rayAttacks[(int)firstSquare][(int)Direction::North] & friendlies;
+		if (BBTwiddler::SingleElement(southCorridorFriendly))
+		{
+			southCorridor = (rayAttacks[(int)kingLoc][(int)Direction::South] & rayAttacks[(int)firstSquare][(int)Direction::North]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(southCorridorFriendly), southCorridor);
+			pin |= southCorridorFriendly;
+		}
+	}
+
+	BitBoard westCorridor = rayAttacks[(int)kingLoc][(int)Direction::West] & opponentPieces;
+	first = westCorridor & -westCorridor;
+
+	if (first & rq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard westCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::West] & rayAttacks[(int)firstSquare][(int)Direction::East] & friendlies;
+		if (BBTwiddler::SingleElement(westCorridorFriendly))
+		{
+			westCorridor = (rayAttacks[(int)kingLoc][(int)Direction::West] & rayAttacks[(int)firstSquare][(int)Direction::East]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(westCorridorFriendly), westCorridor);
+			pin |= westCorridorFriendly;
+		}
+	}
+
+	BitBoard neCorridor = rayAttacks[(int)kingLoc][(int)Direction::Northeast] & opponentPieces;
+	first = neCorridor & -neCorridor;
+
+	if (first & bq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard neCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::Northeast] & rayAttacks[(int)firstSquare][(int)Direction::Southwest] & friendlies;
+		if (BBTwiddler::SingleElement(neCorridorFriendly))
+		{
+			neCorridor = (rayAttacks[(int)kingLoc][(int)Direction::Northeast] & rayAttacks[(int)firstSquare][(int)Direction::Southwest]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(neCorridorFriendly), neCorridor);
+			pin |= neCorridorFriendly;
+		}
+	}
+
+	BitBoard seCorridor = rayAttacks[(int)kingLoc][(int)Direction::Southeast] & opponentPieces;
+	first = seCorridor & -seCorridor;
+
+	if (first & bq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard seCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::Southeast] & rayAttacks[(int)firstSquare][(int)Direction::Northwest] & friendlies;
+		if (BBTwiddler::SingleElement(seCorridorFriendly))
+		{
+			seCorridor = (rayAttacks[(int)kingLoc][(int)Direction::Southeast] & rayAttacks[(int)firstSquare][(int)Direction::Northwest]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(seCorridorFriendly), seCorridor);
+			pin |= seCorridorFriendly;
+		}
+	}
+
+	BitBoard swCorridor = rayAttacks[(int)kingLoc][(int)Direction::Southwest] & opponentPieces;
+	first = swCorridor & -swCorridor;
+
+	if (first & bq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard swCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::Southwest] & rayAttacks[(int)firstSquare][(int)Direction::Northeast] & friendlies;
+		if (BBTwiddler::SingleElement(swCorridorFriendly))
+		{
+			swCorridor = (rayAttacks[(int)kingLoc][(int)Direction::Southwest] & rayAttacks[(int)firstSquare][(int)Direction::Northeast]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(swCorridorFriendly), swCorridor);
+			pin |= swCorridorFriendly;
+		}
+	}
+
+	BitBoard nwCorridor = rayAttacks[(int)kingLoc][(int)Direction::Northwest] & opponentPieces;
+	first = nwCorridor & -nwCorridor;
+
+	if (first & bq)
+	{
+		ChessBoard::Square firstSquare = ChessBoard::BitBoardToSquare(first);
+		BitBoard nwCorridorFriendly = rayAttacks[(int)kingLoc][(int)Direction::Northwest] & rayAttacks[(int)firstSquare][(int)Direction::Southeast] & friendlies;
+		if (BBTwiddler::SingleElement(nwCorridorFriendly))
+		{
+			nwCorridor = (rayAttacks[(int)kingLoc][(int)Direction::Northwest] & rayAttacks[(int)firstSquare][(int)Direction::Southeast]) | first;
+			brd.SetPinCorridor(ChessBoard::BitBoardToSquare(nwCorridorFriendly), nwCorridor);
+			pin |= nwCorridorFriendly;
+		}
+	}
+	return pin;
 }

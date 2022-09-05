@@ -22,6 +22,7 @@
 #include "Game.h"
 #include <random>
 #include "SpriteEffect.h"
+#include "LegalMoveGenerator.h"
 
 Game::Game( MainWindow& wnd )
 	:
@@ -42,57 +43,39 @@ void Game::Go()
 	ComposeFrame();
 	gfx.EndFrame();
 }
-
-void Game::UpdateModel()
+void Game::MoveGenerationTest(int depth)
 {
-	if (gameIsOver)
+	if (depth == 0)
 	{
+		numPositions++;
+		playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
 		return;
 	}
-	if (playerTurn == Team::BLACK)
-		mrAIBlack.HandleMoveEvent(false);
-	else
-		mrAIWhite.HandleMoveEvent(false);
-
-	playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-	brd1.GenerateMoves(playerTurn);
-	brd2.GenerateMoves(playerTurn);
-	brd1.turnSwap = false;
-	brd2.turnSwap = false;
-	TestForCheckmate();
-
-	
-	
-	//while (!wnd.mouse.IsEmpty())
+	auto moves = LegalMoveGenerator::GenerateMoves(playerTurn, brd1);
+	//if (depth == 1)
 	//{
-	//	const auto e = wnd.mouse.Read();
-	//	if (e.GetType() == Mouse::Event::Type::LPress)
-	//	{
-	//		Vei2 loc = wnd.mouse.GetPos();
-	//		OnClick(loc);
-	//		if (brd1.turnSwap)
-	//		{
-	//			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-	//			if(!UndoArea.Contains(loc))
-	//				movesSelected.push(BoardSelection::Board1);
-	//			brd2.isEnPassantable = false;
-	//			brd1.GenerateMoves(playerTurn);
-	//			brd2.GenerateMoves(playerTurn);
-	//			brd1.turnSwap = false;
-	//		}
-	//		else if (brd2.turnSwap)
-	//		{
-	//			playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
-	//			if (!UndoArea.Contains(loc))
-	//				movesSelected.push(BoardSelection::Board2);
-	//			brd1.isEnPassantable = false;
-	//			brd1.GenerateMoves(playerTurn);
-	//			brd2.GenerateMoves(playerTurn);
-	//			brd2.turnSwap = false;
-	//		}
-	//		TestForCheckmate();
-	//	}
+	//	numPositions += moves.size();
+	//	playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+
+	//	return;
 	//}
+
+	for (const auto& move : moves)
+	{
+		brd1.ApplyMove(move);
+		playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+		MoveGenerationTest(depth - 1);
+		brd1.RevertMove();
+	}
+	playerTurn = playerTurn == Team::WHITE ? Team::BLACK : Team::WHITE;
+}
+void Game::UpdateModel()
+{
+	if(calculating)
+	{
+		MoveGenerationTest(5);
+		calculating = false;
+	}
 }
 
 void Game::TestForCheckmate()
@@ -206,34 +189,5 @@ void Game::OnClick(const Vei2& loc)
 void Game::ComposeFrame()
 {
 	brd1.Draw(gfx);
-	brd2.Draw(gfx);/*
-	if (!mrAI.MidGame())
-	{
-		font.DrawText("AI is playing:", { 150, 400 }, Colors::White, gfx);
-		font.DrawText(mrAI.GetBookName(), { 50, 450 }, Colors::Green, gfx);
-	}*/
-	gfx.DrawSprite(600, 550, { 0,25,0,24 }, undoredo, SpriteEffect::Chroma(Colors::White));
-
-	if (gameIsOver)
-	{
-		if (stalemate)
-			font.DrawText("Stalemate!", { 375,400 }, Colors::White, gfx);
-
-		else if (playerTurn == Team::BLACK)
-			font.DrawText("White Wins!", { 375, 400 }, Colors::White, gfx);
-		else
-			font.DrawText("Black Wins!", { 375, 400 }, Colors::White, gfx);
-	}
-	if (brd1.isPromoting || brd2.isPromoting)
-	{
-		font.DrawText("Select Piece To Promote Into:", { 50, 400 }, Colors::Green, gfx);
-		Piece::Draw(gfx, { 550, 400 }, Piece::PieceType::Queen, playerTurn);
-		Piece::Draw(gfx, { 600, 400 }, Piece::PieceType::Knight, playerTurn);
-
-		if (queenPromotionArea.Contains(wnd.mouse.GetPos()))
-			gfx.DrawBorder(queenPromotionArea, Colors::Blue, 3);
-
-		else if (knightPromotionArea.Contains(wnd.mouse.GetPos()))
-			gfx.DrawBorder(knightPromotionArea, Colors::Blue, 3);
-	}
+	font.DrawText("NumPositions: " + std::to_string(numPositions), { 400,300 }, Colors::Green, gfx);
 }
