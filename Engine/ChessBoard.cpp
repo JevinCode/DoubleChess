@@ -1102,3 +1102,13 @@ bool ChessBoard::IsStalemate() const
 		return false;
 	}
 }
+
+bool ChessBoard::TurnSwap() const
+{
+	return turnSwap;
+}
+
+void ChessBoard::SetTurnSwapFalse()
+{
+	turnSwap = false;
+}

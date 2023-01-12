@@ -18,6 +18,11 @@ public:
 		x( (T)src.x ),
 		y( (T)src.y )
 	{}
+	Vec2_( std::pair<T, T> p )
+		:
+		x(p.first),
+		y(p.second)
+	{}
 	bool operator==(const Vec2_& rhs) const
 	{
 		return x == rhs.x && y == rhs.y;

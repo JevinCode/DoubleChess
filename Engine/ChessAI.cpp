@@ -10,8 +10,10 @@ ChessAI::ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2)
 	rng = std::mt19937(rd());
 }
 
-void ChessAI::HandleMoveEvent(bool isBrd1)
+void ChessAI::HandleMoveEvent()
 {
+	brd1.GenerateMoves(GetTeam());
+	brd2.GenerateMoves(GetTeam());
 	Move();
 }
 

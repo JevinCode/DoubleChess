@@ -62,7 +62,7 @@ private:
 	BoardSelection curSelection = BoardSelection::NIL;
 	BoardSelection prevSelection = BoardSelection::NIL;
 	std::stack<BoardSelection> movesSelected;
-	ChessAI mrAIWhite;
+	//ChessAI mrAIWhite;
 	ChessAI mrAIBlack;
 
 	RectI queenPromotionArea = { {551, 400}, {581, 431} };

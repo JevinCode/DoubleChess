@@ -73,7 +73,8 @@ public:
 	BitBoard GetEmptyBB() const;
 	BitBoard GetEnPassantAttackers() const;
 	bool IsStalemate() const;
-
+	bool TurnSwap() const;
+	void SetTurnSwapFalse();
 	void SetPinCorridor(Square sq, BitBoard bb);
 private:
 	//member functions

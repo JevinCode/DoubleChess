@@ -8,7 +8,7 @@ class ChessAI
 {
 public:
 	ChessAI(Team t, ChessBoard& brd1, ChessBoard& brd2);
-	void HandleMoveEvent(bool isBrd1);
+	void HandleMoveEvent();
 	bool MidGame() const;
 	std::string GetBookName() const;
 	Team GetTeam() const;

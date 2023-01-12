@@ -30,7 +30,7 @@ Game::Game( MainWindow& wnd )
 	gfx( wnd ),
 	brd1({ 80,50 }),
 	brd2({ 480, 50 }),
-	mrAIWhite(Team::WHITE, brd1, brd2),
+	//mrAIWhite(Team::WHITE, brd1, brd2),
 	mrAIBlack(Team::BLACK, brd1, brd2),
 	font("Images\\Fixedsys16x28.bmp")
 {
@@ -71,10 +71,36 @@ void Game::MoveGenerationTest(int depth)
 }
 void Game::UpdateModel()
 {
-	if(calculating)
+	if (!gameIsOver) 
 	{
-		MoveGenerationTest(5);
-		calculating = false;
+		if (playerTurn == Team::BLACK)
+		{
+			mrAIBlack.HandleMoveEvent();
+			brd1.SetTurnSwapFalse();
+			brd2.SetTurnSwapFalse();
+			playerTurn = Team::WHITE;
+			brd1.GenerateMoves(playerTurn);
+			brd2.GenerateMoves(playerTurn);
+		}
+		else
+		{
+			while (!wnd.mouse.IsEmpty())
+			{
+				const Mouse::Event e = wnd.mouse.Read();
+				if (e.GetType() == Mouse::Event::Type::LPress)
+				{
+					OnClick(e.GetPos());
+					if (brd1.TurnSwap() || brd2.TurnSwap())
+					{
+						playerTurn = Team::BLACK;
+						brd1.GenerateMoves(playerTurn);
+						brd2.GenerateMoves(playerTurn);
+						brd1.SetTurnSwapFalse();
+						brd2.SetTurnSwapFalse();
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -189,5 +215,6 @@ void Game::OnClick(const Vei2& loc)
 void Game::ComposeFrame()
 {
 	brd1.Draw(gfx);
-	font.DrawText("NumPositions: " + std::to_string(numPositions), { 400,300 }, Colors::Green, gfx);
+	brd2.Draw(gfx);
+	//font.DrawText("NumPositions: " + std::to_string(numPositions), { 400,300 }, Colors::Green, gfx);
 }
